@@ -68,6 +68,19 @@ The dashboard reads identity, organization memberships, Developer Requests, Apps
 
 If the default host ports are occupied, change `FRONTEND_PORT`, `GATEWAY_PORT`, or `POSTGRES_PORT` in `.env`.
 
+### Production Docker
+
+Production uses a separate fail-closed Compose file: no source mounts, hot reload, sandbox bearer token, public database port, or unauthenticated raw Swagger service. Copy the documented template, supply deployment secrets, then validate and build:
+
+```sh
+cp deploy/production.env.example deploy/production.env
+npm run docker:prod:config
+npm run docker:prod:build
+npm run docker:prod:up
+```
+
+See [Production Docker deployment](docs/production-deployment.md) for TLS/reverse-proxy requirements, signing keys, first Admin creation, health checks, feature gates, and safe shutdown. The production environment file is ignored by Git and must not be committed.
+
 ### Without Docker
 
 Frontend:

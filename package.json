@@ -37,6 +37,11 @@
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
     "docker:ps": "docker compose ps",
+    "docker:prod:config": "docker compose --env-file deploy/production.env -f compose.production.yaml config -q",
+    "docker:prod:build": "docker compose --env-file deploy/production.env -f compose.production.yaml build",
+    "docker:prod:up": "docker compose --env-file deploy/production.env -f compose.production.yaml up --build -d --wait --wait-timeout 180",
+    "docker:prod:down": "docker compose --env-file deploy/production.env -f compose.production.yaml down",
+    "docker:prod:logs": "docker compose --env-file deploy/production.env -f compose.production.yaml logs -f",
     "db:migrate": "docker compose run --rm migrate",
     "db:shell": "docker compose exec postgres sh -lc 'psql -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\"'",
     "check": "npm run validate:contracts && npm run test:docs && npm run typecheck && npm run lint && npm run backend:check && npm run build"

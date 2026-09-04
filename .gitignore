@@ -31,6 +31,7 @@ yarn-error.log*
 .env*
 !.env.example
 !**/.env.example
+/deploy/production.env
 
 # Go build and coverage output
 /services/app-gateway/app-gateway

@@ -8,5 +8,8 @@ outputs
 work
 services
 *.log
+*.key
+*.pem
 .env*
 !.env.example
+deploy/production.env

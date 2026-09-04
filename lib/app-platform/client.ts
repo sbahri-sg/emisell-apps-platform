@@ -74,9 +74,6 @@ import type { DeveloperContractId, DeveloperGuide } from '../documentation/devel
 import type { AppPlan, AppSubscription, AppSubscriptionQuote, CreateAppPlan, InstallationBilling } from './billing';
 
 const DEFAULT_GATEWAY_URL = "http://localhost:8081";
-const DEFAULT_DEVELOPMENT_TOKEN = "emisell-local-dev-token";
-const DEFAULT_DEVELOPMENT_ORGANIZATION_ID =
-  "01995f72-0000-7000-8000-000000000001";
 
 type ErrorEnvelope = { error?: ApiError };
 
@@ -153,11 +150,8 @@ class AppPlatformClient {
   private readonly baseUrl = (
     process.env.NEXT_PUBLIC_APP_GATEWAY_URL ?? DEFAULT_GATEWAY_URL
   ).replace(/\/$/, "");
-  private readonly token =
-    process.env.NEXT_PUBLIC_APP_GATEWAY_TOKEN ?? DEFAULT_DEVELOPMENT_TOKEN;
-  private readonly organizationId =
-    process.env.NEXT_PUBLIC_ORGANIZATION_ID ??
-    DEFAULT_DEVELOPMENT_ORGANIZATION_ID;
+  private readonly token = process.env.NEXT_PUBLIC_APP_GATEWAY_TOKEN ?? "";
+  private readonly organizationId = process.env.NEXT_PUBLIC_ORGANIZATION_ID ?? "";
 
   private csrfToken() {
     if (typeof document === "undefined") return "";
@@ -232,7 +226,7 @@ class AppPlatformClient {
     if (csrfToken) {
       if (init.method && !["GET", "HEAD"].includes(init.method))
         headers.set("X-CSRF-Token", decodeURIComponent(csrfToken));
-    } else if (!adminRequest) {
+    } else if (!adminRequest && this.token && this.organizationId) {
       headers.set("Authorization", `Bearer ${this.token}`);
       headers.set("X-Organization-Id", this.organizationId);
     }
