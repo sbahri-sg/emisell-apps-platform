@@ -380,7 +380,7 @@ func LoadDatabase() (DatabaseConfig, error) {
 		return DatabaseConfig{}, fmt.Errorf("database connection limits must satisfy 0 <= min <= max")
 	}
 	return DatabaseConfig{
-		URL:            value("DATABASE_URL", "postgres://emisell:emisell-dev@localhost:5432/emisell_app_platform?sslmode=disable"),
+		URL:            value("DATABASE_URL", "postgres://emisell:emisell-dev@localhost:55433/emisell_app_platform?sslmode=disable"),
 		MaxConnections: maxConnections,
 		MinConnections: minConnections,
 		ConnectTimeout: connectTimeout,

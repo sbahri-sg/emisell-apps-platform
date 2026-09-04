@@ -14,7 +14,7 @@ Without Docker:
 
 ```sh
 cd services/app-gateway
-DATABASE_URL='postgres://emisell:emisell-dev@localhost:5432/emisell_app_platform?sslmode=disable' go run ./cmd/migrate
+DATABASE_URL='postgres://emisell:emisell-dev@localhost:55433/emisell_app_platform?sslmode=disable' go run ./cmd/migrate
 ```
 
 The Compose stack runs migrations before starting App Gateway. Migrations are forward-only in automated environments. A matching `.down.sql` file is kept for reviewed manual recovery; it is never executed automatically.

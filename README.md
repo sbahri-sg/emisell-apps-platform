@@ -53,7 +53,7 @@ This starts:
 - Internal Admin documentation center at `http://localhost:3003/admin/docs`, with operator-verified OpenAPI/Postman downloads
 - Go App Gateway at `http://localhost:8081` (container port `8080`)
 - Raw Partner API Swagger at `http://localhost:8082` (loopback-only, no application login); internal and roadmap contracts remain in authenticated Admin Documentation
-- PostgreSQL at `localhost:5432`
+- PostgreSQL at `localhost:55433`
 
 Frontend and Go source changes reload automatically. Follow or stop the stack with:
 
