@@ -17,6 +17,7 @@ services:
       NEXT_PUBLIC_AUTH_CSRF_COOKIE_NAME: ${AUTH_CSRF_COOKIE_NAME:-emisell_csrf}
       NEXT_PUBLIC_MERCHANT_CSRF_COOKIE_NAME: ${MERCHANT_CSRF_COOKIE_NAME:-emisell_merchant_csrf}
       NEXT_PUBLIC_SANDBOX_MERCHANT_ID: ${NEXT_PUBLIC_SANDBOX_MERCHANT_ID:-cmmerchantdemo000000000001}
+      VITE_ALLOWED_HOSTS: ${VITE_ALLOWED_HOSTS:-apps-platform.emisell.com}
       VITE_DOCKER: "true"
       VITE_USE_POLLING: "true"
     ports:

@@ -41,6 +41,14 @@ const localBindingConfig = {
 
 export default defineConfig(async ({ mode }) => {
   const frontendEnv = loadEnv(mode, process.cwd(), '');
+  const allowedHosts = (
+    process.env.VITE_ALLOWED_HOSTS ??
+    frontendEnv.VITE_ALLOWED_HOSTS ??
+    'apps-platform.emisell.com'
+  )
+    .split(',')
+    .map((host) => host.trim())
+    .filter(Boolean);
   // Keep Wrangler and Miniflare state project-local. These are non-secret tool
   // settings; application environment belongs in ignored `.env*` files.
   process.env.WRANGLER_WRITE_LOGS ??= 'false';
@@ -53,6 +61,9 @@ export default defineConfig(async ({ mode }) => {
   return {
     css: { postcss: { plugins: [tailwindcss()] } },
     server: {
+      // Keep Vite host-header protection enabled and allow only explicitly
+      // configured deployment hostnames. Never use allowedHosts: true.
+      allowedHosts,
       // Preserve Vite's default sensitive-file deny rules and block raw docs
       // URLs (including /@fs and ?raw/?import) from bypassing operator auth.
       // Server module loading can still read the source contracts internally.
