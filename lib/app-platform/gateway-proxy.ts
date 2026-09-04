@@ -1,5 +1,3 @@
-import { env } from 'cloudflare:workers';
-
 const requestHeaderAllowlist = [
   'accept',
   'accept-language',
@@ -26,9 +24,7 @@ const responseHeaderAllowlist = [
 ] as const;
 
 function gatewayOrigin() {
-  const bindings = env as { APP_GATEWAY_INTERNAL_URL?: string };
   return (
-    bindings.APP_GATEWAY_INTERNAL_URL ??
     process.env.APP_GATEWAY_INTERNAL_URL ??
     'http://localhost:8081'
   ).replace(/\/$/, '');

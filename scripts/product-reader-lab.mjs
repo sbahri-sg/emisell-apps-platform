@@ -170,13 +170,13 @@ try {
   } else {
     // Separate checkout copy prevents build/env/cookie collisions with the user's running dashboard.
     const frontendDir = join(workspace, 'frontend'); mkdirSync(frontendDir, { mode: 0o700 });
-    for (const name of ['app', 'lib', 'public', 'docs', '.openai', 'package.json', 'package-lock.json', 'tsconfig.json', 'next-env.d.ts', 'vite.config.ts', 'next.config.ts']) {
+    for (const name of ['app', 'lib', 'public', 'docs', '.openai', 'package.json', 'package-lock.json', 'tsconfig.json', 'next-env.d.ts', 'vite.config.ts', 'next.config.ts', 'proxy.ts']) {
       if (existsSync(join(root, name))) cpSync(join(root, name), join(frontendDir, name), { recursive: true });
     }
     symlinkSync(join(root, 'node_modules'), join(frontendDir, 'node_modules'), 'dir');
     const frontendProcess = start('Lab frontend', process.execPath, [join(root, 'node_modules/vinext/dist/cli.js'), 'dev', '--host', '127.0.0.1', '--port', String(port)],
       { ...baseEnv, NEXT_PUBLIC_APP_GATEWAY_URL: gatewayURL, APP_GATEWAY_INTERNAL_URL: gatewayURL, NEXT_PUBLIC_SITE_URL: frontendURL,
-        NEXT_PUBLIC_APP_GATEWAY_TOKEN: developerToken, NEXT_PUBLIC_ORGANIZATION_ID: organizationId, NEXT_PUBLIC_ENABLE_DEVELOPMENT_LOGIN: 'true',
+        NEXT_PUBLIC_APP_GATEWAY_TOKEN: '', NEXT_PUBLIC_ORGANIZATION_ID: '', NEXT_PUBLIC_ENABLE_DEVELOPMENT_LOGIN: 'true',
         AUTH_SESSION_COOKIE_NAME: gatewayEnv.AUTH_SESSION_COOKIE_NAME, NEXT_PUBLIC_AUTH_CSRF_COOKIE_NAME: gatewayEnv.AUTH_CSRF_COOKIE_NAME,
         NEXT_PUBLIC_MERCHANT_CSRF_COOKIE_NAME: gatewayEnv.MERCHANT_CSRF_COOKIE_NAME, NEXT_PUBLIC_SANDBOX_MERCHANT_ID: 'merchant-a' }, frontendDir);
     await ready(frontendURL+'/install', frontendProcess);

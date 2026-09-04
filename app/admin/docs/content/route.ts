@@ -1,13 +1,11 @@
 import { serveDocumentation } from '../../../../lib/documentation/access.mjs';
 import { buildPostman, buildReference, contracts, selectSpec } from '../../../../lib/documentation/contracts.mjs';
-import { env } from 'cloudflare:workers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-  const bindings = env as { APP_GATEWAY_INTERNAL_URL?: string; AUTH_SESSION_COOKIE_NAME?: string };
   return serveDocumentation(request, {
-    gatewayUrl: bindings.APP_GATEWAY_INTERNAL_URL ?? process.env.APP_GATEWAY_INTERNAL_URL ?? 'http://localhost:8081',
+    gatewayUrl: process.env.APP_GATEWAY_INTERNAL_URL ?? 'http://localhost:8081',
     sessionCookieName: 'emisell_admin_session',
     render: async () => {
       const params = new URL(request.url).searchParams;

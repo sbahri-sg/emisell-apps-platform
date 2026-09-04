@@ -99,8 +99,8 @@ The dashboard uses the typed client in `lib/app-platform/client.ts` for all impl
 
 ```text
 NEXT_PUBLIC_APP_GATEWAY_URL=http://localhost:8081
-NEXT_PUBLIC_APP_GATEWAY_TOKEN=emisell-local-dev-token
-NEXT_PUBLIC_ORGANIZATION_ID=01995f72-0000-7000-8000-000000000001
+NEXT_PUBLIC_APP_GATEWAY_TOKEN=
+NEXT_PUBLIC_ORGANIZATION_ID=
 NEXT_PUBLIC_ENABLE_DEVELOPMENT_LOGIN=true
 NEXT_PUBLIC_AUTH_CSRF_COOKIE_NAME=emisell_csrf
 NEXT_PUBLIC_MERCHANT_CSRF_COOKIE_NAME=emisell_merchant_csrf
@@ -108,7 +108,7 @@ NEXT_PUBLIC_MERCHANT_CSRF_COOKIE_NAME=emisell_merchant_csrf
 
 Apps are loaded across all cursor pages. Create, archive, create-version, release, rollback, and create-extension requests generate a unique idempotency key. App and extension updates send the last observed `revision`, and version releases send `expectedActiveVersionId` so stale browser state cannot overwrite a newer release.
 
-These public token and organization variables are strictly a local bootstrap fallback. Do not put production bearer tokens in `NEXT_PUBLIC_*`; production browsers use the OIDC/session flow.
+Browser navigation always starts at `/login` and requires an opaque session cookie. Keep the public token and organization variables empty, including in shared development deployments. The development bearer token remains available for explicit server/API tests only and must never be embedded in a browser bundle.
 
 ## Conventions
 

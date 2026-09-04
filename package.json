@@ -26,7 +26,7 @@
     "sync:integration-contracts": "node scripts/sync-integration-contracts.mjs",
     "test:integration-readiness": "node scripts/test-integration-readiness.mjs",
     "test:admin-login": "node scripts/test-integration-readiness.mjs --admin-login",
-    "test:docs": "node --test scripts/documentation.test.mjs scripts/developer-documentation.test.mjs",
+    "test:docs": "node --test scripts/documentation.test.mjs scripts/developer-documentation.test.mjs scripts/session-routing.test.mjs",
     "test:extensions": "node scripts/test-extension-connections.mjs",
     "test:billing": "node scripts/test-app-billing.mjs",
     "backend:run": "cd services/app-gateway && go run ./cmd/server",

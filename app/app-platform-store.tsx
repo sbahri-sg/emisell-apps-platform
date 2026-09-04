@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { usePathname } from "next/navigation";
+import { LoaderCircle, LockKeyhole } from "lucide-react";
 import type {
   CreateAppRequest,
   UpdateAppRequest,
@@ -18,7 +19,15 @@ import type {
   OrganizationMembership,
   SessionActor,
 } from "../lib/app-platform/domain";
-import { apiErrorMessage, appPlatformClient } from "../lib/app-platform/client";
+import {
+  AppPlatformApiError,
+  apiErrorMessage,
+  appPlatformClient,
+} from "../lib/app-platform/client";
+import {
+  developerLoginPath,
+  isDeveloperConsolePath,
+} from "../lib/app-platform/access-routing.mjs";
 
 type AppPlatformStore = {
   apps: App[];
@@ -47,10 +56,11 @@ export function AppPlatformProvider({
   if (pathname === "/login" || pathname === '/admin/login' || merchantSurface) return <>{children}</>;
 
   const admin = pathname === '/admin' || pathname.startsWith('/admin/');
-  return <ControlPlatformProvider key={admin ? 'admin' : 'developer'} admin={admin}>{children}</ControlPlatformProvider>;
+  if (!admin && !isDeveloperConsolePath(pathname)) return <>{children}</>;
+  return <ControlPlatformProvider key={admin ? 'admin' : 'developer'} admin={admin} pathname={pathname}>{children}</ControlPlatformProvider>;
 }
 
-function ControlPlatformProvider({ children, admin }: { children: React.ReactNode; admin: boolean }) {
+function ControlPlatformProvider({ children, admin, pathname }: { children: React.ReactNode; admin: boolean; pathname: string }) {
   const [apps, setApps] = useState<App[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,18 +92,9 @@ function ControlPlatformProvider({ children, admin }: { children: React.ReactNod
           setSession(await appPlatformClient.getAdminSession(controller.signal));
           return;
         }
-        let currentSession = await appPlatformClient.getSession(
+        const currentSession = await appPlatformClient.getSession(
           controller.signal,
         );
-        if (
-          currentSession.authenticationMethod === "bearer" &&
-          process.env.NEXT_PUBLIC_ENABLE_DEVELOPMENT_LOGIN === "true"
-        ) {
-          await appPlatformClient.developmentLogin();
-          currentSession = await appPlatformClient.getSession(
-            controller.signal,
-          );
-        }
         setSession(currentSession);
         const memberships = await appPlatformClient.listOrganizations(
           controller.signal,
@@ -105,15 +106,24 @@ function ControlPlatformProvider({ children, admin }: { children: React.ReactNod
       } catch (loadError) {
         if (!(
           loadError instanceof DOMException && loadError.name === "AbortError"
-        ))
+        )) {
           setError(apiErrorMessage(loadError));
+          if (
+            !admin &&
+            loadError instanceof AppPlatformApiError &&
+            (loadError.status === 401 || loadError.status === 403)
+          ) {
+            const destination = `${pathname}${window.location.search}`;
+            window.location.replace(developerLoginPath(destination, 'expired'));
+          }
+        }
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
     };
     void bootstrap();
     return () => controller.abort();
-  }, [admin]);
+  }, [admin, pathname]);
 
   const value = useMemo<AppPlatformStore>(
     () => ({
@@ -166,8 +176,26 @@ function ControlPlatformProvider({ children, admin }: { children: React.ReactNod
     [admin, apps, error, loadApps, loading, organizations, session],
   );
 
+  if (!admin && !session) {
+    return <DeveloperAccessState loading={loading} error={error} pathname={pathname} />;
+  }
+
   return (
     <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
+  );
+}
+
+function DeveloperAccessState({ loading, error, pathname }: { loading: boolean; error: string | null; pathname: string }) {
+  return (
+    <main className="session-access-state">
+      <section>
+        <span>{loading ? <LoaderCircle className="spin" size={23} /> : <LockKeyhole size={23} />}</span>
+        <p>Emisell App Platform</p>
+        <h1>{loading ? 'Verifying developer access…' : 'Developer login required'}</h1>
+        <small>{loading ? 'Checking your secure browser session.' : error ?? 'Sign in before opening the Developer Console.'}</small>
+        {!loading ? <a href={developerLoginPath(`${pathname}${window.location.search}`)}>Go to Developer Login</a> : null}
+      </section>
+    </main>
   );
 }
 

@@ -72,6 +72,7 @@ import type { ContractId, DocumentationReference } from '../documentation/types'
 import type { ExtensionCatalog } from './extension-catalog';
 import type { DeveloperContractId, DeveloperGuide } from '../documentation/developer-types';
 import type { AppPlan, AppSubscription, AppSubscriptionQuote, CreateAppPlan, InstallationBilling } from './billing';
+import { developerLoginPath, isDeveloperConsolePath } from './access-routing.mjs';
 
 const DEFAULT_GATEWAY_URL = "http://localhost:8081";
 
@@ -215,7 +216,7 @@ class AppPlatformClient {
     return response.json() as Promise<T>;
   }
 
-  private async request<T>(path: string, init: RequestInit = {}, baseUrl = this.baseUrl): Promise<T> {
+  private async request<T>(path: string, init: RequestInit = {}, baseUrl = this.baseUrl, allowBearer = true): Promise<T> {
     const adminRequest = path.startsWith('/auth/admin/') || path.startsWith('/v1/internal/') || path.startsWith('/admin/docs/');
     const csrfToken = adminRequest && typeof document !== 'undefined'
       ? document.cookie.split(';').map((part) => part.trim()).find((part) => part.startsWith('emisell_admin_csrf='))?.slice('emisell_admin_csrf='.length) ?? ''
@@ -226,7 +227,7 @@ class AppPlatformClient {
     if (csrfToken) {
       if (init.method && !["GET", "HEAD"].includes(init.method))
         headers.set("X-CSRF-Token", decodeURIComponent(csrfToken));
-    } else if (!adminRequest && this.token && this.organizationId) {
+    } else if (!adminRequest && allowBearer && this.token && this.organizationId) {
       headers.set("Authorization", `Bearer ${this.token}`);
       headers.set("X-Organization-Id", this.organizationId);
     }
@@ -239,6 +240,9 @@ class AppPlatformClient {
     if (!response.ok) {
       if (adminRequest && response.status === 401 && typeof window !== 'undefined' && window.location.pathname !== '/admin/login' && window.location.pathname.startsWith('/admin')) {
         window.location.replace(`/admin/login?reason=expired&next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      }
+      if (!adminRequest && response.status === 401 && typeof window !== 'undefined' && isDeveloperConsolePath(window.location.pathname)) {
+        window.location.replace(developerLoginPath(window.location.pathname + window.location.search, 'expired'));
       }
       let envelope: ErrorEnvelope = {};
       try {
@@ -277,7 +281,7 @@ class AppPlatformClient {
   async getSession(signal?: AbortSignal) {
     const response = await this.request<SessionResponse>("/v1/session", {
       signal,
-    });
+    }, this.baseUrl, false);
     return response.data;
   }
 
