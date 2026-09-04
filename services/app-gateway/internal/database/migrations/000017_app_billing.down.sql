@@ -1,0 +1,10 @@
+DROP TRIGGER IF EXISTS cancel_app_billing_on_uninstall ON app_installations;
+DROP FUNCTION IF EXISTS cancel_uninstalled_app_billing();
+DROP TABLE IF EXISTS app_billing_events;
+DROP TABLE IF EXISTS app_subscription_charges;
+DROP TABLE IF EXISTS app_billing_invoices;
+DROP TABLE IF EXISTS app_subscriptions;
+DROP TABLE IF EXISTS app_billing_quotes;
+DROP TABLE IF EXISTS merchant_app_billing;
+DROP TABLE IF EXISTS app_plans;
+ALTER TABLE app_installations DROP CONSTRAINT IF EXISTS app_installations_billing_identity;

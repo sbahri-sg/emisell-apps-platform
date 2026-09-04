@@ -1,0 +1,109 @@
+/* Admin-only visual layer. Developer and Merchant workspaces keep their theme. */
+.admin-shell { color: var(--ink); background: var(--canvas); }
+.admin-shell .admin-sidebar { width: var(--admin-sidebar-width); padding: 24px 14px 16px; background: var(--admin-sidebar-bg); border-color: var(--admin-sidebar-line); }
+.admin-shell .admin-brand { gap: 11px; padding: 0 9px 24px; }
+.admin-shell .admin-brand > span { width: 36px; height: 36px; border-radius: 10px; background: #6c5fda; }
+.admin-shell .admin-brand strong { font-size: 18px; letter-spacing: -.04em; }
+.admin-shell .admin-brand small { color: var(--admin-sidebar-muted); font-size: 12px; }
+.admin-shell .admin-environment { gap: 10px; margin: 0 0 16px; padding: 12px 10px; border-radius: 10px; border-color: var(--admin-sidebar-line); background: #20251f; }
+.admin-shell .admin-environment > span { width: 34px; height: 34px; display: grid; place-items: center; flex-shrink: 0; border-radius: 8px; box-shadow: none; background: #353d31; color: #dce6d7; }
+.admin-shell .admin-environment strong { font-size: 13px; }
+.admin-shell .admin-environment small { color: var(--admin-sidebar-muted); font-size: 12px; }
+.admin-shell .admin-sidebar nav { gap: 4px; overflow-y: auto; }
+.admin-shell .admin-sidebar nav > p { margin: 17px 10px 5px; color: #919b8e; font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.admin-shell .admin-sidebar nav button { min-height: 42px; height: auto; padding: 11px 10px; color: #bac1b7; font-size: 14px; font-weight: 500; }
+.admin-shell .admin-sidebar nav button > svg { flex-shrink: 0; margin: 0; color: inherit; }
+.admin-shell .admin-sidebar nav button:hover { background: #232920; color: #fff; }
+.admin-shell .admin-sidebar nav button.is-active { background: var(--admin-sidebar-active); color: #e1dcff; }
+.admin-shell .admin-sidebar-foot { border: 0; padding-top: 24px; }
+.admin-shell .admin-sidebar-foot > button { border: 1px solid var(--admin-sidebar-line); border-radius: 10px; padding: 12px 10px; }
+.admin-shell .admin-sidebar-foot > button:hover { background: #232920; }
+.admin-shell .admin-sidebar-foot strong { font-size: 12px; }
+.admin-shell .admin-sidebar-foot small { color: var(--admin-sidebar-muted); font-size: 12px; line-height: 1.5; }
+.admin-shell .admin-sidebar-account { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: 18px; padding-top: 17px; border-top: 1px solid var(--admin-sidebar-line); }
+.admin-shell .admin-sidebar-account .admin-identity { min-width: 0; gap: 9px; }
+.admin-shell .admin-identity > span { flex-shrink: 0; width: 33px; height: 33px; font-size: 12px; border-radius: 9px; background: #363c33; color: #e6ece2; }
+.admin-shell .admin-identity > div { min-width: 0; }
+.admin-shell .admin-identity strong { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #eef1eb; font-size: 12px; }
+.admin-shell .admin-identity small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--admin-sidebar-muted); font-size: 12px; }
+.admin-shell .admin-sign-out { flex-shrink: 0; min-height: 34px; width: 30px; padding: 5px; justify-content: center; border: 0; color: #a8b1a2; background: transparent; }
+.admin-shell .admin-sign-out:hover { background: #30372c; color: white; }
+.admin-shell button:focus-visible, .admin-shell a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.admin-shell .admin-sidebar button:focus-visible { outline-color: #c3baff; }
+.admin-shell .admin-main { width: calc(100% - var(--admin-sidebar-width)); min-width: 0; margin-left: var(--admin-sidebar-width); }
+.admin-shell .admin-topbar { padding: 0 32px; height: 66px; background: #fff; border-color: var(--line); backdrop-filter: none; }
+.admin-shell .admin-breadcrumb { font-size: 13px; gap: 10px; }
+.admin-shell .admin-breadcrumb > svg:first-child { color: var(--muted); }
+.admin-shell .admin-breadcrumb strong { color: var(--ink); font-weight: 550; }
+.admin-session-badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 9px; border: 1px solid #dce9df; border-radius: 6px; color: #3d6e50; background: #f6faf6; font-size: 12px; white-space: nowrap; }
+.admin-shell .admin-content, .admin-shell .developer-requests-page { width: min(1320px, calc(100% - 64px)); padding: 32px 0 48px; }
+.admin-shell .admin-heading, .admin-shell .page-heading { align-items: center; margin-bottom: 25px; }
+.admin-shell .admin-heading h1, .admin-shell .page-heading h1 { font-size: 30px; line-height: 1.18; font-weight: 650; letter-spacing: -.035em; }
+.admin-shell .admin-heading p, .admin-shell .page-heading .eyebrow { color: var(--subtle) !important; font-size: 12px !important; letter-spacing: .035em; font-weight: 550 !important; text-transform: none; }
+.admin-shell .admin-heading > div > span, .admin-shell .page-heading > div > p:not(.eyebrow) { color: var(--muted); font-size: 14px; line-height: 1.7; }
+.admin-shell .admin-heading > button, .admin-shell .primary-button { min-height: 40px; height: auto; padding: 10px 14px; background: var(--accent); border-color: var(--accent-dark); font-size: 14px; white-space: nowrap; }
+.admin-shell .secondary-button { min-height: 36px; font-size: 13px; }
+.admin-shell .admin-panel, .admin-shell .panel, .admin-shell .apps-card { border-color: var(--line); border-radius: 12px; box-shadow: 0 1px 2px #1b202b05; }
+.admin-shell .admin-metrics { gap: 14px; margin-bottom: 24px; }
+.admin-shell .admin-metric { position: relative; min-height: 152px; padding: 19px; border-color: var(--line); }
+.admin-shell .admin-metric > span { position: absolute; top: 17px; right: 16px; width: 28px; height: 28px; background: transparent; }
+.admin-shell .admin-metric > div { width: 100%; }
+.admin-shell .admin-metric small { padding-right: 28px; color: var(--muted); font-size: 14px; font-weight: 500; }
+.admin-shell .admin-metric strong { margin-top: 16px; font-size: 30px; font-weight: 620; }
+.admin-shell .admin-metric p { margin-top: 9px; color: var(--subtle); font-size: 12px; line-height: 1.5; }
+.admin-shell .admin-panel > header { min-height: 76px; height: auto; padding: 18px 20px; }
+.admin-shell .admin-panel header p { color: var(--subtle); font-size: 12px; font-weight: 550; letter-spacing: .045em; }
+.admin-shell .admin-panel header h2 { font-size: 17px; font-weight: 600; }
+.admin-shell .admin-panel header button { color: var(--accent-dark); font-size: 13px; }
+.admin-shell .admin-request-list > div { min-height: 78px; }
+.admin-shell .admin-company-mark { width: 38px; height: 38px; font-size: 12px; color: var(--accent-dark); background: var(--accent-soft); }
+.admin-shell .admin-request-list strong, .admin-shell .admin-organization-row strong { font-size: 14px; font-weight: 550; }
+.admin-shell .admin-request-list small, .admin-shell .admin-organization-row small { color: var(--muted); font-size: 12px; }
+.admin-shell .admin-status { font-size: 12px; padding: 5px 9px; white-space: nowrap; }
+.admin-shell .admin-empty, .admin-shell .admin-catalog-loading, .admin-shell .admin-catalog-empty { min-height: 200px; padding: 24px; font-size: 14px; line-height: 1.7; }
+.admin-shell .admin-table-head { min-height: 42px; color: var(--muted); font-size: 12px; background: #fafbfc; letter-spacing: .03em; }
+.admin-shell .admin-organization-row { min-height: 80px; }
+.admin-shell .admin-organizations-panel { overflow-x: auto; }
+.admin-shell .admin-organization-toolbar input, .admin-shell .admin-catalog-toolbar input { font-size: 14px; min-height: 38px; }
+.admin-shell .admin-organization-toolbar select, .admin-shell .admin-catalog-select, .admin-shell .admin-catalog-select select, .admin-shell .admin-catalog-featured { font-size: 13px; }
+.admin-shell .admin-catalog-app-copy h2 { font-size: 16px; }
+.admin-shell .admin-catalog-app-copy p, .admin-shell .admin-catalog-app-copy small { font-size: 12px; }
+.admin-shell .admin-catalog-actions { flex-wrap: wrap; }
+.admin-shell .admin-catalog-actions button { font-size: 13px; }
+.admin-shell .developer-summary .summary-card p, .admin-shell .developer-company strong, .admin-shell .developer-contact strong, .admin-shell .developer-app-request strong { font-size: 14px; }
+.admin-shell .developer-company small, .admin-shell .developer-contact small, .admin-shell .developer-app-request small, .admin-shell .developer-summary .summary-card > small { font-size: 12px; }
+.admin-shell .inline-notice p { font-size: 14px; line-height: 1.7; }
+
+@media (max-width: 1180px) {
+  .admin-shell .admin-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-shell .admin-heading { align-items: flex-start; }
+  .admin-shell .admin-heading > button { white-space: normal; flex-shrink: 0; }
+}
+@media (max-width: 900px) {
+  .admin-shell { --admin-sidebar-width: 72px; }
+  .admin-shell .admin-sidebar { padding: 24px 10px 14px; }
+  .admin-shell .admin-brand { justify-content: center; padding: 0 0 24px; }
+  .admin-shell .admin-brand > div, .admin-shell .admin-environment, .admin-shell .admin-sidebar nav > p, .admin-shell .admin-sidebar nav button > span, .admin-shell .admin-sidebar-foot > button > span, .admin-shell .admin-sidebar-foot > button > svg:last-child, .admin-shell .admin-identity > div { display: none; }
+  .admin-shell .admin-sidebar nav { gap: 9px; }
+  .admin-shell .admin-sidebar nav button, .admin-shell .admin-sidebar-foot > button { justify-content: center; min-height: 44px; padding: 10px; }
+  .admin-shell .admin-sidebar nav button > svg:first-child { display: block; }
+  .admin-shell .admin-sidebar-foot { padding-top: 16px; }
+  .admin-shell .admin-sidebar-account { flex-direction: column; gap: 9px; }
+  .admin-shell .admin-sidebar .admin-identity > span { display: grid; }
+  .admin-shell .admin-content, .admin-shell .developer-requests-page { width: calc(100% - 40px); padding-top: 28px; }
+  .admin-shell .admin-topbar { padding: 0 20px; }
+}
+@media (max-width: 620px) {
+  .admin-shell .admin-topbar { height: 60px; padding: 0 16px; }
+  .admin-shell .admin-breadcrumb > span, .admin-shell .admin-breadcrumb > svg:not(:first-child), .admin-session-badge > span { display: none; }
+  .admin-shell .admin-content, .admin-shell .developer-requests-page { width: calc(100% - 28px); padding: 24px 0 40px; }
+  .admin-shell .admin-heading, .admin-shell .page-heading { flex-direction: column; align-items: stretch; gap: 16px; }
+  .admin-shell .admin-heading h1, .admin-shell .page-heading h1 { font-size: 26px; }
+  .admin-shell .admin-metrics { grid-template-columns: 1fr; }
+  .admin-shell .admin-request-list > div { flex-wrap: wrap; padding: 16px; gap: 10px; }
+  .admin-shell .admin-request-list > div > span:nth-child(2) { flex: 1; }
+  .admin-shell .admin-request-list .admin-status { display: inline-flex; margin-left: 48px; }
+  .admin-shell .admin-request-list > div > svg { display: none; }
+  .admin-shell .admin-panel > header { align-items: flex-start; gap: 12px; }
+  .admin-shell .admin-organizations-panel { overflow-x: auto; }
+}

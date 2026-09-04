@@ -1,0 +1,490 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Emisell Resource API",
+    "version": "0.2.1",
+    "description": "Internal App Gateway to api-service product pilot. Implemented but disabled by default on both services; requires dedicated signing keys, matching environment and an explicit test-merchant allowlist. Not general availability and not a provider-facing API."
+  },
+  "x-emisell-implementation": {
+    "status": "implemented_gated",
+    "defaultEnabled": false,
+    "publicScopeAvailability": "planned",
+    "verification": {
+      "method": "isolated_postgresql_cross_repository",
+      "gatewayStorage": "in_memory_test_repository",
+      "resourceStorage": "current_api_service_prisma_schema_postgresql_17",
+      "deploymentVerified": false,
+      "runner": "api-service/scripts/test-app-platform-resources.mjs"
+    },
+    "owner": "emisell-api-service",
+    "consumer": "emisell-app-platform",
+    "implementedPaths": [
+      "/internal/app-platform/v1/products",
+      "/internal/app-platform/v1/products/{productId}"
+    ],
+    "targetPaths": [
+      "/internal/app-platform/v1/products",
+      "/internal/app-platform/v1/products/{productId}"
+    ]
+  },
+  "servers": [
+    {
+      "url": "http://api-service:8000",
+      "description": "Internal service network target; deployment-specific"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Products",
+      "description": "Operator-enabled pilot: merchant-scoped base product projection; variants and product webhooks are not included"
+    }
+  ],
+  "security": [
+    {
+      "appGatewayAssertion": []
+    }
+  ],
+  "paths": {
+    "/internal/app-platform/v1/products": {
+      "get": {
+        "operationId": "listAppPlatformProducts",
+        "summary": "List products for the signed merchant tenant",
+        "description": "Implemented pilot, disabled by default. Requires a short-lived RS256 assertion with scope exactly [read_products], a configured environment and an allowlisted merchant. Each read checks the merchant exists, is active and is not suspended on the primary DB. Results include base fields of published and unpublished products unless filtered. 503 resource_disabled means the backend pilot is off. Limits are 120 reads/minute per app + installation + merchant + route per process; deploy an aggregate limit before general availability.",
+        "x-emisell-pilot": true,
+        "tags": ["Products"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MerchantIdHeader"
+          },
+          {
+            "$ref": "#/components/parameters/InstallationIdHeader"
+          },
+          {
+            "$ref": "#/components/parameters/RequestIdHeader"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/UpdatedAfter"
+          },
+          {
+            "$ref": "#/components/parameters/Published"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Merchant-scoped product page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/internal/app-platform/v1/products/{productId}": {
+      "get": {
+        "operationId": "getAppPlatformProduct",
+        "summary": "Get one product for the signed merchant tenant",
+        "description": "Implemented pilot, disabled by default. Merchant must exist, be active and not suspended. The query constrains productId and signed merchant_id together; cross-tenant resources return 404. JWT lifetime is at most 60 seconds with zero clock tolerance; synchronize service clocks. Does not include variants, cost, or internal metadata.",
+        "x-emisell-pilot": true,
+        "tags": ["Products"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ProductId"
+          },
+          {
+            "$ref": "#/components/parameters/MerchantIdHeader"
+          },
+          {
+            "$ref": "#/components/parameters/InstallationIdHeader"
+          },
+          {
+            "$ref": "#/components/parameters/RequestIdHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Merchant-scoped product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "appGatewayAssertion": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "RS256 service assertion issued by Emisell App Gateway, audience emisell-api-service, with a maximum lifetime of 60 seconds. Never use an installation token here."
+      }
+    },
+    "parameters": {
+      "MerchantIdHeader": {
+        "name": "X-Emisell-Merchant-ID",
+        "in": "header",
+        "required": true,
+        "description": "Opaque Merchant.id routing value. It must exactly match the signed merchant_id claim; the signed claim is authoritative.",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "example": "cmmerchantdemo000000000001"
+        }
+      },
+      "InstallationIdHeader": {
+        "name": "X-Emisell-Installation-ID",
+        "in": "header",
+        "required": true,
+        "description": "Installation ID. It must exactly match the signed installation_id claim.",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "example": "01995f72-0000-7000-8000-000000000101"
+        }
+      },
+      "RequestIdHeader": {
+        "name": "X-Request-ID",
+        "in": "header",
+        "required": false,
+        "description": "Opaque correlation ID without secret or personal data. The gateway always supplies a safe ID; the backend generates one when absent or malformed. Duplicate headers are rejected.",
+        "schema": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._:-]+$",
+          "example": "req_01K4EXAMPLE000000000001"
+        }
+      },
+      "ProductId": {
+        "name": "productId",
+        "in": "path",
+        "required": true,
+        "description": "Opaque Emisell product ID.",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "example": "cmproductdemo000000000001"
+        }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "description": "Maximum number of products to return.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 50
+        }
+      },
+      "Cursor": {
+        "name": "cursor",
+        "in": "query",
+        "required": false,
+        "description": "HMAC-signed opaque cursor returned by the previous page, bound to merchant, installation, environment and filters. Clients must not create or parse it. Changing cursor keys invalidates existing cursors.",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "UpdatedAfter": {
+        "name": "updatedAfter",
+        "in": "query",
+        "required": false,
+        "description": "Return products updated strictly after this UTC timestamp (Z suffix, up to three fractional digits). Use the same filters when continuing a cursor; pagination is not a snapshot of concurrent edits.",
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "Published": {
+        "name": "published",
+        "in": "query",
+        "required": false,
+        "description": "Filter by publication state.",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "The request parameters are invalid.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "The App Gateway service assertion is missing, invalid, or expired.",
+        "headers": {
+          "WWW-Authenticate": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "403 insufficient_scope: assertion is not narrowed to read_products. 403 context_forbidden: signed tenant/installation headers, environment or allowlist mismatch. 403 merchant_unavailable: merchant missing, inactive or suspended. These backend policy failures are redacted as 503 resource_unavailable at the Provider API boundary.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "The resource does not exist within the signed merchant tenant.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "The app, installation, merchant, or route limit was exceeded.",
+        "headers": {
+          "Retry-After": {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unavailable": {
+        "description": "A required backend dependency is temporarily unavailable.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Product": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "sku",
+          "description",
+          "price",
+          "compareAtPrice",
+          "stock",
+          "isPhysical",
+          "isPublished",
+          "status",
+          "type",
+          "trackInventory",
+          "continueSellingWhenOutOfStock",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Opaque Emisell product ID."
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "sku": {
+            "type": ["string", "null"],
+            "description": "Base Product.sku, not a variant SKU. May be empty."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Source description may contain untrusted HTML. Escape or sanitize before rendering."
+          },
+          "price": {
+            "type": "string",
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "description": "Raw base Product.price as a decimal string (trailing zeros are not guaranteed). Not the cheapest variant or storefront display price; no tax calculation or currency conversion. Currency is not returned in this slice; do not infer it or use this as a checkout price."
+          },
+          "compareAtPrice": {
+            "type": ["string", "null"],
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "description": "Raw nullable base Product.compareAtPrice, not a variant compare-at price. Decimal string with no currency conversion."
+          },
+          "stock": {
+            "type": ["integer", "null"],
+            "description": "Raw nullable Product.stock. Not stock minus soldCount, variant stock, reservations or available-to-sell. Inventory API is planned."
+          },
+          "isPhysical": {
+            "type": "boolean"
+          },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "description": "Source-of-truth product status. Consumers must tolerate new values."
+          },
+          "type": {
+            "type": ["string", "null"]
+          },
+          "trackInventory": {
+            "type": "boolean"
+          },
+          "continueSellingWhenOutOfStock": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProductResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Product"
+          }
+        }
+      },
+      "ProductListResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["data", "meta"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          }
+        }
+      },
+      "PageMeta": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["nextCursor"],
+        "properties": {
+          "nextCursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page, or null when this is the final page."
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "message", "requestId"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "examples": ["invalid_request", "invalid_service_assertion", "insufficient_scope", "not_found", "rate_limited", "service_unavailable"]
+          },
+          "message": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          }
+        }
+      }
+    }
+  }
+}

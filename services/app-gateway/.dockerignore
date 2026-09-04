@@ -1,0 +1,6 @@
+.git
+coverage.out
+app-gateway
+tmp
+.env*
+!.env.example

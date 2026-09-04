@@ -1,0 +1,178 @@
+name: emisell-app-platform
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    init: true
+    environment:
+      NEXT_PUBLIC_SITE_URL: http://localhost:${FRONTEND_PORT:-3003}
+      NEXT_PUBLIC_APP_GATEWAY_URL: http://localhost:${GATEWAY_PORT:-8081}
+      APP_GATEWAY_INTERNAL_URL: http://app-gateway:8080
+      AUTH_SESSION_COOKIE_NAME: ${AUTH_SESSION_COOKIE_NAME:-emisell_session}
+      NEXT_PUBLIC_APP_GATEWAY_TOKEN: ${DEVELOPMENT_BEARER_TOKEN:-emisell-local-dev-token}
+      NEXT_PUBLIC_ORGANIZATION_ID: ${DEVELOPMENT_ORGANIZATION_ID:-01995f72-0000-7000-8000-000000000001}
+      NEXT_PUBLIC_ENABLE_DEVELOPMENT_LOGIN: "true"
+      NEXT_PUBLIC_AUTH_CSRF_COOKIE_NAME: ${AUTH_CSRF_COOKIE_NAME:-emisell_csrf}
+      NEXT_PUBLIC_MERCHANT_CSRF_COOKIE_NAME: ${MERCHANT_CSRF_COOKIE_NAME:-emisell_merchant_csrf}
+      NEXT_PUBLIC_SANDBOX_MERCHANT_ID: ${NEXT_PUBLIC_SANDBOX_MERCHANT_ID:-cmmerchantdemo000000000001}
+      VITE_DOCKER: "true"
+      VITE_USE_POLLING: "true"
+    ports:
+      - "${FRONTEND_PORT:-3003}:3003"
+    volumes:
+      - .:/workspace
+      - frontend_node_modules:/workspace/node_modules
+      - frontend_next:/workspace/.next
+      - frontend_vinext:/workspace/.vinext
+      - frontend_wrangler:/workspace/.wrangler
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3003/overview').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+    restart: unless-stopped
+
+  app-gateway:
+    build:
+      context: ./services/app-gateway
+      dockerfile: Dockerfile.dev
+    init: true
+    environment:
+      APP_ENV: development
+      HTTP_ADDRESS: :8080
+      SHUTDOWN_TIMEOUT: 10s
+      CORS_ALLOWED_ORIGINS: http://localhost:${FRONTEND_PORT:-3003},http://localhost:${API_DOCS_PORT:-8082}
+      FRONTEND_URL: http://localhost:${FRONTEND_PORT:-3003}
+      PUBLIC_GATEWAY_URL: http://localhost:${GATEWAY_PORT:-8081}
+      REPOSITORY_DRIVER: postgres
+      DEVELOPMENT_BEARER_TOKEN: ${DEVELOPMENT_BEARER_TOKEN:-emisell-local-dev-token}
+      DEVELOPMENT_ORGANIZATION_ID: ${DEVELOPMENT_ORGANIZATION_ID:-01995f72-0000-7000-8000-000000000001}
+      DEVELOPMENT_USER_ID: ${DEVELOPMENT_USER_ID:-01995f72-0000-7000-8000-000000000002}
+      DEVELOPMENT_ROLE: ${DEVELOPMENT_ROLE:-owner}
+      DEVELOPMENT_EMAIL: ${DEVELOPMENT_EMAIL:-developer@local.emisell.test}
+      DEVELOPMENT_DISPLAY_NAME: ${DEVELOPMENT_DISPLAY_NAME:-Local Developer}
+      DEVELOPMENT_PLATFORM_OPERATOR: ${DEVELOPMENT_PLATFORM_OPERATOR:-false}
+      AUTH_SESSION_TTL: ${AUTH_SESSION_TTL:-12h}
+      AUTH_SESSION_IDLE_TTL: ${AUTH_SESSION_IDLE_TTL:-2h}
+      AUTH_SESSION_COOKIE_NAME: ${AUTH_SESSION_COOKIE_NAME:-emisell_session}
+      AUTH_CSRF_COOKIE_NAME: ${AUTH_CSRF_COOKIE_NAME:-emisell_csrf}
+      MERCHANT_SESSION_COOKIE_NAME: ${MERCHANT_SESSION_COOKIE_NAME:-emisell_merchant_session}
+      MERCHANT_CSRF_COOKIE_NAME: ${MERCHANT_CSRF_COOKIE_NAME:-emisell_merchant_csrf}
+      EMISELL_BACKEND_SESSION_GRANT_TTL: ${EMISELL_BACKEND_SESSION_GRANT_TTL:-2m}
+      EMISELL_BACKEND_DEVELOPMENT_TOKEN: ${EMISELL_BACKEND_DEVELOPMENT_TOKEN:-emisell-backend-local-token}
+      EMISELL_RESOURCE_ENABLED: ${EMISELL_RESOURCE_ENABLED:-false}
+      EMISELL_RESOURCE_BASE_URL: ${EMISELL_RESOURCE_BASE_URL:-}
+      EMISELL_RESOURCE_KEY_ID: ${EMISELL_RESOURCE_KEY_ID:-}
+      EMISELL_RESOURCE_PRIVATE_KEY_FILE: ${EMISELL_RESOURCE_PRIVATE_KEY_FILE:-}
+      AUTH_OIDC_ENABLED: ${AUTH_OIDC_ENABLED:-false}
+      DEVELOPER_INVITATION_TTL: ${DEVELOPER_INVITATION_TTL:-48h}
+      SECRET_ENCRYPTION_KEY_BASE64: ${SECRET_ENCRYPTION_KEY_BASE64:-r8PQPmYOmajyNIx3Gn4bEISAPze1pvrCs8vB/WOjjjc=}
+      SECRET_ENCRYPTION_KEY_VERSION: ${SECRET_ENCRYPTION_KEY_VERSION:-1}
+      EXTENSION_CONNECTIONS_ENABLED: ${EXTENSION_CONNECTIONS_ENABLED:-false}
+      APP_BILLING_ENABLED: ${APP_BILLING_ENABLED:-false}
+      APP_BILLING_LIVE_ENABLED: "false"
+      API_KURIR_RATES_ENABLED: ${API_KURIR_RATES_ENABLED:-false}
+      API_KURIR_BASE_URL: ${API_KURIR_BASE_URL:-}
+      API_KURIR_SERVICE_KEY: ${API_KURIR_SERVICE_KEY:-}
+      API_KURIR_RATES_TIMEOUT: ${API_KURIR_RATES_TIMEOUT:-5s}
+      OAUTH_CODE_TTL: ${OAUTH_CODE_TTL:-5m}
+      OAUTH_ACCESS_TOKEN_TTL: ${OAUTH_ACCESS_TOKEN_TTL:-1h}
+      WEBHOOK_POLL_INTERVAL: ${WEBHOOK_POLL_INTERVAL:-1s}
+      WEBHOOK_REQUEST_TIMEOUT: ${WEBHOOK_REQUEST_TIMEOUT:-8s}
+      WEBHOOK_BATCH_SIZE: ${WEBHOOK_BATCH_SIZE:-25}
+      WEBHOOK_MAX_ATTEMPTS: ${WEBHOOK_MAX_ATTEMPTS:-5}
+      WEBHOOK_BASE_RETRY: ${WEBHOOK_BASE_RETRY:-5s}
+      WEBHOOK_MAX_RETRY: ${WEBHOOK_MAX_RETRY:-15m}
+      DATABASE_URL: postgres://${POSTGRES_USER:-emisell}:${POSTGRES_PASSWORD:-emisell-dev}@postgres:5432/${POSTGRES_DB:-emisell_app_platform}?sslmode=disable
+      DATABASE_MAX_CONNECTIONS: ${DATABASE_MAX_CONNECTIONS:-10}
+      DATABASE_MIN_CONNECTIONS: ${DATABASE_MIN_CONNECTIONS:-1}
+      DATABASE_CONNECT_TIMEOUT: ${DATABASE_CONNECT_TIMEOUT:-5s}
+    ports:
+      - "${GATEWAY_PORT:-8081}:8080"
+    volumes:
+      - ./services/app-gateway:/app
+      - go_build_cache:/root/.cache/go-build
+      - go_module_cache:/go/pkg/mod
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+    stop_grace_period: 15s
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: ./services/app-gateway
+      dockerfile: Dockerfile.dev
+    command: ["go", "run", "./cmd/migrate"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-emisell}:${POSTGRES_PASSWORD:-emisell-dev}@postgres:5432/${POSTGRES_DB:-emisell_app_platform}?sslmode=disable
+      DATABASE_MAX_CONNECTIONS: ${DATABASE_MAX_CONNECTIONS:-10}
+      DATABASE_MIN_CONNECTIONS: ${DATABASE_MIN_CONNECTIONS:-1}
+      DATABASE_CONNECT_TIMEOUT: ${DATABASE_CONNECT_TIMEOUT:-5s}
+    volumes:
+      - ./services/app-gateway:/app
+      - go_build_cache:/root/.cache/go-build
+      - go_module_cache:/go/pkg/mod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api-docs:
+    image: swaggerapi/swagger-ui:v5.32.14
+    environment:
+      URLS: '[{"url":"/spec/provider-openapi.json","name":"Partner API"}]'
+      URLS_PRIMARY_NAME: Partner API
+      DISPLAY_REQUEST_DURATION: "true"
+      DEEP_LINKING: "true"
+    ports:
+      # Raw Swagger contracts have no application login; keep development-only.
+      - "127.0.0.1:${API_DOCS_PORT:-8082}:8080"
+    volumes:
+      - ./docs/provider-openapi.json:/usr/share/nginx/html/spec/provider-openapi.json:ro
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-emisell_app_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-emisell}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-emisell-dev}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+volumes:
+  frontend_node_modules:
+  frontend_next:
+  frontend_vinext:
+  frontend_wrangler:
+  go_build_cache:
+  go_module_cache:
+  postgres_data:

@@ -1,0 +1,34 @@
+.extension-catalog { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; min-width: 0; }
+.extension-catalog > header { display: flex; gap: 20px; justify-content: space-between; align-items: flex-start; }
+.extension-catalog h2 { margin: 0 0 8px; font-size: 20px; letter-spacing: -.02em; }
+.extension-catalog p { font-size: 16px; line-height: 1.7; color: var(--muted); margin: 0 0 12px; }
+.extension-catalog-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin: 20px 0 12px; }
+.extension-catalog-controls [role=group] { display: flex; flex-wrap: wrap; gap: 5px; }
+.extension-catalog-controls button, .extension-catalog select { font: inherit; font-size: 14px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--muted); cursor: pointer; }
+.extension-catalog-controls button[aria-pressed=true] { color: var(--accent-dark); background: var(--accent-soft); border-color: var(--accent); }
+.extension-catalog-controls label { font-size: 14px; display: flex; gap: 10px; align-items: center; }
+.extension-catalog .extension-catalog-note { font-size: 14px; }
+.extension-catalog-items { display: grid; gap: 12px; }
+.extension-catalog-items article { padding: 20px; border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
+.extension-catalog h3 { font-size: 16px; margin: 0 0 10px; line-height: 1.5; }
+.extension-catalog-item-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.extension-catalog-status { font-size: 14px; line-height: 1.5; padding: 3px 8px; border-radius: 5px; background: #eef0f5; color: #526077; }
+.extension-catalog-status.available { color: #176849; background: #e9f5ef; }
+.extension-catalog-status.pilot { color: #885d15; background: #fbf1dd; }
+.extension-catalog dl { margin: 12px 0; font-size: 14px; line-height: 1.7; }
+.extension-catalog dl > div { display: grid; grid-template-columns: 125px minmax(0, 1fr); gap: 8px; }
+.extension-catalog dt { color: var(--muted); }
+.extension-catalog dd { margin: 0; overflow-wrap: anywhere; }
+.extension-catalog code { font-size: 13px; overflow-wrap: anywhere; }
+.extension-catalog-route { display: block; margin: 6px 0; }
+.extension-catalog li { font-size: 14px; line-height: 1.75; color: var(--muted); }
+.extension-catalog ul { padding-left: 20px; }
+.extension-catalog a { display: inline-flex; gap: 6px; align-items: center; color: var(--accent-dark); font-size: 14px; }
+.extension-catalog footer { padding-top: 18px; color: var(--subtle); font-size: 12px; line-height: 1.7; }
+.extension-runtime-contract { display: grid; gap: 12px; }
+.extension-runtime-summary { background: color-mix(in srgb, var(--surface) 94%, var(--accent-soft)); }
+.extension-runtime-operations { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.extension-runtime-operations article { height: 100%; }
+.extension-catalog button:focus-visible, .extension-catalog select:focus-visible, .extension-catalog a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 800px) { .extension-runtime-operations { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .extension-catalog { padding: 16px; } .extension-catalog > header { flex-wrap: wrap; } .extension-catalog-items article { padding: 15px; } .extension-catalog dl > div { grid-template-columns: 1fr; gap: 0; margin-top: 8px; } }
