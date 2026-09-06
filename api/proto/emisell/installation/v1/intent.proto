@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package emisell.installation.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "emisell.app/platform/pkg/sdk/gen/emisell/installation/v1;installationv1";
+
+// Internal first-party Core contract; no installation or active access grant.
+// Platform keys require a trusted Core tenant assertion per request. Legacy
+// service accounts remain bound to their stored merchant when merchant_id is omitted.
+service InstallIntentService {
+  rpc Prepare(PrepareRequest) returns (PrepareResponse);
+  rpc Get(GetRequest) returns (GetResponse);
+  rpc Decide(DecideRequest) returns (DecideResponse);
+}
+
+enum IntentState {
+  INTENT_STATE_UNSPECIFIED = 0;
+  INTENT_STATE_PENDING = 1;
+  INTENT_STATE_CONSENTED = 2;
+  INTENT_STATE_DENIED = 3;
+  INTENT_STATE_EXPIRED = 4;
+}
+
+enum ConsentDecision {
+  CONSENT_DECISION_UNSPECIFIED = 0;
+  CONSENT_DECISION_CONSENT = 1;
+  CONSENT_DECISION_DENY = 2;
+}
+
+message InstallIntent {
+  string id = 1;
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 2 [deprecated = true];
+  string core_actor_id = 3;
+  string app_id = 4;
+  string app_name = 5;
+  string developer_id = 6;
+  string version = 7;
+  string manifest_digest = 8;
+  repeated string scopes = 9;
+  repeated string capabilities = 10;
+  string execution_profile = 11;
+  string consent_digest = 12;
+  IntentState state = 13;
+  google.protobuf.Timestamp created_at = 14;
+  google.protobuf.Timestamp expires_at = 15;
+  google.protobuf.Timestamp decided_at = 16;
+  // Always false in this milestone, including after consent.
+  bool execution_allowed = 17;
+  // Empty on historical consent-only records. A new prepare + consent is required.
+  string installation_policy = 18;
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 19;
+}
+
+message PrepareRequest {
+  // Trusted server-side Core assertion after session and app-management checks.
+  string core_actor_id = 1;
+  string idempotency_key = 2;
+  string app_id = 3;
+  string version = 4;
+  // Required for platform keys; cannot override a legacy key's tenant binding.
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 5 [deprecated = true];
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 6;
+}
+
+message PrepareResponse {
+  InstallIntent intent = 1;
+}
+
+message GetRequest {
+  string core_actor_id = 1;
+  string intent_id = 2;
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 3 [deprecated = true];
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 4;
+}
+
+message GetResponse {
+  InstallIntent intent = 1;
+}
+
+message DecideRequest {
+  // Core must recheck actor authority; consent requires explicit user approval.
+  string core_actor_id = 1;
+  string idempotency_key = 2;
+  string intent_id = 3;
+  // Echo the exact immutable snapshot displayed by Core; not an auth token.
+  string consent_digest = 4;
+  ConsentDecision decision = 5;
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 6 [deprecated = true];
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 7;
+}
+
+message DecideResponse {
+  InstallIntent intent = 1;
+}

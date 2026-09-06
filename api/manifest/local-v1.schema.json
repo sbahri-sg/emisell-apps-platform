@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Local reference manifest emisell.app/v1",
+  "description": "Subset fixture lokal. Tidak mengizinkan upload third-party atau runtime arbitrary. Signature Ed25519 mengikat byte JSON tersimpan dan diverifikasi terhadap test trust root yang dipin.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "emisell.app/v1"
+    },
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "version": {
+      "const": "1.0.0"
+    },
+    "developerId": {
+      "const": "emisell-local"
+    },
+    "runtime": {
+      "const": "Remote app"
+    },
+    "executionProfile": {
+      "enum": ["local-simulator", "local-remote", "local-kurir-reference", "local-kurir-provider"]
+    },
+    "shippingProvider": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "engine": {"const": "api-kurir"},
+        "providerCode": {"enum": ["emisell", "rajaongkir", "kiriminaja", "mengantar"]}
+      },
+      "required": ["engine", "providerCode"]
+    },
+    "subscriptions": {"type":"array","maxItems":1,"uniqueItems":true,"items":{"const":"emisell.capability.invoked.v1"}},
+    "compatibility": {
+      "const": "platform/v1"
+    },
+    "artifactSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "category": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "icon": {
+      "enum": [
+        "payment",
+        "shipping"
+      ]
+    },
+    "color": {
+      "type": "string"
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "enum": [
+          "payment/v1",
+          "shipping/v1"
+        ]
+      }
+    }
+  },
+  "allOf": [{
+    "if": {"properties": {"executionProfile": {"const": "local-kurir-provider"}}, "required": ["executionProfile"]},
+    "then": {"required": ["shippingProvider"], "properties": {
+      "scopes": {"const": ["shipping.read"]},
+      "capabilities": {"const": ["shipping/v1"]}
+    }},
+    "else": {"not": {"required": ["shippingProvider"]}}
+  }],
+  "required": [
+    "schema",
+    "id",
+    "name",
+    "version",
+    "developerId",
+    "runtime",
+    "executionProfile",
+    "compatibility",
+    "artifactSha256",
+    "category",
+    "summary",
+    "description",
+    "icon",
+    "color",
+    "scopes",
+    "capabilities"
+  ]
+}

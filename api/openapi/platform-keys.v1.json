@@ -1,0 +1,290 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Emisell Admin Platform Full-access Keys",
+    "version": "1.0.0",
+    "description": "First-party Emisell backend → App Platform. Full integration access across tenants, no expiry until revoked. Admin session + exact Origin required to manage keys; bearer key cannot replace a portal session or app consent. Secret hash only, returned once."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8087"
+    }
+  ],
+  "paths": {
+    "/api/v1/admin/platform-keys": {
+      "get": {
+        "summary": "Daftar key platform full access",
+        "description": "Administrator only. Maksimal 200 key platform terbaru tanpa secret/hash. Key tenant legacy tetap terpisah dan tidak dinaikkan haknya.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "keys",
+                    "limit"
+                  ],
+                  "properties": {
+                    "keys": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Key"
+                      }
+                    },
+                    "limit": {
+                      "const": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/key request tidak valid"
+          },
+          "401": {
+            "description": "Sesi salah/berakhir"
+          },
+          "403": {
+            "description": "Administrator atau origin diperlukan"
+          },
+          "404": {
+            "description": "Key atau resource tidak ditemukan"
+          },
+          "409": {
+            "description": "Idempotency key sudah dipakai dengan payload berbeda"
+          },
+          "503": {
+            "description": "Dependency tidak tersedia"
+          }
+        }
+      },
+      "post": {
+        "summary": "Generate key platform full access",
+        "description": "Cukup nama koneksi; tanpa ID toko, masa berlaku atau pilihan izin layanan. Akses seluruh layanan internal Core yang tersedia, berlaku sampai dicabut. Tidak mengaktifkan resource planned atau melewati app consent/installation grant. Secret epk_ + 256-bit random (47 karakter), hanya respons pertama; replay mengembalikan metadata terkini tanpa secret. Jika respons pertama hilang, revoke lalu generate request baru. Idempotent per administrator + request key + trimmed name.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Create"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "key",
+                    "secret",
+                    "secretAvailable"
+                  ],
+                  "properties": {
+                    "key": {
+                      "$ref": "#/components/schemas/Key"
+                    },
+                    "secret": {
+                      "type": "string",
+                      "description": "Secret satu kali; kosong pada replay. Jangan log atau simpan di browser storage."
+                    },
+                    "secretAvailable": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/key request tidak valid"
+          },
+          "401": {
+            "description": "Sesi salah/berakhir"
+          },
+          "403": {
+            "description": "Administrator atau origin diperlukan"
+          },
+          "404": {
+            "description": "Key atau resource tidak ditemukan"
+          },
+          "409": {
+            "description": "Idempotency key sudah dipakai dengan payload berbeda"
+          },
+          "503": {
+            "description": "Dependency tidak tersedia"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/platform-keys/{id}/revoke": {
+      "post": {
+        "summary": "Cabut key platform full access",
+        "description": "Administrator only; body {}. Idempotent, audit sekali. Permintaan berikutnya ditolak; in-flight request dapat sudah berjalan. Tidak memengaruhi key tenant lama. Rotasi: generate pengganti, pindahkan consumer, lalu revoke lama. Pending intent terikat service ID lama, mulai intent baru setelah rotasi.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,100}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [],
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "key"
+                  ],
+                  "properties": {
+                    "key": {
+                      "$ref": "#/components/schemas/Key"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/key request tidak valid"
+          },
+          "401": {
+            "description": "Sesi salah/berakhir"
+          },
+          "403": {
+            "description": "Administrator atau origin diperlukan"
+          },
+          "404": {
+            "description": "Key atau resource tidak ditemukan"
+          },
+          "409": {
+            "description": "Idempotency key sudah dipakai dengan payload berbeda"
+          },
+          "503": {
+            "description": "Dependency tidak tersedia"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "adminSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_admin_session"
+      }
+    },
+    "schemas": {
+      "Key": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "access",
+          "createdAt",
+          "revokedAt",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revokedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "revoked"
+            ]
+          },
+          "access": {
+            "const": "platform_full"
+          }
+        }
+      },
+      "Create": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "Trimmed; 1–80 UTF-8 bytes, no control characters."
+          }
+        }
+      }
+    }
+  }
+}

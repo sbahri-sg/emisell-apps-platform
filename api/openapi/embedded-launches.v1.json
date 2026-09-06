@@ -1,0 +1,39 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Embedded launch review", "version": "1.0.0", "description": "Opt-in HandlerWithEmbeddedReviews only. Not enabled on default listeners. Review does not grant merchant launch or resource access."},
+  "paths": {
+    "/api/v1/developer/embedded-launches": {
+      "post": {
+        "summary": "Ajukan URL Embedded atau Dashboard eksternal",
+        "description": "Komposisi opt-in; belum aktif pada server default. Sesi Developer, Origin dan ownership organisasi wajib. App-client harus memiliki proof/secret aktif dan release signed valid. URL harus satu origin dengan endpoint yang diverifikasi. App, digest dan parent origin diturunkan server. Retry metadata identik milik actor yang sama mengembalikan record existing. Tidak memasang aplikasi; launchable selalu false pada tahap ini.",
+        "security": [{"DeveloperSession": []}],
+        "requestBody": {"required": true,"content": {"application/json": {"schema": {"type": "object", "additionalProperties": false, "required": ["clientId","url","reason"], "properties": {"mode":{"type":"string","enum":["embedded","external"],"description":"Omitted preserves historical embedded metadata. Mode is signed and immutable; external does not issue identity tokens or provide SSO."},"clientId": {"type": "string"},"url": {"type": "string","format": "uri"},"reason": {"type": "string","minLength": 1,"maxLength": 2000}}}}}},
+        "responses": {"200": {"description": "Launch tersimpan; bukan grant","content": {"application/json": {"schema": {"$ref": "#/components/schemas/Result"}}}},"400": {"description": "Input atau URL invalid"},"401": {"description": "Sesi invalid"},"403": {"description": "Origin/role ditolak"},"404": {"description": "Client tidak ditemukan dalam organisasi"},"409": {"description": "Client/release belum siap atau metadata conflict"},"503": {"description": "Dependency tidak tersedia"}}
+      }
+    },
+    "/api/v1/developer/app-clients/{id}/launch": {
+      "parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string"}}],
+      "get":{"summary":"Baca konfigurasi pembukaan app-client","description":"Opt-in. Ownership organisasi diperiksa sebelum lookup. Launch null berarti belum diajukan, bukan izin membuka aplikasi.","security":[{"DeveloperSession":[]}],"responses":{"200":{"description":"Launch record atau null; launchable false"},"401":{"description":"Sesi invalid"},"404":{"description":"Client tidak tersedia bagi organisasi"}}}
+    },
+    "/api/v1/admin/app-clients/{id}/launch": {
+      "parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string"}}],
+      "get":{"summary":"Baca konfigurasi pembukaan untuk review","description":"Opt-in. Sesi Admin diperlukan. Mode dan URL merupakan metadata signed, bukan grant instalasi.","security":[{"AdminSession":[]}],"responses":{"200":{"description":"Launch record atau null; launchable false"},"401":{"description":"Sesi invalid"},"404":{"description":"Client tidak ditemukan"}}}
+    },
+    "/api/v1/developer/embedded-launches/{id}": {
+      "parameters": [{"name":"id","in":"path","required":true,"schema":{"type":"string"}}],
+      "get": {"summary":"Baca launch milik developer","description":"Opt-in, belum aktif pada server default. Ownership mengikuti organisasi app-client; bukan grant merchant.","security":[{"DeveloperSession":[]}],"responses":{"200":{"description":"Metadata launch","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"401":{"description":"Sesi invalid"},"404":{"description":"Tidak ditemukan atau bukan milik organisasi"}}}
+    },
+    "/api/v1/admin/embedded-launches/{id}": {
+      "parameters": [{"name":"id","in":"path","required":true,"schema":{"type":"string"}}],
+      "get": {"summary":"Baca metadata review launch","description":"Opt-in, belum aktif pada server default. Memerlukan sesi Admin dan Origin valid.","security":[{"AdminSession":[]}],"responses":{"200":{"description":"Metadata launch","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"401":{"description":"Sesi invalid"},"404":{"description":"Tidak ditemukan"}}}
+    },
+    "/api/v1/admin/embedded-launches/{id}/status": {
+      "parameters": [{"name":"id","in":"path","required":true,"schema":{"type":"string"}}],
+      "post": {"summary":"Approve, reject atau revoke launch","description":"Opt-in, belum aktif pada server default. Hanya administrator. Approval memeriksa ulang current release dan client dengan lock lalu menandatangani metadata atomik. Signing key harus dikonfigurasi; tidak diprovision otomatis. Reject/revoke tetap tersedia tanpa key. Retry harus cocok actor, revision, status dan reason. Tidak mengaktifkan Open app atau scope data.","security":[{"AdminSession":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","additionalProperties":false,"required":["revision","status","reason"],"properties":{"revision":{"type":"integer","minimum":1},"status":{"type":"string","enum":["approved","rejected","revoked"]},"reason":{"type":"string","minLength":1,"maxLength":2000}}}}}},"responses":{"200":{"description":"Keputusan tersimpan atomik","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"Input invalid"},"401":{"description":"Sesi invalid"},"403":{"description":"Bukan administrator"},"404":{"description":"Tidak ditemukan"},"409":{"description":"Revision/state conflict atau client tidak siap"},"503":{"description":"Signer/dependency tidak tersedia"}}}
+    }
+  },
+  "components": {
+    "securitySchemes": {"AdminSession":{"type":"apiKey","in":"cookie","name":"emisell_admin_session"},"DeveloperSession":{"type":"apiKey","in":"cookie","name":"emisell_developer_session"}},
+    "schemas": {"Result":{"type":"object","required":["launch","launchable"],"properties":{"launchable":{"type":"boolean","const":false},"launch":{"type":"object","required":["id","binding","status","signature","revision"],"properties":{"id":{"type":"string"},"binding":{"type":"object","properties":{"appId":{"type":"string"},"clientId":{"type":"string"},"releaseDigest":{"type":"string"},"url":{"type":"string"},"parentOrigin":{"type":"string"}}},"status":{"type":"string","enum":["submitted","approved","rejected","revoked"]},"signature":{"type":"string"},"revision":{"type":"integer"}}}}}}
+  }
+}

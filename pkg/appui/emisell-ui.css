@@ -1,0 +1,44 @@
+/* Emisell UI Kit 0.1.0 — local preview; native HTML, no global reset. */
+.eui {
+  --eui-bg: #f1f1f1;
+  --eui-surface: #fff;
+  --eui-text: #303030;
+  --eui-muted: #616161;
+  --eui-border: #dedede;
+  --eui-action: #303030;
+  --eui-focus: #005bd3;
+  --eui-radius: 12px;
+  --eui-space: 4px;
+  margin: 0;
+  background: var(--eui-bg);
+  color: var(--eui-text);
+  font: 1rem/1.5 ui-sans-serif, system-ui, sans-serif;
+}
+.eui *, .eui *::before, .eui *::after { box-sizing: border-box; }
+.eui-page { max-width: 1100px; margin: auto; padding: calc(var(--eui-space) * 6); }
+.eui-stack { display: grid; gap: calc(var(--eui-space) * 4); }
+.eui-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.eui-title { font-size: 1.25rem; line-height: 1.4; margin: 0; font-weight: 650; }
+.eui-heading { font-size: 1rem; margin: 0; font-weight: 650; }
+.eui-muted { color: var(--eui-muted); font-size: .875rem; margin: 0; }
+.eui-card { background: var(--eui-surface); border: 1px solid var(--eui-border); border-radius: var(--eui-radius); padding: 20px; box-shadow: 0 1px 2px #0000000d; min-width: 0; }
+.eui-button { font: inherit; font-size: .875rem; font-weight: 600; min-height: 36px; padding: 6px 12px; border: 1px solid var(--eui-action); border-radius: 8px; background: var(--eui-action); color: #fff; cursor: pointer; }
+.eui-button:hover { background: #454545; }
+.eui-button:disabled { background: #e3e3e3; border-color: #e3e3e3; color: #616161; cursor: not-allowed; }
+.eui :focus-visible { outline: 2px solid var(--eui-focus); outline-offset: 3px; }
+.eui-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; background: #e8e8e8; font-size: .875rem; }
+.eui-badge.connected { color: #0c5132; background: #c9f4db; }
+.eui-badge.blocked { color: #8e1f0b; background: #fee9e8; }
+.eui-banner { margin: 0; padding: 12px 16px; border-radius: 8px; background: #eaf4ff; color: #123c65; font-size: .875rem; overflow-wrap: anywhere; }
+.eui-banner[data-tone="critical"] { background: #fee9e8; color: #8e1f0b; }
+.eui-banner[data-tone="success"] { background: #c9f4db; color: #0c5132; }
+.eui-description { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(0, 2fr); gap: 12px 24px; margin: 16px 0 0; font-size: .875rem; }
+.eui-description dt { color: var(--eui-muted); }
+.eui-description dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) {
+  .eui-page { padding: 16px; }
+  .eui-card { padding: 16px; }
+  .eui-button { min-height: 44px; }
+  .eui-description { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .eui-description dd { margin-bottom: 8px; }
+}

@@ -1,0 +1,52 @@
+{
+ "openapi":"3.1.0",
+ "info":{"title":"Emisell — Local Operations","version":"1.0.0","description":"Additive owner-only operations API. Local development, not production. Metadata only; payload and OAuth credentials are never returned. Imported by platform.v1.json."},
+ "servers":[{"url":"http://localhost:4317"}],
+ "security":[{"cookieAuth":[]}],
+ "paths":{
+  "/api/v1/workspaces/{tenant}/webhooks":{
+   "parameters":[{"$ref":"#/components/parameters/Tenant"}],
+   "get":{"operationId":"listWorkspaceWebhooks","description":"20 rows/page, descending immutable enqueue time + ID. Summary covers all statuses for this tenant. Cursor must belong to this tenant. Snapshot is per request, not a frozen pagination session.","parameters":[{"name":"status","in":"query","schema":{"type":"string","enum":["","pending","delivered","dead","cancelled"]}},{"name":"cursor","in":"query","schema":{"type":"string","maxLength":128}}],"responses":{"200":{"description":"Tenant-scoped page","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DeliveryPage"}}}},"default":{"$ref":"#/components/responses/Error"}}}
+  },
+  "/api/v1/workspaces/{tenant}/webhooks/{delivery}":{
+   "parameters":[{"$ref":"#/components/parameters/Tenant"},{"$ref":"#/components/parameters/Delivery"}],
+   "get":{"operationId":"getWorkspaceWebhook","description":"Metadata, safe outcome codes and latest 50 audit entries. canRetry is a hint; mutation rechecks lifecycle and revision.","responses":{"200":{"description":"Delivery detail","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DeliveryDetail"}}}},"default":{"$ref":"#/components/responses/Error"}}}
+  },
+  "/api/v1/workspaces/{tenant}/webhooks/{delivery}/retry":{
+   "parameters":[{"$ref":"#/components/parameters/Tenant"},{"$ref":"#/components/parameters/Delivery"}],
+   "post":{"operationId":"retryWorkspaceWebhook","description":"Only dead deliveries for an active, matching signed remote installation. Preserves body/event/delivery identity and enqueuedAt; starts a new 12-attempt/24-hour retry cycle. Same actor/key/body returns cached acceptance, not current delivery status. Same key with another body or stale revision returns 409; uninstall prevents requeue.","parameters":[{"$ref":"#/components/parameters/Origin"},{"$ref":"#/components/parameters/IdempotencyKey"}],"requestBody":{"$ref":"#/components/requestBodies/Recovery"},"responses":{"202":{"$ref":"#/components/responses/Accepted"},"default":{"$ref":"#/components/responses/Error"}}}
+  },
+  "/api/v1/workspaces/{tenant}/connections":{
+   "parameters":[{"$ref":"#/components/parameters/Tenant"}],
+   "get":{"operationId":"listWorkspaceConnections","description":"Remote installations not yet uninstalled. Stored OAuth state only: no provider request, token refresh, live health probe or secret fields. Cleanup audit max 50 per installation.","responses":{"200":{"description":"Stored connection state","content":{"application/json":{"schema":{"type":"object","required":["items"],"properties":{"items":{"type":"array","items":{"$ref":"#/components/schemas/Connection"}}},"additionalProperties":false}}}},"default":{"$ref":"#/components/responses/Error"}}}
+  },
+  "/api/v1/workspaces/{tenant}/installations/{installation}/cleanup/retry":{
+   "parameters":[{"$ref":"#/components/parameters/Tenant"},{"name":"installation","in":"path","required":true,"schema":{"type":"string"}}],
+   "post":{"operationId":"retryWorkspaceCleanup","description":"Only disabling installations with cleanupAttempts >= 12 and matching revision. Resets retry budget but never restores scopes/routing or skips revocation. Idempotent acceptance is not a completion receipt.","parameters":[{"$ref":"#/components/parameters/Origin"},{"$ref":"#/components/parameters/IdempotencyKey"}],"requestBody":{"$ref":"#/components/requestBodies/Recovery"},"responses":{"202":{"$ref":"#/components/responses/Accepted"},"default":{"$ref":"#/components/responses/Error"}}}
+  }
+ },
+ "components":{
+  "securitySchemes":{"cookieAuth":{"type":"apiKey","in":"cookie","name":"emisell_local_session"}},
+  "parameters":{
+   "Tenant":{"name":"tenant","in":"path","required":true,"schema":{"type":"string"}},
+   "Delivery":{"name":"delivery","in":"path","required":true,"schema":{"type":"string"}},
+   "Origin":{"name":"Origin","in":"header","required":true,"schema":{"const":"http://localhost:4317"}},
+   "IdempotencyKey":{"name":"Idempotency-Key","in":"header","required":true,"schema":{"type":"string","pattern":"^[A-Za-z0-9_-]{16,128}$"}}
+  },
+  "requestBodies":{"Recovery":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/RecoveryRequest"}}}}},
+  "responses":{
+   "Accepted":{"description":"Durably scheduled or cached acceptance. Read current resource after response.","content":{"application/json":{"schema":{"type":"object","required":["status","revision"],"properties":{"status":{"type":"string","enum":["pending","disabling"]},"revision":{"type":"integer","minimum":0}},"additionalProperties":false}}}},
+   "Error":{"description":"400 invalid body/cursor; 401 session expired; 403 Origin/permission; 404 missing or unauthorized workspace/resource; 409 stale/non-retryable/mismatched idempotency request; 503 unavailable.","content":{"application/json":{"schema":{"type":"object","required":["error"],"properties":{"error":{"type":"string"}},"additionalProperties":false}}}}
+  },
+  "schemas":{
+   "RecoveryRequest":{"type":"object","required":["reason","expectedRevision"],"properties":{"reason":{"type":"string","description":"Valid UTF-8, at least 8 bytes after trimming, at most 240 bytes total, no Unicode control characters. Do not include secrets or PII."},"expectedRevision":{"type":"integer","minimum":0}},"additionalProperties":false},
+   "Delivery":{"type":"object","required":["id","installationId","eventId","status","attempts","revision","enqueuedAt","nextAt","lastAttemptAt","completedAt","lastError"],"properties":{
+    "id":{"type":"string"},"installationId":{"type":"string"},"eventId":{"type":"string"},"status":{"type":"string","enum":["pending","delivered","dead","cancelled"]},"attempts":{"type":"integer","minimum":0},"revision":{"type":"integer","minimum":0},"enqueuedAt":{"type":"string","format":"date-time"},"nextAt":{"type":["string","null"],"format":"date-time"},"lastAttemptAt":{"type":["string","null"],"format":"date-time"},"completedAt":{"type":["string","null"],"format":"date-time"},"lastError":{"type":"string"}
+   }},
+   "Audit":{"type":"object","required":["action","reason","actorId","occurredAt"],"properties":{"action":{"type":"string"},"reason":{"type":"string"},"actorId":{"type":"string"},"occurredAt":{"type":"string","format":"date-time"}},"additionalProperties":false},
+   "DeliveryDetail":{"allOf":[{"$ref":"#/components/schemas/Delivery"},{"type":"object","required":["eventType","correlationId","history","canRetry"],"properties":{"eventType":{"type":"string"},"correlationId":{"type":"string"},"history":{"type":"array","maxItems":50,"items":{"$ref":"#/components/schemas/Audit"}},"canRetry":{"type":"boolean"}}}],"unevaluatedProperties":false},
+   "DeliveryPage":{"type":"object","required":["items","summary","nextCursor"],"properties":{"items":{"type":"array","maxItems":20,"items":{"$ref":"#/components/schemas/Delivery"}},"nextCursor":{"type":"string"},"summary":{"type":"object","required":["pending","delivered","dead","cancelled"],"properties":{"pending":{"type":"integer","minimum":0},"delivered":{"type":"integer","minimum":0},"dead":{"type":"integer","minimum":0},"cancelled":{"type":"integer","minimum":0}},"additionalProperties":false}},"additionalProperties":false},
+   "Connection":{"type":"object","required":["installationId","appId","name","status","connectionStatus","cleanupAttempts","cleanupNextAt","revision","canRetryCleanup","history"],"properties":{"installationId":{"type":"string"},"appId":{"type":"string"},"name":{"type":"string"},"status":{"type":"string","enum":["pending","active","disabling"]},"connectionStatus":{"type":"string","enum":["connected","needs_connection","revoked","unavailable"]},"cleanupAttempts":{"type":"integer","minimum":0},"cleanupNextAt":{"type":["string","null"],"format":"date-time"},"revision":{"type":"integer","minimum":0},"canRetryCleanup":{"type":"boolean"},"history":{"type":"array","maxItems":50,"items":{"$ref":"#/components/schemas/Audit"}}},"additionalProperties":false}
+  }
+ }
+}

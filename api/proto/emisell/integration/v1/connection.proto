@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package emisell.integration.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "emisell.app/platform/pkg/sdk/gen/emisell/integration/v1;integrationv1";
+
+// Authenticated first-party Core key check. No tenant resources are read or
+// mutated. Success proves this credential is accepted, NOT a resource grant.
+service ConnectionService {
+  rpc Check(CheckRequest) returns (CheckResponse);
+}
+
+message CheckRequest {}
+
+message CheckResponse {
+  string service_id = 1;
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 2 [deprecated = true];
+  repeated string scopes = 3;
+  google.protobuf.Timestamp expires_at = 4;
+  // True only for platform credentials. Tenant/scopes/expiry are then absent.
+  // Does not bypass installation consent or activate planned resource routes.
+  bool platform_full_access = 5;
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 6;
+}

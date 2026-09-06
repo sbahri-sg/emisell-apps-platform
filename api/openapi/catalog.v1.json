@@ -1,0 +1,1430 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Emisell Catalog API",
+    "version": "1.0.0",
+    "description": "ADR 0009. Metadata-only free catalog, not executable app releases. String limits enforced in UTF-8 bytes in backend. Additive to portals.v1.json. No public cookie or tenant context. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8087"
+    }
+  ],
+  "paths": {
+    "/api/v1/admin/catalog": {
+      "get": {
+        "operationId": "adminCatalogList",
+        "summary": "Daftar rilis katalog scoped",
+        "description": "Origin atau Referer harus http://localhost:4317. Cookie audience admin; ownership/role enforced server-side. Mutations hanya Administrator, kecuali tidak tersedia untuk developer. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil; metadata katalog non-executable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "releases",
+                    "limit"
+                  ],
+                  "properties": {
+                    "releases": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Release"
+                      }
+                    },
+                    "limit": {
+                      "const": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/policy tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Surface/origin/role tidak diizinkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik organisasi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision/status/idempotency/version conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer/verifikasi tidak tersedia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/catalog/{id}": {
+      "get": {
+        "operationId": "adminCatalogDetail",
+        "summary": "Paket, key tepercaya, dan 200 audit awal",
+        "description": "Origin atau Referer harus http://localhost:4317. Cookie audience admin; ownership/role enforced server-side. Mutations hanya Administrator, kecuali tidak tersedia untuk developer. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; metadata katalog non-executable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "release",
+                    "history",
+                    "trustedPublicKey"
+                  ],
+                  "properties": {
+                    "release": {
+                      "$ref": "#/components/schemas/Release"
+                    },
+                    "history": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Audit"
+                      }
+                    },
+                    "trustedPublicKey": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "contentEncoding": "base64"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/policy tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Surface/origin/role tidak diizinkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik organisasi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision/status/idempotency/version conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer/verifikasi tidak tersedia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/catalog": {
+      "get": {
+        "operationId": "developerCatalogList",
+        "summary": "Daftar rilis katalog scoped",
+        "description": "Origin atau Referer harus http://localhost:4319. Cookie audience developer; ownership/role enforced server-side. Mutations hanya Administrator, kecuali tidak tersedia untuk developer. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil; metadata katalog non-executable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "releases",
+                    "limit"
+                  ],
+                  "properties": {
+                    "releases": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Release"
+                      }
+                    },
+                    "limit": {
+                      "const": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/policy tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Surface/origin/role tidak diizinkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik organisasi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision/status/idempotency/version conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer/verifikasi tidak tersedia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/catalog/{id}": {
+      "get": {
+        "operationId": "developerCatalogDetail",
+        "summary": "Paket, key tepercaya, dan 200 audit awal",
+        "description": "Origin atau Referer harus http://localhost:4319. Cookie audience developer; ownership/role enforced server-side. Mutations hanya Administrator, kecuali tidak tersedia untuk developer. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; metadata katalog non-executable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "release",
+                    "history",
+                    "trustedPublicKey"
+                  ],
+                  "properties": {
+                    "release": {
+                      "$ref": "#/components/schemas/Release"
+                    },
+                    "history": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Audit"
+                      }
+                    },
+                    "trustedPublicKey": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "contentEncoding": "base64"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/policy tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Surface/origin/role tidak diizinkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik organisasi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision/status/idempotency/version conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer/verifikasi tidak tersedia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/submissions/{id}/catalog": {
+      "post": {
+        "operationId": "signCatalog",
+        "summary": "Validasi dan tanda tangani snapshot approved; belum publish",
+        "description": "Origin atau Referer harus http://localhost:4317. Cookie audience admin; ownership/role enforced server-side. Mutations hanya Administrator, kecuali tidak tersedia untuk developer. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; metadata katalog non-executable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "release"
+                  ],
+                  "properties": {
+                    "release": {
+                      "$ref": "#/components/schemas/Release"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/policy tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Surface/origin/role tidak diizinkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik organisasi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision/status/idempotency/version conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer/verifikasi tidak tersedia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [],
+                "properties": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/catalog/{id}/status": {
+      "post": {
+        "operationId": "changeCatalogStatus",
+        "summary": "Publish/suspend dengan revision, alasan dan audit",
+        "description": "Origin atau Referer harus http://localhost:4317. Cookie audience admin; ownership/role enforced server-side. Mutations hanya Administrator, kecuali tidak tersedia untuk developer. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; metadata katalog non-executable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "release"
+                  ],
+                  "properties": {
+                    "release": {
+                      "$ref": "#/components/schemas/Release"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/policy tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Surface/origin/role tidak diizinkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik organisasi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision/status/idempotency/version conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer/verifikasi tidak tersedia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Action"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/apps/{id}/tooling": {
+      "get": {
+        "operationId": "developerCatalogTooling",
+        "summary": "Validasi metadata draft tersimpan (manifest bisa belum valid)",
+        "description": "Origin atau Referer harus http://localhost:4319. Cookie audience developer; ownership/role enforced server-side. Mutations hanya Administrator, kecuali tidak tersedia untuk developer. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; metadata katalog non-executable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "manifest",
+                    "valid",
+                    "checks"
+                  ],
+                  "properties": {
+                    "manifest": {
+                      "type": "object",
+                      "description": "Bentuk Manifest, tetapi bisa tidak memenuhi policy saat valid=false."
+                    },
+                    "valid": {
+                      "type": "boolean"
+                    },
+                    "checks": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/policy tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Surface/origin/role tidak diizinkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik organisasi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision/status/idempotency/version conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer/verifikasi tidak tersedia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/store/apps": {
+      "get": {
+        "operationId": "publicCatalog",
+        "summary": "Daftar published dengan integrity verification, search, kategori dan pagination",
+        "description": "API baca publik. Tidak menggunakan cookie; tidak ada instalasi atau endpoint privat. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "description": "Literal substring nama/ringkasan (maksimal 120 byte)."
+          },
+          {
+            "name": "capability",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "",
+                "payment/v1",
+                "shipping/v1"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; metadata katalog non-executable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "apps",
+                    "total",
+                    "page",
+                    "pageSize"
+                  ],
+                  "properties": {
+                    "apps": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PublicApp"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 500
+                    },
+                    "pageSize": {
+                      "const": 20
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/policy tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Surface/origin/role tidak diizinkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik organisasi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision/status/idempotency/version conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer/verifikasi tidak tersedia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/store/apps/{id}": {
+      "get": {
+        "operationId": "publicCatalogDetail",
+        "summary": "Detail published; withdrawn/suspended menghasilkan 404",
+        "description": "API baca publik. Tidak menggunakan cookie; tidak ada instalasi atau endpoint privat. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; metadata katalog non-executable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "app"
+                  ],
+                  "properties": {
+                    "app": {
+                      "$ref": "#/components/schemas/PublicApp"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/policy tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Surface/origin/role tidak diizinkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik organisasi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision/status/idempotency/version conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer/verifikasi tidak tersedia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "adminSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_admin_session"
+      },
+      "developerSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_developer_session"
+      }
+    },
+    "schemas": {
+      "Manifest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema",
+          "policy",
+          "appId",
+          "developerId",
+          "version",
+          "name",
+          "summary",
+          "description",
+          "capability",
+          "scopes",
+          "runtime",
+          "pricing",
+          "installable",
+          "sourceSha256"
+        ],
+        "properties": {
+          "schema": {
+            "enum": [
+              "emisell.catalog/v2",
+              "emisell.catalog/v1"
+            ]
+          },
+          "policy": {
+            "enum": [
+              "catalog-metadata/v2",
+              "catalog-metadata/v1"
+            ]
+          },
+          "appId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,100}$"
+          },
+          "developerId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,100}$"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 180
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000
+          },
+          "capability": {
+            "enum": [
+              "payment/v1",
+              "shipping/v1"
+            ]
+          },
+          "scopes": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "runtime": {
+            "const": "remote"
+          },
+          "pricing": {
+            "const": "free"
+          },
+          "installable": {
+            "const": false
+          },
+          "sourceSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "accessScopes": {
+            "$ref": "access-scopes.v1.json#/components/schemas/Declaration"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "capability": {
+                  "const": "payment/v1"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "scopes": {
+                  "const": [
+                    "orders.read",
+                    "payments.read",
+                    "payments.write"
+                  ]
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "scopes": {
+                  "const": [
+                    "orders.read",
+                    "shipping.read",
+                    "shipping.write"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "schema": {
+                  "const": "emisell.catalog/v2"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "accessScopes"
+              ],
+              "properties": {
+                "policy": {
+                  "const": "catalog-metadata/v2"
+                }
+              }
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "accessScopes"
+                ]
+              },
+              "properties": {
+                "policy": {
+                  "const": "catalog-metadata/v1"
+                }
+              }
+            }
+          }
+        ],
+        "description": "v1: accessScopes tidak boleh ada; policy catalog-metadata/v1. v2: accessScopes wajib; policy catalog-metadata/v2. Scope arrays harus sorted. Keduanya non-executable, installable:false."
+      },
+      "Package": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "manifest",
+          "sha256",
+          "keyId",
+          "signature"
+        ],
+        "properties": {
+          "manifest": {
+            "$ref": "#/components/schemas/Manifest"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "keyId": {
+            "type": "string",
+            "pattern": "^catalog-[a-f0-9]{64}$"
+          },
+          "signature": {
+            "type": "string",
+            "contentEncoding": "base64"
+          }
+        }
+      },
+      "Release": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "submissionId",
+          "package",
+          "status",
+          "revision",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "submissionId": {
+            "type": "string"
+          },
+          "package": {
+            "$ref": "#/components/schemas/Package"
+          },
+          "status": {
+            "enum": [
+              "signed",
+              "published",
+              "suspended"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Audit": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "actorId",
+          "action",
+          "reason",
+          "occurredAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": "string"
+          },
+          "action": {
+            "enum": [
+              "signed",
+              "published",
+              "suspended"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Action": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "revision",
+          "reason"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "published",
+              "suspended"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      },
+      "PublicApp": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "appId",
+          "developerId",
+          "name",
+          "summary",
+          "description",
+          "version",
+          "capability",
+          "scopes",
+          "pricing",
+          "installable"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "appId": {
+            "type": "string"
+          },
+          "developerId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "capability": {
+            "enum": [
+              "payment/v1",
+              "shipping/v1"
+            ]
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pricing": {
+            "const": "free"
+          },
+          "installable": {
+            "const": false
+          },
+          "accessScopes": {
+            "$ref": "access-scopes.v1.json#/components/schemas/Declaration"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1158 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Emisell App Platform — Local Vertical Slice",
+    "version": "1.0.0",
+    "description": "Contract lokal, bukan public production API. Session login adalah bootstrap development. Reference app mendukung simulator atau proses remote lokal dengan OAuth; semua pembayaran tetap simulasi."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4317",
+      "description": "Frontend same-origin proxy to loopback Go API"
+    }
+  ],
+  "security": [
+    {
+      "cookieAuth": []
+    }
+  ],
+  "paths": {
+    "/api/v1/workspaces/{tenant}/webhooks": {"$ref":"./operations.v1.json#/paths/~1api~1v1~1workspaces~1{tenant}~1webhooks"},
+    "/api/v1/workspaces/{tenant}/webhooks/{delivery}": {"$ref":"./operations.v1.json#/paths/~1api~1v1~1workspaces~1{tenant}~1webhooks~1{delivery}"},
+    "/api/v1/workspaces/{tenant}/webhooks/{delivery}/retry": {"$ref":"./operations.v1.json#/paths/~1api~1v1~1workspaces~1{tenant}~1webhooks~1{delivery}~1retry"},
+    "/api/v1/workspaces/{tenant}/connections": {"$ref":"./operations.v1.json#/paths/~1api~1v1~1workspaces~1{tenant}~1connections"},
+    "/api/v1/workspaces/{tenant}/installations/{installation}/cleanup/retry": {"$ref":"./operations.v1.json#/paths/~1api~1v1~1workspaces~1{tenant}~1installations~1{installation}~1cleanup~1retry"},
+    "/healthz": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "status": {
+                      "const": "ok"
+                    },
+                    "mode": {
+                      "const": "local-simulator"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "mode"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": []
+      }
+    },
+    "/readyz": {
+      "get": {
+        "operationId": "ready",
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "status": {
+                      "const": "ready"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/login": {
+      "post": {
+        "operationId": "login",
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  },
+                  "required": [
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Origin"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254
+                  },
+                  "password": {
+                    "type": "string",
+                    "maxLength": 256
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "description": "Akun lokal dibuat hanya melalui CLI. Cookie HttpOnly, SameSite=Strict, path /api/v1, absolute expiry 8 jam. HTTP hanya pada loopback. Batas 30 percobaan/menit per proses."
+      }
+    },
+    "/api/v1/logout": {
+      "post": {
+        "operationId": "logout",
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Origin"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "description": "Cabut session server-side. Session lama tidak dapat digunakan lagi."
+      }
+    },
+    "/api/v1/session": {
+      "get": {
+        "operationId": "session",
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  },
+                  "required": [
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/v1/apps": {
+      "get": {
+        "operationId": "listApps",
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "apps": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LocalManifest"
+                      }
+                    }
+                  },
+                  "required": [
+                    "apps"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard": {
+      "get": {
+        "operationId": "dashboard",
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    },
+                    "catalog": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LocalManifest"
+                      }
+                    },
+                    "workspaces": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Workspace"
+                      }
+                    },
+                    "mode": {
+                      "const": "local"
+                    },
+                    "loading": {
+                      "const": false
+                    },
+                    "error": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "user",
+                    "catalog",
+                    "workspaces",
+                    "mode",
+                    "loading",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{tenant}/installations": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Tenant"
+        }
+      ],
+      "get": {
+        "operationId": "listInstallations",
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "installations": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Installation"
+                      }
+                    }
+                  },
+                  "required": [
+                    "installations"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Pending/active/disabling. Disabling berarti routing dan scopes sudah dihentikan, tetapi pencabutan remote masih diproses. Tenant wajib merupakan membership principal."
+      },
+      "post": {
+        "operationId": "changeInstallation",
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "installation": {
+                      "$ref": "#/components/schemas/Installation"
+                    }
+                  },
+                  "required": [
+                    "installation"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/Origin"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/Install"
+                  },
+                  {
+                    "$ref": "#/components/schemas/Activate"
+                  },
+                  {
+                    "$ref": "#/components/schemas/Uninstall"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "description": "Replay tenant+actor+key dengan body sama mengembalikan hasil awal, bukan menjalankan ulang. Key yang sama dengan body berbeda menghasilkan 409. Aktivasi ditolak bila capability sudah memiliki installation aktif lain. Uninstall mencabut grant dan routing secara atomik; retry tidak menambah audit."
+      }
+    },
+    "/api/v1/workspaces/{tenant}/events": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Tenant"
+        }
+      ],
+      "get": {
+        "operationId": "listInstallationEvents",
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Event"
+                      },
+                      "maxItems": 100
+                    }
+                  },
+                  "required": [
+                    "events"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "100 audit installation terbaru, descending occurredAt/id. Worker mengirim transactional outbox ke NATS setelah commit."
+      }
+    },
+    "/api/v1/workspaces/{tenant}/installations/{installation}/oauth": {
+      "parameters":[{"$ref":"#/components/parameters/Tenant"},{"name":"installation","in":"path","required":true,"schema":{"type":"string"}}],
+      "post":{
+        "operationId":"beginLocalOAuth",
+        "description":"Khusus remote app lokal pending/active. Memerlukan session, membership, Origin, dan idempotency key. Token tidak dikirim ke browser. State PKCE berlaku lima menit dan terikat user/session/tenant/installation.",
+        "parameters":[{"name":"Origin","in":"header","required":true,"schema":{"const":"http://localhost:4317"}},{"name":"Idempotency-Key","in":"header","required":true,"schema":{"type":"string","pattern":"^[A-Za-z0-9_-]{16,128}$"}}],
+        "requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","additionalProperties":false}}}},
+        "responses":{"200":{"description":"Buka authorizationUrl sebagai navigasi halaman","content":{"application/json":{"schema":{"type":"object","required":["authorizationUrl"],"additionalProperties":false,"properties":{"authorizationUrl":{"type":"string","format":"uri"}}}}}},"default":{"$ref":"#/components/responses/Error"}}
+      }
+    },
+    "/api/v1/oauth/callback":{
+      "get":{"operationId":"completeLocalOAuth","description":"Session cookie yang memulai koneksi wajib tetap berlaku. State sekali pakai. Hasil kembali ke dashboard tanpa code, token, atau verifier.","parameters":[{"name":"state","in":"query","required":true,"schema":{"type":"string"}},{"name":"code","in":"query","schema":{"type":"string"}},{"name":"error","in":"query","schema":{"type":"string"}}],"responses":{"303":{"description":"Kembali ke dashboard dengan oauth=connected atau oauth=failed","headers":{"Location":{"schema":{"type":"string","format":"uri"}}}},"default":{"$ref":"#/components/responses/Error"}}}
+    },
+    "/api/v1/workspaces/{tenant}/capabilities/{capability}/v1/invoke": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Tenant"
+        },
+        {
+          "name": "capability",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "enum": [
+              "payment",
+              "shipping"
+            ]
+          }
+        }
+      ],
+      "post": {
+        "operationId": "invokeCapability",
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapabilityResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/Origin"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/PaymentCreate"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PaymentResource"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ShippingRates"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ShippingCreate"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ShippingTrack"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "description": "Request schema mengikuti capability di path. payment: create/capture/refund/status; shipping: get_rates/create/track. Semua operasi menggunakan key, termasuk pembacaan yang diaudit. Timeout 10 detik; retry dengan key sama. Tenant, status aktif, release terverifikasi, dan scope dicek ulang. Resource terikat tenant serta installation pembuat; tidak dipindahkan otomatis ketika provider berubah. Hanya simulator tanpa transaksi eksternal."
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_local_session"
+      }
+    },
+    "parameters": {
+      "Tenant": {
+        "name": "tenant",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "ID workspace dari membership server-side; tidak dipercaya sebagai authorization."
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{16,128}$"
+        }
+      },
+      "Origin": {
+        "name": "Origin",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "const": "http://localhost:4317"
+        },
+        "description": "Harus sama dengan EMISELL_ORIGIN yang dikonfigurasi."
+      }
+    },
+    "responses": {
+      "Error": {
+        "description": "Error terstruktur; 401 sesi tidak valid, 403 origin/scope ditolak, 404 resource tidak tersedia atau bukan milik principal, 409 konflik routing/idempotency, 429 batas login, 503 tidak tersedia.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "error": {
+                  "type": "string"
+                },
+                "requestId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "error"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "required": [
+          "id",
+          "email"
+        ]
+      },
+      "Installation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "appId": {
+            "type": "string"
+          },
+          "version": {
+            "const": "1.0.0"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "active",
+              "disabling",
+              "uninstalled"
+            ]
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "payment/v1",
+                "shipping/v1"
+              ]
+            }
+          },
+          "installedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "executionProfile":{"enum":["local-simulator","local-remote"]},
+          "connectionStatus":{"enum":["connected","needs_connection","revoked"]}
+        },
+        "required": [
+          "id",
+          "appId",
+          "version",
+          "status",
+          "scopes",
+          "capabilities",
+          "installedAt"
+        ]
+      },
+      "Install": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "install"
+          },
+          "appId": {
+            "type": "string"
+          },
+          "version": {
+            "const": "1.0.0"
+          },
+          "grants": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "type",
+          "appId",
+          "version",
+          "grants"
+        ]
+      },
+      "Activate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "activate"
+          },
+          "appId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "appId"
+        ]
+      },
+      "Uninstall": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "uninstall"
+          },
+          "appId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "appId"
+        ]
+      },
+      "PaymentCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "const": "create"
+          },
+          "reference": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "amountMinor": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000000000
+          },
+          "currency": {
+            "const": "IDR"
+          }
+        },
+        "required": [
+          "operation",
+          "reference",
+          "amountMinor",
+          "currency"
+        ]
+      },
+      "PaymentResource": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "enum": [
+              "capture",
+              "refund",
+              "status"
+            ]
+          },
+          "resourceId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "resourceId"
+        ]
+      },
+      "ShippingRates": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "const": "get_rates"
+          },
+          "weightGrams": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30000
+          },
+          "destinationZone": {
+            "enum": [
+              "ID-JKT",
+              "ID-BDG",
+              "ID-SBY"
+            ]
+          }
+        },
+        "required": [
+          "operation",
+          "weightGrams",
+          "destinationZone"
+        ]
+      },
+      "ShippingCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "const": "create"
+          },
+          "reference": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "weightGrams": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30000
+          },
+          "destinationZone": {
+            "enum": [
+              "ID-JKT",
+              "ID-BDG",
+              "ID-SBY"
+            ]
+          }
+        },
+        "required": [
+          "operation",
+          "reference",
+          "weightGrams",
+          "destinationZone"
+        ]
+      },
+      "ShippingTrack": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "const": "track"
+          },
+          "resourceId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "resourceId"
+        ]
+      },
+      "Resource": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "authorized",
+              "captured",
+              "refunded",
+              "created"
+            ]
+          },
+          "amountMinor": {
+            "type": "integer"
+          },
+          "currency": {
+            "const": "IDR"
+          }
+        },
+        "required": [
+          "id",
+          "reference",
+          "status",
+          "amountMinor",
+          "currency"
+        ]
+      },
+      "Rate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "service": {
+            "const": "standard-simulation"
+          },
+          "amountMinor": {
+            "type": "integer"
+          },
+          "currency": {
+            "const": "IDR"
+          }
+        },
+        "required": [
+          "service",
+          "amountMinor",
+          "currency"
+        ]
+      },
+      "CapabilityResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "capability": {
+            "enum": [
+              "payment/v1",
+              "shipping/v1"
+            ]
+          },
+          "operation": {
+            "enum": [
+              "create",
+              "capture",
+              "refund",
+              "status",
+              "get_rates",
+              "track"
+            ]
+          },
+          "installationId": {
+            "type": "string"
+          },
+          "simulation": {
+            "const": true
+          },
+          "resource": {
+            "$ref": "#/components/schemas/Resource"
+          },
+          "rates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Rate"
+            }
+          }
+        },
+        "required": [
+          "capability",
+          "operation",
+          "installationId",
+          "simulation"
+        ]
+      },
+      "Event": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "version": {
+            "const": 1
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "tenantId": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": "string"
+          },
+          "correlationId": {
+            "type": "string"
+          },
+          "causationId": {
+            "type": "string"
+          },
+          "producer": {
+            "const": "emisell-app-platform"
+          },
+          "payload": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "version",
+          "occurredAt",
+          "tenantId",
+          "subject",
+          "actorId",
+          "correlationId",
+          "causationId",
+          "producer",
+          "payload"
+        ]
+      },
+      "LocalManifest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "const": "emisell.app/v1"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "const": "1.0.0"
+          },
+          "developerId": {
+            "const": "emisell-local"
+          },
+          "runtime": {
+            "const": "Remote app"
+          },
+          "executionProfile": {
+            "enum": ["local-simulator","local-remote"]
+          },
+          "subscriptions":{"type":"array","maxItems":1,"items":{"const":"emisell.capability.invoked.v1"}},
+          "compatibility": {
+            "const": "platform/v1"
+          },
+          "artifactSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "category": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "enum": [
+              "payment",
+              "shipping"
+            ]
+          },
+          "color": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "capabilities": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "enum": [
+                "payment/v1",
+                "shipping/v1"
+              ]
+            }
+          }
+        },
+        "required": [
+          "schema",
+          "id",
+          "name",
+          "version",
+          "developerId",
+          "runtime",
+          "executionProfile",
+          "compatibility",
+          "artifactSha256",
+          "category",
+          "summary",
+          "description",
+          "icon",
+          "color",
+          "scopes",
+          "capabilities"
+        ]
+      },
+      "Activity": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "appId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "appId",
+          "title",
+          "description",
+          "occurredAt"
+        ]
+      },
+      "Workspace": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "installations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Installation"
+            }
+          },
+          "activity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Activity"
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "installations",
+          "activity"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+# ADR 0006 — Status pembayaran asynchronous, local reference
+
+> Pekerjaan tahap 5 dihentikan sebelum rollout/penyelesaian keseluruhan. Panel transaksi merchant yang sempat ditambahkan telah dihapus melalui ADR 0007. Source backend/tests tetap dipertahankan; bagian UI di bawah adalah rancangan historis, bukan target portal baru.
+
+> Pembaruan ADR 0008: rollout API portal kini memakai source backend ini, migration additive dan consumer-first upgrade lokal. Tidak menjalankan simulasi transaksi atau menyatakan tahap payment/production selesai. UI merchant tidak dipulihkan.
+
+Status: diterima untuk development lokal, 5 September 2026. Bukan integrasi provider atau Core produksi.
+
+## Konteks dan batas
+
+Tahap 4 memonitor delivery platform → app. Delivery tersebut tidak membuktikan hasil pembayaran. Tahap 5 menambahkan status bisnis `payment/v1` dari remote app → platform → Core reference. `shipping/v1`, developer portal, billing instalasi, status gagal/cancelled pembayaran, partial capture/refund, reconciliation produksi, dan UI pembuat transaksi tidak termasuk increment ini.
+
+Semua aplikasi tetap gratis. Pricing/billing/entitlement akan menjadi boundary terpisah jika diaktifkan kelak; tidak ada dependency atau charge baru. Pembayaran pesanan tidak sama dengan biaya install. Reinstall billing belum diputuskan.
+
+## Keputusan
+
+1. Capability tetap `create/capture/refund/status`. Create tetap menghasilkan `authorized`, bukan otomatis dibayar. Simulator dan remote reference menggunakan snapshot berurutan `authorized → captured → refunded`. Callback snapshot boleh melewati status antara ketika delivery tidak berurutan, tetapi tidak boleh mundur. Tidak ada auto-capture timer atau transaksi uang nyata.
+2. `Resource.revision` optional pada JSON untuk kompatibilitas data lama; resource baru mulai 1 dan naik ketika status berubah. Protobuf v1 tidak berubah. Revision sumber berbeda dari `statusRevision` platform. Data lama revision 0 tetap dibaca; sejarah lama tidak dibuat-buat.
+3. Inbound generik: `POST /api/v1/app-callbacks/payment/v1`, JSON `payment.status.v1`. Callback memuat snapshot penuh, revision, dan waktu sumber. Body maksimum 32 KiB; unknown fields/trailing JSON ditolak. Status, jumlah, mata uang, dan ID diperiksa. Waktu sumber tidak dipakai sebagai urutan.
+4. HMAC-SHA256 per installation, header tenant/installation/delivery/timestamp, raw body, prefix arah `app-to-platform/payment.status.v1`. MAC berbeda dari webhook keluar meski memakai key installation yang sama. Timestamp maksimal 5 menit lampau/30 detik mendatang. Retry menandatangani body/ID sama dengan timestamp baru. Secret tersimpan terenkripsi, tidak dikirim ke browser/event/log.
+5. Route callback tidak memakai browser cookie/Origin; keduanya ditolak. Pengecualian middleware hanya path+method callback yang tepat, tanpa query, JSON tetap wajib. Semua mutation browser lain tetap memakai Origin dan session. Receiver memeriksa manifest release terverifikasi, profile remote, scope `payments.write`, capability, installation aktif, dan koneksi stored `connected` di bawah lifecycle gate yang sama dengan uninstall. Tidak melakukan refresh/network ketika memverifikasi.
+6. Callback tidak boleh membuat resource baru. Tenant, installation, reference, amount, currency harus sesuai resource yang tercatat. Callback sebelum transaksi create berhasil dipersist merespons 404 dan pengirim retry. Resource installation lama tidak pindah ketika reinstall/provider diganti.
+7. Inbox callback, snapshot, history/event outbox disimpan dalam satu transaksi PostgreSQL milik capability. ID+raw-body hash sama adalah duplicate; ID sama body berbeda adalah conflict. Revision lama adalah stale tanpa mutasi. Revision sama status berbeda, amount/reference berubah, dan regresi status adalah conflict. Nomor revision lebih baru dengan status sama boleh memperbarui watermark tanpa menggandakan event bisnis. Tidak ada klaim exactly-once lintas jaringan.
+8. Event baru `emisell.payment.status_changed.v1` memuat resource ID, installation ID, reference, status, integer amountMinor, currency, revision platform, `simulation: true`. Subject envelope = resource ID; broker subject tetap tenant-scoped. Event invocation lama dipertahankan. Outbox/worker/NATS yang ada dipakai; webhook router tetap hanya menerima event invocation sehingga tidak ada loop callback.
+9. Core reference hanya membaca public SDK event contract dan schema `reference_core`. Inbox dan proyeksi payment di-commit bersama sebelum ACK; duplicate tidak mengulang efek, snapshot lebih lama tidak mengganti yang baru. Konflik identity/revision/regresi dikarantina tanpa menyimpan payload konflik. Tidak ada provider endpoint/SDK di Core.
+10. Reference app memiliki outbox callback sendiri, di-commit bersama perubahan resource. Worker lokal mengirim ke origin loopback platform yang dipin (`127.0.0.1:8087`), timeout 3 detik, tanpa redirect/proxy/DNS arbitrer. Row lock antrean tidak menahan grant lock selama network I/O (menghindari siklus lock dengan invocation platform). Grant inactive membatalkan antrean; HTTP 400/401/403/409/413/415 menjadi dead; 404/5xx/network retry 2–256 detik, maksimum 12 attempt/24 jam. Dead tetap tersimpan untuk inspeksi operator; belum ada UI replay inbound callback. Outage/recovery di luar anggaran memerlukan rekonsiliasi, tidak boleh dianggap berhasil.
+11. CLI lokal `remote-reference --simulate capture|refund ...` mengubah hanya data reference app lalu mengantrikan callback. Key sama mempertahankan hasil pertama. Ini kontrol fixture dari komputer operator, bukan endpoint merchant/provider produksi.
+12. Dashboard Operasional → Transaksi membaca snapshot tenant owner (20/page, urutan ID stabil; filter status; detail maksimal 50 event). Nominal integer minor units diformat sesuai precision mata uang, tidak dibulatkan ke rupiah penuh. Timestamp lama yang tidak tersedia ditampilkan “Belum tercatat”. Tidak ada payload callback/secret. Tidak mengklaim ACK Core dari status platform; penerimaan Core diperiksa pada projection Core reference. Pembaruan manual, tanpa polling yang menutup drawer.
+
+## Migration dan compatibility
+
+- Migration platform baru `0006_payment_status.sql` additive; 0001–0005 tidak diubah. Tidak ada backfill event atau migrasi nominal/status lama.
+- Upgrade schema reference app melalui additive `callbacks.sql`, schema Core melalui `payments.sql`; `Init` eksplisit dan repeatable, tidak DDL runtime HTTP.
+- **Consumer-first rollout:** hentikan server/worker/remote/Core reference lama; terapkan schema platform dan reference; jalankan Core consumer baru sebelum menyalakan producer/worker baru. SDK lama whitelist event type dan akan mengarantina type baru; jangan membiarkan consumer lama membaca event baru lalu menganggap rollout backward-compatible otomatis. Protobuf tetap kompatibel; event baru butuh consumer upgrade.
+- Untuk local upgrade gunakan `cli migrate`, `cli init-core`, `cli init-remote` (credential lama dipertahankan). Bila token Core kedaluwarsa, minta keputusan rotasi eksplisit. Tidak ada kebutuhan broker/volume reset atau deployment Sites.
+- Rollback aplikasi tanpa DROP kolom/tabel. Pause producer/worker callback terlebih dahulu, pertahankan versi consumer yang memahami event baru atau hentikan konsumsi; jangan jalankan consumer whitelist lama atas backlog baru. Outbox/inbox/data disimpan untuk forward-fix dan replay terkontrol. Idempotency response lama tetap immutable dan dapat berisi status awal; GET untuk status terkini.
+- Key callback lokal mengikuti grant OAuth; reconnect mengganti key dan antrean retry ditandatangani dengan key grant aktif saat kirim. Queue owner dipin ke fingerprint encryption key fixture untuk isolasi test; rotasi encryption key produksi belum didukung dan memerlukan migrasi/re-enkripsi eksplisit.
+
+## Verifikasi dan batas keamanan
+
+Contract/unit, PostgreSQL integration, JetStream restart/ACK, tenant isolation, forged callback, changed amount, duplicate/lost ACK, out-of-order, retry outage, database failure, uninstall rejection, read API, frontend typecheck/lint/tests/build, browser desktop/mobile. Semua skenario finansial memakai database test/reference dan `simulation: true`.
+
+Local host checks, session auth, app secret, dan pinned egress bukan keamanan deployment internet. Sebelum production diperlukan HTTPS, callback rate limits/backpressure, key rotation/key IDs, per-app callback contracts/review, private-network deny policy, reconciliation dan operator replay, retention/audit policy, serta observability/alerting khusus inbound. Tidak mengaktifkan Temporal, Kafka, Kubernetes, atau dependency baru untuk antrean bounded ini.

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Embedded Demo · Emisell</title>
+  <link rel="stylesheet" href="/emisell-ui.css">
+</head>
+<body class="eui">
+  <main class="eui-page eui-stack">
+    <div class="eui-header">
+      <h1 class="eui-title">Embedded Demo</h1>
+      <button class="eui-button" id="refresh" type="button">Perbarui sesi</button>
+    </div>
+    <section class="eui-card eui-stack" aria-labelledby="connection-title">
+      <div class="eui-header">
+        <h2 class="eui-heading" id="connection-title">Koneksi dashboard</h2>
+        <span id="status" class="eui-badge" role="status">Menghubungkan</span>
+      </div>
+      <p class="eui-muted">Contoh aplikasi lokal. Hanya identitas sesi yang diperiksa, tanpa akses data bisnis.</p>
+      <p id="feedback" class="eui-banner" role="status" aria-live="polite">Menunggu identitas dari halaman induk…</p>
+    </section>
+    <section class="eui-card" aria-labelledby="identity-title">
+      <h2 class="eui-heading" id="identity-title">Identitas terverifikasi</h2>
+      <dl class="eui-description">
+        <dt>Toko</dt><dd id="merchant">—</dd>
+        <dt>Staf</dt><dd id="actor">—</dd>
+        <dt>Aplikasi</dt><dd id="app">—</dd>
+        <dt>Instalasi</dt><dd id="installation">—</dd>
+        <dt>Sesi berlaku hingga</dt><dd id="expiry">—</dd>
+        <dt>Pembaruan sesi</dt><dd id="renewals">0</dd>
+      </dl>
+    </section>
+    <p class="eui-muted muted">Sesi diperbarui otomatis setiap 45 detik. Akses diperiksa setiap 5 detik. Data sintetis, bukan data toko Anda.</p>
+  </main>
+  <script type="module" src="/demo.js"></script>
+</body>
+</html>

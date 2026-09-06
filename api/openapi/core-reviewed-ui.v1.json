@@ -1,0 +1,222 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Core Reviewed UI — development only",
+    "version": "1.0.0",
+    "description": "Dihosting API-service, bukan proxy Apps Platform. Memerlukan runtime UI Platform dan APP_PLATFORM_CORE_REVIEWED_UI_ENABLED serta install enabled. Issuer in-memory dan introspeksi loopback: belum production. Tidak memberi scope order atau resource bisnis."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8000",
+      "description": "API-service lokal; gunakan origin Core yang dikonfigurasi, bukan port portal."
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "accessToken": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "accessToken"
+      },
+      "session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "session"
+      },
+      "ReviewedUIBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Token identitas embedded 60 detik; bukan API key Platform."
+      }
+    }
+  },
+  "paths": {
+    "/v1/app-platform/core/installations/{installationId}/ui-session": {
+      "post": {
+        "summary": "Buka aplikasi UI: sesi embedded atau URL external",
+        "description": "API-service development only. POST JSON {} dari Dashboard HTTPS yang diizinkan, dengan cookie sesi seller dan X-Emisell-Preview: 1. Merchant/actor berasal dari sesi; dilarang mengirim URL, clientId, scope atau merchantId. Memeriksa ulang grant, release, assignment, client dan review. Embedded mengembalikan token 60 detik untuk bridge; external hanya launch tanpa token/SSO. Jangan simpan token di URL atau log.",
+        "security": [
+          {
+            "accessToken": [],
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "installationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Origin HTTPS Dashboard terdaftar."
+          },
+          {
+            "in": "header",
+            "name": "X-Emisell-Preview",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              },
+              "example": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Envelope data; identityToken/expiresIn hanya untuk embedded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "launch"
+                      ],
+                      "properties": {
+                        "launch": {
+                          "type": "object",
+                          "required": [
+                            "appId",
+                            "clientId",
+                            "releaseDigest",
+                            "url",
+                            "parentOrigin",
+                            "mode"
+                          ],
+                          "properties": {
+                            "appId": {
+                              "type": "string"
+                            },
+                            "clientId": {
+                              "type": "string"
+                            },
+                            "releaseDigest": {
+                              "type": "string"
+                            },
+                            "url": {
+                              "type": "string"
+                            },
+                            "parentOrigin": {
+                              "type": "string"
+                            },
+                            "mode": {
+                              "type": "string",
+                              "enum": [
+                                "embedded",
+                                "external"
+                              ]
+                            }
+                          }
+                        },
+                        "identityToken": {
+                          "type": "string"
+                        },
+                        "expiresIn": {
+                          "type": "integer",
+                          "const": 60
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesi, origin, izin atau binding akses ditolak."
+          },
+          "429": {
+            "description": "Batas request/sesi tercapai."
+          },
+          "503": {
+            "description": "Runtime UI/install belum diaktifkan."
+          }
+        }
+      }
+    },
+    "/v1/app-platform/core/reviewed-ui/identity": {
+      "get": {
+        "summary": "Verifikasi identitas dari backend aplikasi lokal",
+        "description": "Backend-to-backend loopback saja. Kirim Authorization: Bearer <identity-token> dan X-Emisell-App-Client sesuai audience. Tanpa Origin, Cookie, query atau body; bukan panggilan browser. Memeriksa ulang sesi seller dan current launch; token kadaluarsa, suspend/revoke atau binding berubah ditolak. Respons langsung tanpa envelope data. Tidak memberikan token akses data bisnis.",
+        "security": [
+          {
+            "ReviewedUIBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Emisell-App-Client",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Identitas masih valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "merchantId": {
+                      "type": "string"
+                    },
+                    "actorId": {
+                      "type": "string"
+                    },
+                    "appId": {
+                      "type": "string"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "installationId": {
+                      "type": "string"
+                    },
+                    "expiresAt": {
+                      "type": "integer",
+                      "description": "Unix timestamp detik"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Token, audience, koneksi non-loopback atau current access ditolak; termasuk runtime disabled."
+          },
+          "429": {
+            "description": "Maksimal 8 introspeksi bersamaan."
+          }
+        }
+      }
+    }
+  }
+}

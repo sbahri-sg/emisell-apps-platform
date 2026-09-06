@@ -1,0 +1,1043 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Emisell Integration Release Configuration API",
+    "version": "1.0.0",
+    "description": "ADR 0017. Aplikasi Integrasi adalah label UI untuk runtime remote. Pipeline konfigurasi non-executable, terpisah dari katalog dan fixture. Tidak membuktikan keamanan kode atau kesiapan runtime umum. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8087"
+    }
+  ],
+  "paths": {
+    "/api/v1/admin/integration-releases": {
+      "get": {
+        "summary": "Daftar rilis konfigurasi Aplikasi Integrasi",
+        "description": "Origin/Referer wajib http://localhost:4317; cookie hanya untuk surface ini. Baca: semua role admin. Review submitted → approved/rejected: reviewer atau administrator. Signing approved → signed dan suspension approved/signed → suspended: hanya administrator. Endpoint integrasi harus identik dengan snapshot metadata. URL HTTPS pada hostname DNS/origin sama, tanpa credentials/query/fragment, port 443; tidak melakukan network probe. Required resource scope belum grantable ditolak; optional tidak pernah otomatis diberikan. Snapshot immutable; satu konfigurasi per app/version dan submission. Perbaikan memerlukan versi baru. Replay idempotency mengembalikan status release TERKINI, tidak mengulang tindakan/signing. Tidak ada token, publikasi, grant atau install dari endpoint ini. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil. Konfigurasi saja; installable selalu false.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/List"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format atau policy invalid; gunakan validate untuk rincian.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/surface/role tidak diizinkan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik developer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Metadata belum approved, revision/status/key/version conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer tidak tersedia; tidak ada perubahan status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/integration-releases/{id}": {
+      "get": {
+        "summary": "Detail, validasi, signature dan audit rilis integrasi",
+        "description": "Origin/Referer wajib http://localhost:4317; cookie hanya untuk surface ini. Baca: semua role admin. Review submitted → approved/rejected: reviewer atau administrator. Signing approved → signed dan suspension approved/signed → suspended: hanya administrator. Endpoint integrasi harus identik dengan snapshot metadata. URL HTTPS pada hostname DNS/origin sama, tanpa credentials/query/fragment, port 443; tidak melakukan network probe. Required resource scope belum grantable ditolak; optional tidak pernah otomatis diberikan. Snapshot immutable; satu konfigurasi per app/version dan submission. Perbaikan memerlukan versi baru. Replay idempotency mengembalikan status release TERKINI, tidak mengulang tindakan/signing. Tidak ada token, publikasi, grant atau install dari endpoint ini. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil. Konfigurasi saja; installable selalu false.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Detail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format atau policy invalid; gunakan validate untuk rincian.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/surface/role tidak diizinkan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik developer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Metadata belum approved, revision/status/key/version conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer tidak tersedia; tidak ada perubahan status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/integration-releases/{id}/status": {
+      "post": {
+        "summary": "Review, tanda tangan atau tangguhkan konfigurasi",
+        "description": "Origin/Referer wajib http://localhost:4317; cookie hanya untuk surface ini. Baca: semua role admin. Review submitted → approved/rejected: reviewer atau administrator. Signing approved → signed dan suspension approved/signed → suspended: hanya administrator. Endpoint integrasi harus identik dengan snapshot metadata. URL HTTPS pada hostname DNS/origin sama, tanpa credentials/query/fragment, port 443; tidak melakukan network probe. Required resource scope belum grantable ditolak; optional tidak pernah otomatis diberikan. Snapshot immutable; satu konfigurasi per app/version dan submission. Perbaikan memerlukan versi baru. Replay idempotency mengembalikan status release TERKINI, tidak mengulang tindakan/signing. Tidak ada token, publikasi, grant atau install dari endpoint ini. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil. Konfigurasi saja; installable selalu false.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mutation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format atau policy invalid; gunakan validate untuk rincian.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/surface/role tidak diizinkan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik developer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Metadata belum approved, revision/status/key/version conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer tidak tersedia; tidak ada perubahan status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Action"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/integration-releases": {
+      "get": {
+        "summary": "Daftar rilis konfigurasi Aplikasi Integrasi",
+        "description": "Origin/Referer wajib http://localhost:4319; cookie hanya untuk surface ini. Hanya organisasi developer pemilik snapshot metadata approved; tidak menerima organizationId dari browser. Endpoint integrasi harus identik dengan snapshot metadata. URL HTTPS pada hostname DNS/origin sama, tanpa credentials/query/fragment, port 443; tidak melakukan network probe. Required resource scope belum grantable ditolak; optional tidak pernah otomatis diberikan. Snapshot immutable; satu konfigurasi per app/version dan submission. Perbaikan memerlukan versi baru. Replay idempotency mengembalikan status release TERKINI, tidak mengulang tindakan/signing. Tidak ada token, publikasi, grant atau install dari endpoint ini. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil. Konfigurasi saja; installable selalu false.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/List"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format atau policy invalid; gunakan validate untuk rincian.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/surface/role tidak diizinkan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik developer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Metadata belum approved, revision/status/key/version conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer tidak tersedia; tidak ada perubahan status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Ajukan konfigurasi untuk review terpisah",
+        "description": "Origin/Referer wajib http://localhost:4319; cookie hanya untuk surface ini. Hanya organisasi developer pemilik snapshot metadata approved; tidak menerima organizationId dari browser. Endpoint integrasi harus identik dengan snapshot metadata. URL HTTPS pada hostname DNS/origin sama, tanpa credentials/query/fragment, port 443; tidak melakukan network probe. Required resource scope belum grantable ditolak; optional tidak pernah otomatis diberikan. Snapshot immutable; satu konfigurasi per app/version dan submission. Perbaikan memerlukan versi baru. Replay idempotency mengembalikan status release TERKINI, tidak mengulang tindakan/signing. Tidak ada token, publikasi, grant atau install dari endpoint ini. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil. Konfigurasi saja; installable selalu false.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mutation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format atau policy invalid; gunakan validate untuk rincian.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/surface/role tidak diizinkan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik developer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Metadata belum approved, revision/status/key/version conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer tidak tersedia; tidak ada perubahan status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Input"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/integration-releases/{id}": {
+      "get": {
+        "summary": "Detail, validasi, signature dan audit rilis integrasi",
+        "description": "Origin/Referer wajib http://localhost:4319; cookie hanya untuk surface ini. Hanya organisasi developer pemilik snapshot metadata approved; tidak menerima organizationId dari browser. Endpoint integrasi harus identik dengan snapshot metadata. URL HTTPS pada hostname DNS/origin sama, tanpa credentials/query/fragment, port 443; tidak melakukan network probe. Required resource scope belum grantable ditolak; optional tidak pernah otomatis diberikan. Snapshot immutable; satu konfigurasi per app/version dan submission. Perbaikan memerlukan versi baru. Replay idempotency mengembalikan status release TERKINI, tidak mengulang tindakan/signing. Tidak ada token, publikasi, grant atau install dari endpoint ini. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil. Konfigurasi saja; installable selalu false.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Detail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format atau policy invalid; gunakan validate untuk rincian.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/surface/role tidak diizinkan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik developer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Metadata belum approved, revision/status/key/version conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer tidak tersedia; tidak ada perubahan status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/integration-releases/validate": {
+      "post": {
+        "summary": "Validasi konfigurasi tanpa menyimpan atau menghubungi endpoint",
+        "description": "Origin/Referer wajib http://localhost:4319; cookie hanya untuk surface ini. Hanya organisasi developer pemilik snapshot metadata approved; tidak menerima organizationId dari browser. Endpoint integrasi harus identik dengan snapshot metadata. URL HTTPS pada hostname DNS/origin sama, tanpa credentials/query/fragment, port 443; tidak melakukan network probe. Required resource scope belum grantable ditolak; optional tidak pernah otomatis diberikan. Snapshot immutable; satu konfigurasi per app/version dan submission. Perbaikan memerlukan versi baru. Replay idempotency mengembalikan status release TERKINI, tidak mengulang tindakan/signing. Tidak ada token, publikasi, grant atau install dari endpoint ini. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil. Konfigurasi saja; installable selalu false.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Preview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format atau policy invalid; gunakan validate untuk rincian.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/surface/role tidak diizinkan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ditemukan atau bukan milik developer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Metadata belum approved, revision/status/key/version conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Signer tidak tersedia; tidak ada perubahan status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Input"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "adminSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_admin_session"
+      },
+      "developerSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_developer_session"
+      }
+    },
+    "schemas": {
+      "Config": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "protocol",
+          "endpoint",
+          "callbackUrl",
+          "healthUrl"
+        ],
+        "properties": {
+          "protocol": {
+            "const": "emisell.capability-http/v1"
+          },
+          "endpoint": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048
+          },
+          "callbackUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048
+          },
+          "healthUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048
+          }
+        }
+      },
+      "Input": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "submissionId",
+          "config"
+        ],
+        "properties": {
+          "submissionId": {
+            "type": "string"
+          },
+          "config": {
+            "$ref": "#/components/schemas/Config"
+          }
+        }
+      },
+      "Action": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "revision",
+          "reason"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "approved",
+              "rejected",
+              "signed",
+              "suspended"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      },
+      "Manifest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema",
+          "policy",
+          "submissionId",
+          "metadata",
+          "config"
+        ],
+        "properties": {
+          "schema": {
+            "const": "emisell.integration-release/v1"
+          },
+          "policy": {
+            "const": "integration-configuration/v1"
+          },
+          "submissionId": {
+            "type": "string"
+          },
+          "metadata": {
+            "$ref": "catalog.v1.json#/components/schemas/Manifest"
+          },
+          "config": {
+            "$ref": "#/components/schemas/Config"
+          }
+        }
+      },
+      "Package": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "manifest",
+          "sha256",
+          "keyId",
+          "signature"
+        ],
+        "properties": {
+          "manifest": {
+            "$ref": "#/components/schemas/Manifest"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "keyId": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string",
+            "contentEncoding": "base64"
+          }
+        }
+      },
+      "Release": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "organizationId",
+          "manifest",
+          "sha256",
+          "status",
+          "revision",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "manifest": {
+            "$ref": "#/components/schemas/Manifest"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "package": {
+            "$ref": "#/components/schemas/Package"
+          },
+          "status": {
+            "enum": [
+              "submitted",
+              "approved",
+              "rejected",
+              "signed",
+              "suspended"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Validation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "valid",
+          "installable",
+          "checks",
+          "blockers"
+        ],
+        "properties": {
+          "valid": {
+            "type": "boolean"
+          },
+          "installable": {
+            "const": false
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "code",
+                "passed",
+                "message"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "passed": {
+                  "type": "boolean"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Audit": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "actorId",
+          "action",
+          "reason",
+          "occurredAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Detail": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "release",
+          "history",
+          "validation",
+          "trustedPublicKey"
+        ],
+        "properties": {
+          "release": {
+            "$ref": "#/components/schemas/Release"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Audit"
+            }
+          },
+          "validation": {
+            "$ref": "#/components/schemas/Validation"
+          },
+          "trustedPublicKey": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "contentEncoding": "base64"
+          }
+        }
+      },
+      "Mutation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "release",
+          "validation"
+        ],
+        "properties": {
+          "release": {
+            "$ref": "#/components/schemas/Release"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/Validation"
+          }
+        }
+      },
+      "List": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "releases",
+          "limit"
+        ],
+        "properties": {
+          "releases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Release"
+            }
+          },
+          "limit": {
+            "const": 200
+          }
+        }
+      },
+      "Preview": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "manifest",
+          "validation"
+        ],
+        "properties": {
+          "manifest": {
+            "$ref": "#/components/schemas/Manifest"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/Validation"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:emisell:catalog:v1",
+  "title": "Non-executable Emisell catalog metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "policy",
+    "appId",
+    "developerId",
+    "version",
+    "name",
+    "summary",
+    "description",
+    "capability",
+    "scopes",
+    "runtime",
+    "pricing",
+    "installable",
+    "sourceSha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "emisell.catalog/v1"
+    },
+    "policy": {
+      "const": "catalog-metadata/v1"
+    },
+    "appId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,100}$"
+    },
+    "developerId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,100}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 180
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 5000
+    },
+    "capability": {
+      "enum": [
+        "payment/v1",
+        "shipping/v1"
+      ]
+    },
+    "scopes": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "runtime": {
+      "const": "remote"
+    },
+    "pricing": {
+      "const": "free"
+    },
+    "installable": {
+      "const": false
+    },
+    "sourceSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "capability": {
+            "const": "payment/v1"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "scopes": {
+            "const": [
+              "orders.read",
+              "payments.read",
+              "payments.write"
+            ]
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "scopes": {
+            "const": [
+              "orders.read",
+              "shipping.read",
+              "shipping.write"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

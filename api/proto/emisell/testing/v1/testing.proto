@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package emisell.testing.v1;
+
+option go_package = "emisell.app/platform/pkg/sdk/gen/emisell/testing/v1;testingv1";
+
+// First-party Core full key only, after Core verifies the current merchant staff.
+// Distribution metadata only. This service cannot grant access or install apps.
+service TestDistributionService {
+  rpc ListAssignments(ListAssignmentsRequest) returns (ListAssignmentsResponse);
+}
+
+message ListAssignmentsRequest {
+  string merchant_id = 1;
+  string core_actor_id = 2;
+  // Default and maximum 20, ascending assignment_id; cursor is not authority.
+  int32 page_size = 3;
+  string after_id = 4;
+}
+
+message ListAssignmentsResponse {
+  string merchant_id = 1;
+  // Only Admin-approved assignments for this merchant, never requested/revoked.
+  repeated TestApp apps = 2;
+  string next_after_id = 3;
+}
+
+message TestApp {
+  string assignment_id = 1;
+  string app_id = 2;
+  string app_name = 3;
+  string version = 4;
+  string capability = 5;
+  TestReadiness readiness = 6;
+  // Explicit UI profile; empty preserves legacy capability releases.
+  string execution_profile = 7;
+}
+
+message TestReadiness {
+  bool configuration_ready = 1;
+  bool required_scopes_ready = 2;
+  // True only for the enabled local managed engine and current signed/approved source.
+  bool installable = 3;
+  // Stable codes, no provider URLs, credentials, actor or consent data.
+  repeated string blockers = 4;
+}

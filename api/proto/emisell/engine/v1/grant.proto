@@ -1,0 +1,25 @@
+syntax = "proto3";
+package emisell.engine.v1;
+
+option go_package = "emisell.app/platform/pkg/sdk/gen/emisell/engine/v1;enginev1";
+
+// Local-isolated API-Kurir only. Uses an independent engine credential, never a
+// developer token or full Core key. Each operation must make a fresh check.
+service EngineGrantService {
+  rpc Check(CheckRequest) returns (CheckResponse);
+}
+message CheckRequest {
+  string merchant_id = 1;
+  string provider_code = 2;
+  // rates.read or settings.read: never shipment, payment or credential writes.
+  string operation = 3;
+  string environment = 4;
+}
+message CheckResponse {
+  string merchant_id = 1;
+  string provider_code = 2;
+  string installation_id = 3;
+  string app_id = 4;
+  string environment = 5;
+  bool allowed = 6;
+}

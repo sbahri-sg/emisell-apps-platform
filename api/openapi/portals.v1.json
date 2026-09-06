@@ -1,0 +1,2782 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Emisell Portal API — local draft/review milestone",
+    "version": "1.0.0",
+    "description": "Separate admin/developer control-plane principals. No public registration, publishing, runtime activation or merchant management. Developer organization comes exclusively from authenticated membership. Lists return the latest 200. Approved review is NOT a signed or published release. HTTP/loopback development only; not an internet deployment security profile. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4317",
+      "description": "Admin frontend proxy"
+    },
+    {
+      "url": "http://localhost:4319",
+      "description": "Developer frontend proxy"
+    }
+  ],
+  "paths": {
+    "/api/v1/admin/staff": {
+      "get": {
+        "operationId": "adminStaffDirectory",
+        "security": [{"AdminSession":[]}],
+        "description": "Administrator-only read directory of admin portal accounts. Requires admin session and exact Admin Origin/Referer. Returns at most 50 accounts ordered by ID; pass nextAfterId as afterId. Enabled is login eligibility, not online presence. No passwords, sessions, invitations, role changes or developer accounts are exposed.",
+        "parameters": [{"name":"afterId","in":"query","schema":{"type":"string","maxLength":200}}],
+        "responses": {
+          "200": {"description":"Staff page","content":{"application/json":{"schema":{"type":"object","properties":{"accounts":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"email":{"type":"string"},"role":{"type":"string","enum":["administrator","reviewer","operator"]},"enabled":{"type":"boolean"}}}},"nextAfterId":{"type":"string"}}}}}},
+          "400":{"description":"Invalid cursor"},
+          "401":{"description":"Missing or expired session"},
+          "403":{"description":"Wrong origin or not administrator"}
+        }
+      }
+    },
+    "/api/v1/admin/developers": {
+      "get": {
+        "operationId": "adminDeveloperOrganizations",
+        "security": [{"AdminSession":[]}],
+        "description": "Administrator-only read directory. Requires admin session cookie and exact Admin Origin/Referer. Returns at most 50 organizations ordered by ID; use nextAfterId as afterId. No account emails, credentials, or membership writes.",
+        "parameters": [{"name":"afterId","in":"query","schema":{"type":"string","maxLength":200}}],
+        "responses": {
+          "200": {"description":"Organization page","content":{"application/json":{"schema":{"type":"object","properties":{"organizations":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"memberCount":{"type":"integer"}}}},"nextAfterId":{"type":"string"}}}}}},
+          "401":{"description":"Missing or expired admin session"},
+          "403":{"description":"Wrong origin or not administrator"}
+        }
+      }
+    },
+    "/api/v1/admin/developers/{id}": {
+      "get": {
+        "operationId": "adminDeveloperOrganization",
+        "security": [{"AdminSession":[]}],
+        "description": "Administrator-only organization detail. Requires admin session cookie and exact Admin Origin/Referer. Read-only; no email or credentials returned.",
+        "parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string"}}],
+        "responses":{
+          "200":{"description":"Organization","content":{"application/json":{"schema":{"type":"object","properties":{"organization":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"memberCount":{"type":"integer"}}}}}}}},
+          "401":{"description":"Missing or expired admin session"},
+          "403":{"description":"Wrong origin or not administrator"},
+          "404":{"description":"Organization not found"}
+        }
+      }
+    },
+    "/api/v1/admin/login": {
+      "post": {
+        "operationId": "adminLogin",
+        "description": "Credentials provisioned explicitly by CLI; no implicit upgrade of merchant accounts. Replaces this surface's previous session. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4317"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/Principal"
+                    }
+                  },
+                  "required": [
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/session": {
+      "get": {
+        "operationId": "adminSession",
+        "description": " ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "AdminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "const": "http://localhost:4317"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/logout": {
+      "post": {
+        "operationId": "adminLogout",
+        "description": " ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "AdminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4317"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/submissions": {
+      "get": {
+        "operationId": "adminSubmissions",
+        "description": " ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "AdminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "const": "http://localhost:4317"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "submissions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Submission"
+                      }
+                    },
+                    "limit": {
+                      "const": 200
+                    }
+                  },
+                  "required": [
+                    "submissions",
+                    "limit"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/submissions/{id}": {
+      "get": {
+        "operationId": "adminSubmission",
+        "description": " ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "AdminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "const": "http://localhost:4317"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "submission": {
+                      "$ref": "#/components/schemas/Submission"
+                    },
+                    "history": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Audit"
+                      }
+                    }
+                  },
+                  "required": [
+                    "submission",
+                    "history"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/login": {
+      "post": {
+        "operationId": "developerLogin",
+        "description": "Credentials provisioned explicitly by CLI; no implicit upgrade of merchant accounts. Replaces this surface's previous session. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4319"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/Principal"
+                    }
+                  },
+                  "required": [
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/session": {
+      "get": {
+        "operationId": "developerSession",
+        "description": " ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "DeveloperSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "const": "http://localhost:4319"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/logout": {
+      "post": {
+        "operationId": "developerLogout",
+        "description": " ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "DeveloperSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4319"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/submissions": {
+      "get": {
+        "operationId": "developerSubmissions",
+        "description": " ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "DeveloperSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "const": "http://localhost:4319"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "submissions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Submission"
+                      }
+                    },
+                    "limit": {
+                      "const": 200
+                    }
+                  },
+                  "required": [
+                    "submissions",
+                    "limit"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/submissions/{id}": {
+      "get": {
+        "operationId": "developerSubmission",
+        "description": " ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "DeveloperSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "const": "http://localhost:4319"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "submission": {
+                      "$ref": "#/components/schemas/Submission"
+                    },
+                    "history": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Audit"
+                      }
+                    }
+                  },
+                  "required": [
+                    "submission",
+                    "history"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/apps": {
+      "get": {
+        "operationId": "developerApps",
+        "description": " ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "DeveloperSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "const": "http://localhost:4319"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "apps": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Draft"
+                      }
+                    },
+                    "limit": {
+                      "const": 200
+                    }
+                  },
+                  "required": [
+                    "apps",
+                    "limit"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createDraft",
+        "description": " ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "DeveloperSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4319"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,128}$"
+            },
+            "description": "Retain for uncertain retries. Same key with changed input is 409. Successful replay returns original response; GET for current state."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "app": {
+                      "$ref": "#/components/schemas/Draft"
+                    }
+                  },
+                  "required": [
+                    "app"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveDraft"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/apps/{id}": {
+      "get": {
+        "operationId": "getDraft",
+        "description": " ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "DeveloperSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "const": "http://localhost:4319"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "app": {
+                      "$ref": "#/components/schemas/Draft"
+                    }
+                  },
+                  "required": [
+                    "app"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "saveDraft",
+        "description": " ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "DeveloperSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4319"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,128}$"
+            },
+            "description": "Retain for uncertain retries. Same key with changed input is 409. Successful replay returns original response; GET for current state."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "app": {
+                      "$ref": "#/components/schemas/Draft"
+                    }
+                  },
+                  "required": [
+                    "app"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveDraft"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/apps/{id}/submissions": {
+      "post": {
+        "operationId": "submitDraft",
+        "description": "Requires complete summary, description, endpoint and the capability's three baseline scopes. Immutable snapshot. One pending submission per app; changes_requested permits a new revision of same version. Approved/rejected version requires a new version. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "DeveloperSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4319"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,128}$"
+            },
+            "description": "Retain for uncertain retries. Same key with changed input is 409. Successful replay returns original response; GET for current state."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "submission": {
+                      "$ref": "#/components/schemas/Submission"
+                    }
+                  },
+                  "required": [
+                    "submission"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "revision"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/submissions/{id}/decision": {
+      "post": {
+        "operationId": "decideSubmission",
+        "description": "Administrator/reviewer only; operator is read-only. Nonblank feedback required. Only submitted may transition; decision and audit commit atomically. Never signs or publishes. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "AdminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4317"
+            },
+            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,128}$"
+            },
+            "description": "Retain for uncertain retries. Same key with changed input is 409. Successful replay returns original response; GET for current state."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "submission": {
+                      "$ref": "#/components/schemas/Submission"
+                    }
+                  },
+                  "required": [
+                    "submission"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Rejected or unavailable; no success implied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Decision"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AppDocument": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 180
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})$"
+          },
+          "capability": {
+            "enum": [
+              "shipping/v1",
+              "payment/v1"
+            ],
+            "description": "shipping/v1 untuk authoring baru; payment/v1 hanya record historis, ditolak policy distribusi."
+          },
+          "scopes": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 3,
+            "items": {
+              "enum": [
+                "orders.read",
+                "payments.read",
+                "payments.write",
+                "shipping.read",
+                "shipping.write"
+              ]
+            }
+          },
+          "endpoint": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "Empty allowed in draft; nonempty must be HTTPS without userinfo or fragment. Never fetched in this milestone."
+          },
+          "accessScopes": {
+            "$ref": "access-scopes.v1.json#/components/schemas/Declaration"
+          }
+        },
+        "required": [
+          "name",
+          "summary",
+          "description",
+          "version",
+          "capability",
+          "scopes",
+          "endpoint"
+        ]
+      },
+      "Draft": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "document": {
+            "$ref": "#/components/schemas/AppDocument"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "revision",
+          "document",
+          "updatedAt"
+        ]
+      },
+      "SaveDraft": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "0 on create; exact current revision on update."
+          },
+          "document": {
+            "$ref": "#/components/schemas/PublicAppDocument"
+          }
+        },
+        "required": [
+          "revision",
+          "document"
+        ]
+      },
+      "Login": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "Principal": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "surface": {
+            "enum": [
+              "admin",
+              "developer"
+            ]
+          },
+          "role": {
+            "enum": [
+              "administrator",
+              "reviewer",
+              "operator",
+              "developer"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "surface",
+          "role"
+        ]
+      },
+      "Organization": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "const": "owner"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "role"
+        ]
+      },
+      "Session": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/Principal"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/Organization"
+          }
+        },
+        "required": [
+          "user"
+        ]
+      },
+      "Decision": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "enum": [
+              "changes_requested",
+              "approved",
+              "rejected"
+            ]
+          },
+          "feedback": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        },
+        "required": [
+          "status",
+          "feedback"
+        ]
+      },
+      "Submission": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "appId": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "submitterId": {
+            "type": "string"
+          },
+          "draftRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "version": {
+            "type": "string"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/AppDocument"
+          },
+          "status": {
+            "enum": [
+              "submitted",
+              "changes_requested",
+              "approved",
+              "rejected"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "reviewerId": {
+            "type": "string"
+          },
+          "feedback": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "appId",
+          "organizationId",
+          "submitterId",
+          "draftRevision",
+          "version",
+          "snapshot",
+          "status",
+          "createdAt",
+          "decidedAt",
+          "reviewerId",
+          "feedback"
+        ]
+      },
+      "Audit": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "feedback": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "actorId",
+          "action",
+          "feedback",
+          "occurredAt"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "PublicAppDocument": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 180
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})$"
+          },
+          "capability": {
+            "enum": [
+              "shipping/v1"
+            ],
+            "description": "shipping/v1 untuk authoring baru; payment/v1 hanya record historis, ditolak policy distribusi."
+          },
+          "scopes": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 3,
+            "items": {
+              "enum": [
+                "orders.read",
+                "shipping.read",
+                "shipping.write"
+              ]
+            }
+          },
+          "endpoint": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "Empty allowed in draft; nonempty must be HTTPS without userinfo or fragment. Never fetched in this milestone."
+          },
+          "accessScopes": {
+            "$ref": "access-scopes.v1.json#/components/schemas/Declaration"
+          }
+        },
+        "required": [
+          "name",
+          "summary",
+          "description",
+          "version",
+          "capability",
+          "scopes",
+          "endpoint"
+        ],
+        "description": "Input authoring aplikasi umum. Identitas draft payment lama tidak boleh diubah menjadi shipping."
+      }
+    },
+    "securitySchemes": {
+      "AdminSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_admin_session",
+        "description": "HttpOnly, SameSite=Strict, Path=/api/v1/admin, 8h. Local HTTP only; production requires Secure/HTTPS."
+      },
+      "DeveloperSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_developer_session",
+        "description": "HttpOnly, SameSite=Strict, Path=/api/v1/developer, 8h."
+      }
+    }
+  }
+}

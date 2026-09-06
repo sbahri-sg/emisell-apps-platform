@@ -1,0 +1,1157 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Emisell App Clients and Endpoint Proof API",
+    "version": "1.0.0",
+    "description": "ADR 0018. Registrasi confidential client untuk persiapan OAuth, endpoint proof dan secret lifecycle. Bukan OAuth authorization server/token endpoint. Tetap non-installable. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8087"
+    }
+  ],
+  "paths": {
+    "/api/v1/admin/app-clients": {
+      "get": {
+        "summary": "Daftar identitas app-client dan kesiapan",
+        "description": "Sesi admin; Origin/Referer exact http://localhost:4317. Admin dapat membaca; hanya administrator boleh revoke. Tidak boleh registrasi, probe atau memperoleh secret. Baca tidak melakukan probe. Challenge 10 menit; verifikasi HTTPS eksplisit, bukti 24 jam; satu probe per menit/client. Key idempotensi actor-scoped. Retry identik tidak mengungkap secret atau mengirim ulang probe; hasil mengikuti state terkini selama gate release tetap valid. Challenge baru membatalkan bukti/secret lama. Secret eacs_ hash-only 256-bit; rotasi mematikan secret lama, revoke terminal. ClientReady bukan grant, token exchange atau install. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil; bukti gagal juga HTTP 200 dengan lastResult=failed, bukan sukses verifikasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/List"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format/payload/key invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/role/surface dilarang.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ada atau bukan milik organisasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Status/revision/key/release conflict, challenge expired atau cooldown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Verifier unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/app-clients/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Detail client, challenge dan audit",
+        "description": "Sesi admin; Origin/Referer exact http://localhost:4317. Admin dapat membaca; hanya administrator boleh revoke. Tidak boleh registrasi, probe atau memperoleh secret. Baca tidak melakukan probe. Challenge 10 menit; verifikasi HTTPS eksplisit, bukti 24 jam; satu probe per menit/client. Key idempotensi actor-scoped. Retry identik tidak mengungkap secret atau mengirim ulang probe; hasil mengikuti state terkini selama gate release tetap valid. Challenge baru membatalkan bukti/secret lama. Secret eacs_ hash-only 256-bit; rotasi mematikan secret lama, revoke terminal. ClientReady bukan grant, token exchange atau install. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil; bukti gagal juga HTTP 200 dengan lastResult=failed, bukan sukses verifikasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Detail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format/payload/key invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/role/surface dilarang.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ada atau bukan milik organisasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Status/revision/key/release conflict, challenge expired atau cooldown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Verifier unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/app-clients/{id}/actions": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Challenge, verifikasi, rotasi secret atau revoke client",
+        "description": "Sesi admin; Origin/Referer exact http://localhost:4317. Admin dapat membaca; hanya administrator boleh revoke. Tidak boleh registrasi, probe atau memperoleh secret. Baca tidak melakukan probe. Challenge 10 menit; verifikasi HTTPS eksplisit, bukti 24 jam; satu probe per menit/client. Key idempotensi actor-scoped. Retry identik tidak mengungkap secret atau mengirim ulang probe; hasil mengikuti state terkini selama gate release tetap valid. Challenge baru membatalkan bukti/secret lama. Secret eacs_ hash-only 256-bit; rotasi mematikan secret lama, revoke terminal. ClientReady bukan grant, token exchange atau install. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; bukti gagal juga HTTP 200 dengan lastResult=failed, bukan sukses verifikasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mutation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format/payload/key invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/role/surface dilarang.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ada atau bukan milik organisasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Status/revision/key/release conflict, challenge expired atau cooldown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Verifier unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Action"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/app-clients": {
+      "get": {
+        "summary": "Daftar identitas app-client dan kesiapan",
+        "description": "Sesi developer; Origin/Referer exact http://localhost:4319. Hanya organisasi developer pemilik release/client. Release harus signed dengan signature valid, callback terikat persis pada manifest. Baca tidak melakukan probe. Challenge 10 menit; verifikasi HTTPS eksplisit, bukti 24 jam; satu probe per menit/client. Key idempotensi actor-scoped. Retry identik tidak mengungkap secret atau mengirim ulang probe; hasil mengikuti state terkini selama gate release tetap valid. Challenge baru membatalkan bukti/secret lama. Secret eacs_ hash-only 256-bit; rotasi mematikan secret lama, revoke terminal. ClientReady bukan grant, token exchange atau install. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil; bukti gagal juga HTTP 200 dengan lastResult=failed, bukan sukses verifikasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/List"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format/payload/key invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/role/surface dilarang.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ada atau bukan milik organisasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Status/revision/key/release conflict, challenge expired atau cooldown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Verifier unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Registrasi app-client dari release signed",
+        "description": "Sesi developer; Origin/Referer exact http://localhost:4319. Hanya organisasi developer pemilik release/client. Release harus signed dengan signature valid, callback terikat persis pada manifest. Baca tidak melakukan probe. Challenge 10 menit; verifikasi HTTPS eksplisit, bukti 24 jam; satu probe per menit/client. Key idempotensi actor-scoped. Retry identik tidak mengungkap secret atau mengirim ulang probe; hasil mengikuti state terkini selama gate release tetap valid. Challenge baru membatalkan bukti/secret lama. Secret eacs_ hash-only 256-bit; rotasi mematikan secret lama, revoke terminal. ClientReady bukan grant, token exchange atau install. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; bukti gagal juga HTTP 200 dengan lastResult=failed, bukan sukses verifikasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Created"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format/payload/key invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/role/surface dilarang.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ada atau bukan milik organisasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Status/revision/key/release conflict, challenge expired atau cooldown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Verifier unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Input"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/app-clients/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Detail client, challenge dan audit",
+        "description": "Sesi developer; Origin/Referer exact http://localhost:4319. Hanya organisasi developer pemilik release/client. Release harus signed dengan signature valid, callback terikat persis pada manifest. Baca tidak melakukan probe. Challenge 10 menit; verifikasi HTTPS eksplisit, bukti 24 jam; satu probe per menit/client. Key idempotensi actor-scoped. Retry identik tidak mengungkap secret atau mengirim ulang probe; hasil mengikuti state terkini selama gate release tetap valid. Challenge baru membatalkan bukti/secret lama. Secret eacs_ hash-only 256-bit; rotasi mematikan secret lama, revoke terminal. ClientReady bukan grant, token exchange atau install. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil; bukti gagal juga HTTP 200 dengan lastResult=failed, bukan sukses verifikasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Detail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format/payload/key invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/role/surface dilarang.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ada atau bukan milik organisasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Status/revision/key/release conflict, challenge expired atau cooldown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Verifier unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/developer/app-clients/{id}/actions": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Challenge, verifikasi, rotasi secret atau revoke client",
+        "description": "Sesi developer; Origin/Referer exact http://localhost:4319. Hanya organisasi developer pemilik release/client. Release harus signed dengan signature valid, callback terikat persis pada manifest. Baca tidak melakukan probe. Challenge 10 menit; verifikasi HTTPS eksplisit, bukti 24 jam; satu probe per menit/client. Key idempotensi actor-scoped. Retry identik tidak mengungkap secret atau mengirim ulang probe; hasil mengikuti state terkini selama gate release tetap valid. Challenge baru membatalkan bukti/secret lama. Secret eacs_ hash-only 256-bit; rotasi mematikan secret lama, revoke terminal. ClientReady bukan grant, token exchange atau install. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; bukti gagal juga HTTP 200 dengan lastResult=failed, bukan sukses verifikasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mutation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format/payload/key invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/role/surface dilarang.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tidak ada atau bukan milik organisasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Status/revision/key/release conflict, challenge expired atau cooldown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Verifier unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Action"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/client-check": {
+      "post": {
+        "summary": "Self-check identitas app-client (bukan token exchange)",
+        "description": "Server-to-server pada listener API 8087 development loopback, HTTP Basic username clientId eac_ dan password clientSecret eacs_. Body {}. Dilarang Origin, Cookie dan query. Memeriksa secret versi terkini, proof TTL, client tidak revoked, release tetap signed/verified dan binding callback immutable. Key Core epk_, app installation token eat_ dan cookie portal tidak diterima. Response tidak memberikan access token, grant, tenant access, resource atau runtime. Gunakan TLS sebelum deployment non-local; jangan mengirim secret melalui URL/log/frontend. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
+        "security": [
+          {
+            "appClientBasic": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [],
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Identitas cocok; seluruh gate akses tetap false.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Check"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credential/proof/release invalid atau unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/cookie/query tidak diperbolehkan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "adminSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_admin_session"
+      },
+      "developerSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_developer_session"
+      },
+      "appClientBasic": {
+        "type": "http",
+        "scheme": "basic",
+        "description": "Client ID eac_ + secret eacs_; bukan credential Core."
+      }
+    },
+    "schemas": {
+      "Binding": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "releaseId",
+          "organizationId",
+          "appId",
+          "version",
+          "name",
+          "digest",
+          "endpoint",
+          "redirectUri"
+        ],
+        "properties": {
+          "releaseId": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "appId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "digest": {
+            "type": "string"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "redirectUri": {
+            "type": "string"
+          }
+        }
+      },
+      "Client": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "binding",
+          "status",
+          "revision",
+          "challengeId",
+          "challenge",
+          "challengeExpiresAt",
+          "verifiedUntil",
+          "lastAttemptAt",
+          "lastResult",
+          "secretVersion",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "binding": {
+            "$ref": "#/components/schemas/Binding"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "verified",
+              "revoked"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "challengeId": {
+            "type": "string"
+          },
+          "challenge": {
+            "type": "string"
+          },
+          "challengeExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "verifiedUntil": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "lastAttemptAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "lastResult": {
+            "type": "string"
+          },
+          "secretVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Proof": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema",
+          "clientId",
+          "releaseSha256",
+          "challenge"
+        ],
+        "properties": {
+          "schema": {
+            "const": "emisell.endpoint-proof/v1"
+          },
+          "clientId": {
+            "type": "string"
+          },
+          "releaseSha256": {
+            "type": "string"
+          },
+          "challenge": {
+            "type": "string"
+          }
+        }
+      },
+      "View": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "client",
+          "proofUrl",
+          "expected",
+          "clientReady",
+          "oauthEnabled",
+          "installable",
+          "blockers"
+        ],
+        "properties": {
+          "client": {
+            "$ref": "#/components/schemas/Client"
+          },
+          "proofUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "expected": {
+            "$ref": "#/components/schemas/Proof"
+          },
+          "clientReady": {
+            "type": "boolean"
+          },
+          "oauthEnabled": {
+            "const": false
+          },
+          "installable": {
+            "const": false
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Input": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "releaseId"
+        ],
+        "properties": {
+          "releaseId": {
+            "type": "string"
+          }
+        }
+      },
+      "Action": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "revision",
+          "reason"
+        ],
+        "properties": {
+          "action": {
+            "enum": [
+              "challenge",
+              "verify",
+              "rotate_secret",
+              "revoke"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Tanpa secret atau control characters; batas backend UTF-8 bytes."
+          }
+        }
+      },
+      "List": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "clients",
+          "limit"
+        ],
+        "properties": {
+          "clients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/View"
+            }
+          },
+          "limit": {
+            "const": 200
+          }
+        }
+      },
+      "Audit": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "actorId",
+          "action",
+          "reason",
+          "occurredAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Detail": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "view",
+          "history"
+        ],
+        "properties": {
+          "view": {
+            "$ref": "#/components/schemas/View"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Audit"
+            }
+          }
+        }
+      },
+      "Created": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "view"
+        ],
+        "properties": {
+          "view": {
+            "$ref": "#/components/schemas/View"
+          }
+        }
+      },
+      "Mutation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "view",
+          "secret",
+          "secretAvailable"
+        ],
+        "properties": {
+          "view": {
+            "$ref": "#/components/schemas/View"
+          },
+          "secret": {
+            "type": "string"
+          },
+          "secretAvailable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Check": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "clientId",
+          "appId",
+          "releaseId",
+          "redirectUri",
+          "oauthEnabled",
+          "installable",
+          "resourceGatewayAllowed"
+        ],
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "appId": {
+            "type": "string"
+          },
+          "releaseId": {
+            "type": "string"
+          },
+          "redirectUri": {
+            "type": "string"
+          },
+          "oauthEnabled": {
+            "const": false
+          },
+          "installable": {
+            "const": false
+          },
+          "resourceGatewayAllowed": {
+            "const": false
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

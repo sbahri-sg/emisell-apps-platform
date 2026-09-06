@@ -1,0 +1,28 @@
+name: emisell-platform-local-v1
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: emisell_local
+      POSTGRES_PASSWORD: local-development-only
+      POSTGRES_DB: emisell_local
+    ports:
+      - "127.0.0.1:55437:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U emisell_local -d emisell_local"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+  nats:
+    image: nats:2.14.6-alpine
+    command: ["-c", "/etc/nats/local.conf"]
+    ports:
+      - "127.0.0.1:54227:4222"
+    volumes:
+      - ../.local/nats.conf:/etc/nats/local.conf:ro
+      - nats_data:/data
+volumes:
+  postgres_data:
+  nats_data:

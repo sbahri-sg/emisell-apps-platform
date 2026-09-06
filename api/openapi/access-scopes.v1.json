@@ -1,0 +1,377 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Emisell App Resource Access Scope Reference",
+    "version": "1.0.0",
+    "description": "Authenticated app-resource scope planning. No active grants or tokens are issued. Core service credentials and fixture capability scopes are separate profiles."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8087"
+    }
+  ],
+  "paths": {
+    "/api/v1/admin/access-scopes": {
+      "get": {
+        "summary": "Baca katalog scope resource",
+        "description": "Sesi admin dan Origin/Referer http://localhost:4317 wajib. Developer juga harus mempunyai organisasi. Read-only, no-store. Handles Shopify authenticated snapshot; belum grantable. Simpan required/optional lewat document.accessScopes pada draft; approval metadata tidak memberikan akses.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Katalog referensi; grantable selalu false",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Catalog"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid atau salah audience"
+          },
+          "403": {
+            "description": "Origin salah atau organisasi tidak dapat diakses"
+          },
+          "503": {
+            "description": "Layanan identity tidak tersedia"
+          }
+        }
+      }
+    },
+    "/api/v1/developer/access-scopes": {
+      "get": {
+        "summary": "Baca katalog scope resource",
+        "description": "Sesi developer dan Origin/Referer http://localhost:4319 wajib. Developer juga harus mempunyai organisasi. Read-only, no-store. Handles Shopify authenticated snapshot; belum grantable. Simpan required/optional lewat document.accessScopes pada draft; approval metadata tidak memberikan akses.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Katalog referensi; grantable selalu false",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Catalog"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid atau salah audience"
+          },
+          "403": {
+            "description": "Origin salah atau organisasi tidak dapat diakses"
+          },
+          "503": {
+            "description": "Layanan identity tidak tersedia"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/access-scopes/verification": {
+      "get": {
+        "summary": "Periksa kesiapan scope resource",
+        "description": "Sesi admin dan Origin portal yang sesuai wajib. Inventaris build App Platform; bukan probe live Core. Semua resource masih planned; kontrak parsial tidak mengaktifkan grant. Kegagalan pemeriksaan tidak boleh diasumsikan aktif.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hasil inventaris beserta blocker per scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Verification"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid"
+          },
+          "403": {
+            "description": "Origin/organisasi tidak diizinkan"
+          },
+          "503": {
+            "description": "Identity tidak tersedia"
+          }
+        }
+      }
+    },
+    "/api/v1/developer/access-scopes/verification": {
+      "get": {
+        "summary": "Periksa kesiapan scope resource",
+        "description": "Sesi developer dan Origin portal yang sesuai wajib. Inventaris build App Platform; bukan probe live Core. Semua resource masih planned; kontrak parsial tidak mengaktifkan grant. Kegagalan pemeriksaan tidak boleh diasumsikan aktif.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hasil inventaris beserta blocker per scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Verification"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesi tidak valid"
+          },
+          "403": {
+            "description": "Origin/organisasi tidak diizinkan"
+          },
+          "503": {
+            "description": "Identity tidak tersedia"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "adminSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_admin_session"
+      },
+      "developerSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_developer_session"
+      }
+    },
+    "schemas": {
+      "Declaration": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Rencana kebutuhan resource, bukan grant aktif. Profile immutable; required tidak boleh bergantung pada optional. Optional tidak boleh sudah tercakup required/implied. Semua handle harus ada dalam katalog profil. Array kosong diperbolehkan per kelompok, tetapi gabungannya harus nonempty.",
+        "required": [
+          "profile",
+          "required",
+          "optional"
+        ],
+        "properties": {
+          "profile": {
+            "const": "shopify-authenticated-2026-09-05"
+          },
+          "required": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 128,
+            "items": {
+              "type": "string",
+              "pattern": "^(read|write)_[a-z_]+$"
+            }
+          },
+          "optional": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 128,
+            "items": {
+              "type": "string",
+              "pattern": "^(read|write)_[a-z_]+$"
+            }
+          }
+        }
+      },
+      "Scope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "handle",
+          "resource",
+          "action",
+          "status",
+          "grantable",
+          "implies",
+          "requiresAny",
+          "review",
+          "notes"
+        ],
+        "properties": {
+          "handle": {
+            "type": "string"
+          },
+          "resource": {
+            "type": "string"
+          },
+          "action": {
+            "enum": [
+              "read",
+              "write"
+            ]
+          },
+          "status": {
+            "enum": [
+              "planned",
+              "reference_only",
+              "future_reference"
+            ]
+          },
+          "grantable": {
+            "const": false
+          },
+          "implies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "requiresAny": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "review": {
+            "enum": [
+              "standard",
+              "restricted"
+            ],
+            "description": "Policy review Emisell, bukan keputusan/approval Shopify."
+          },
+          "notes": {
+            "type": "string"
+          },
+          "availableFrom": {
+            "type": "string"
+          }
+        }
+      },
+      "Catalog": {
+        "type": "object",
+        "required": [
+          "profile",
+          "source",
+          "checkedAt",
+          "grantable",
+          "scopes"
+        ],
+        "properties": {
+          "profile": {
+            "const": "shopify-authenticated-2026-09-05"
+          },
+          "source": {
+            "const": "https://shopify.dev/docs/api/usage/access-scopes"
+          },
+          "checkedAt": {
+            "const": "2026-09-05"
+          },
+          "grantable": {
+            "const": false
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Scope"
+            }
+          }
+        }
+      },
+      "Verification": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "profile",
+          "checkedAt",
+          "verification",
+          "coreChecked",
+          "scopes",
+          "environment",
+          "contractRevision",
+          "operations"
+        ],
+        "properties": {
+          "profile": {
+            "const": "shopify-authenticated-2026-09-05"
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "verification": {
+            "const": "platform_build_inventory"
+          },
+          "coreChecked": {
+            "const": false
+          },
+          "environment": { "const": "local", "description": "Lingkungan inventaris ini. Bukan bukti deployment Core." },
+          "contractRevision": { "type": "string", "pattern": "^[a-f0-9]{64}$", "description": "Fingerprint kontrak/mapping untuk mendeteksi dokumentasi yang berbeda versi; bukan bukti gateway aktif." },
+          "operations": {
+            "type": "array",
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["procedure", "version", "requiredScope", "acceptedScopes", "status", "blockers"],
+              "properties": {
+                "procedure": { "type": "string" },
+                "version": { "type": "string" },
+                "requiredScope": { "type": "string" },
+                "acceptedScopes": { "type": "array", "items": { "type": "string" } },
+                "status": { "const": "planned", "description": "Kesiapan operasi, terpisah dari kelengkapan seluruh scope; belum ada aktivasi pada milestone ini." },
+                "blockers": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "handle",
+                "status",
+                "grantable",
+                "contractStatus",
+                "operations",
+                "blockers"
+              ],
+              "properties": {
+                "handle": {
+                  "type": "string"
+                },
+                "status": {
+                  "const": "planned"
+                },
+                "grantable": {
+                  "const": false
+                },
+                "contractStatus": {
+                  "enum": [
+                    "missing",
+                    "partial",
+                    "reference_only"
+                  ]
+                },
+                "operations": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "blockers": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

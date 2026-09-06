@@ -14,7 +14,6 @@
 # next.js
 /.next/
 /.vinext/
-**/.vite/
 /out/
 
 # misc
@@ -26,18 +25,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-*.tsbuildinfo
 
 # local environment
 .env*
-!.env.example
-!**/.env.example
-/deploy/production.env
-
-# Go build and coverage output
-/services/app-gateway/app-gateway
-/services/app-gateway/coverage.out
-/services/app-gateway/tmp/
 
 # deployment and generated files
 .vercel
@@ -46,5 +36,4 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
-/.local/
-/bin/
+*.tsbuildinfo

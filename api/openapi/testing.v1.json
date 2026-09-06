@@ -1,0 +1,761 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Emisell Test Distribution API",
+    "version": "1.0.0",
+    "description": "Metadata distribusi aplikasi uji. Tidak merupakan installation authority. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8087"
+    }
+  ],
+  "paths": {
+    "/api/v1/admin/test-assignments": {
+      "get": {
+        "summary": "Daftar assignment pengujian",
+        "description": "ADR 0021/0026. Cookie dan Origin sesuai surface wajib. Developer hanya organisasinya; Admin membaca, administrator memutuskan dan memvalidasi merchant terdaftar. Sumber default integration; releaseKind=managed_shipping memilih release provider terkelola tanpa OAuth fiktif. Request baru/approval memverifikasi signature, checksum dan ownership. Snapshot/revision/idempotency/audit immutable; retry identik membaca state terkini. Approval bukan consent/grant/install. Managed shipping pada engine lokal terisolasi dapat installable=true; integration runtime umum tetap blocked (ADR 0027). Revoke bukan uninstall. Cursor bukan identity; tidak ada pencarian merchant. Payment gateway internal Emisell, bukan distribusi aplikasi umum. Compatibility record historis dipertahankan.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "afterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,100}$"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil, tidak memberi akses runtime.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/List"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format/key/cursor invalid"
+          },
+          "401": {
+            "description": "Sesi berakhir"
+          },
+          "403": {
+            "description": "Origin/role tidak berwenang"
+          },
+          "404": {
+            "description": "Target tidak ditemukan atau bukan milik organisasi; approval juga menolak merchant tidak dikenal."
+          },
+          "409": {
+            "description": "Revision, duplicate assignment, idempotency payload atau release state conflict"
+          },
+          "503": {
+            "description": "Layanan tidak tersedia"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/test-assignments/{id}": {
+      "get": {
+        "summary": "Detail assignment dan audit",
+        "description": "ADR 0021/0026. Cookie dan Origin sesuai surface wajib. Developer hanya organisasinya; Admin membaca, administrator memutuskan dan memvalidasi merchant terdaftar. Sumber default integration; releaseKind=managed_shipping memilih release provider terkelola tanpa OAuth fiktif. Request baru/approval memverifikasi signature, checksum dan ownership. Snapshot/revision/idempotency/audit immutable; retry identik membaca state terkini. Approval bukan consent/grant/install. Managed shipping pada engine lokal terisolasi dapat installable=true; integration runtime umum tetap blocked (ADR 0027). Revoke bukan uninstall. Cursor bukan identity; tidak ada pencarian merchant. Payment gateway internal Emisell, bukan distribusi aplikasi umum. Compatibility record historis dipertahankan.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil, tidak memberi akses runtime.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Detail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format/key/cursor invalid"
+          },
+          "401": {
+            "description": "Sesi berakhir"
+          },
+          "403": {
+            "description": "Origin/role tidak berwenang"
+          },
+          "404": {
+            "description": "Target tidak ditemukan atau bukan milik organisasi; approval juga menolak merchant tidak dikenal."
+          },
+          "409": {
+            "description": "Revision, duplicate assignment, idempotency payload atau release state conflict"
+          },
+          "503": {
+            "description": "Layanan tidak tersedia"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/test-assignments/{id}/status": {
+      "post": {
+        "summary": "Setujui, tolak atau cabut distribusi pengujian",
+        "description": "ADR 0021/0026. Cookie dan Origin sesuai surface wajib. Developer hanya organisasinya; Admin membaca, administrator memutuskan dan memvalidasi merchant terdaftar. Sumber default integration; releaseKind=managed_shipping memilih release provider terkelola tanpa OAuth fiktif. Request baru/approval memverifikasi signature, checksum dan ownership. Snapshot/revision/idempotency/audit immutable; retry identik membaca state terkini. Approval bukan consent/grant/install. Managed shipping pada engine lokal terisolasi dapat installable=true; integration runtime umum tetap blocked (ADR 0027). Revoke bukan uninstall. Cursor bukan identity; tidak ada pencarian merchant. Payment gateway internal Emisell, bukan distribusi aplikasi umum. Compatibility record historis dipertahankan.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Decision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Berhasil, tidak memberi akses runtime.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mutation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format/key/cursor invalid"
+          },
+          "401": {
+            "description": "Sesi berakhir"
+          },
+          "403": {
+            "description": "Origin/role tidak berwenang"
+          },
+          "404": {
+            "description": "Target tidak ditemukan atau bukan milik organisasi; approval juga menolak merchant tidak dikenal."
+          },
+          "409": {
+            "description": "Revision, duplicate assignment, idempotency payload atau release state conflict"
+          },
+          "503": {
+            "description": "Layanan tidak tersedia"
+          }
+        }
+      }
+    },
+    "/api/v1/developer/test-assignments": {
+      "get": {
+        "summary": "Daftar assignment pengujian",
+        "description": "ADR 0021/0026. Cookie dan Origin sesuai surface wajib. Developer hanya organisasinya; Admin membaca, administrator memutuskan dan memvalidasi merchant terdaftar. Sumber default integration; releaseKind=managed_shipping memilih release provider terkelola tanpa OAuth fiktif. Request baru/approval memverifikasi signature, checksum dan ownership. Snapshot/revision/idempotency/audit immutable; retry identik membaca state terkini. Approval bukan consent/grant/install. Managed shipping pada engine lokal terisolasi dapat installable=true; integration runtime umum tetap blocked (ADR 0027). Revoke bukan uninstall. Cursor bukan identity; tidak ada pencarian merchant. Payment gateway internal Emisell, bukan distribusi aplikasi umum. Compatibility record historis dipertahankan.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "afterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,100}$"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil, tidak memberi akses runtime.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/List"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format/key/cursor invalid"
+          },
+          "401": {
+            "description": "Sesi berakhir"
+          },
+          "403": {
+            "description": "Origin/role tidak berwenang"
+          },
+          "404": {
+            "description": "Target tidak ditemukan atau bukan milik organisasi; approval juga menolak merchant tidak dikenal."
+          },
+          "409": {
+            "description": "Revision, duplicate assignment, idempotency payload atau release state conflict"
+          },
+          "503": {
+            "description": "Layanan tidak tersedia"
+          }
+        }
+      },
+      "post": {
+        "summary": "Ajukan release signed untuk pengujian merchant",
+        "description": "ADR 0021/0026. Cookie dan Origin sesuai surface wajib. Developer hanya organisasinya; Admin membaca, administrator memutuskan dan memvalidasi merchant terdaftar. Sumber default integration; releaseKind=managed_shipping memilih release provider terkelola tanpa OAuth fiktif. Request baru/approval memverifikasi signature, checksum dan ownership. Snapshot/revision/idempotency/audit immutable; retry identik membaca state terkini. Approval bukan consent/grant/install. Managed shipping pada engine lokal terisolasi dapat installable=true; integration runtime umum tetap blocked (ADR 0027). Revoke bukan uninstall. Cursor bukan identity; tidak ada pencarian merchant. Payment gateway internal Emisell, bukan distribusi aplikasi umum. Compatibility record historis dipertahankan.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Berhasil, tidak memberi akses runtime.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mutation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format/key/cursor invalid"
+          },
+          "401": {
+            "description": "Sesi berakhir"
+          },
+          "403": {
+            "description": "Origin/role tidak berwenang"
+          },
+          "404": {
+            "description": "Target tidak ditemukan atau bukan milik organisasi; approval juga menolak merchant tidak dikenal."
+          },
+          "409": {
+            "description": "Revision, duplicate assignment, idempotency payload atau release state conflict"
+          },
+          "503": {
+            "description": "Layanan tidak tersedia"
+          }
+        }
+      }
+    },
+    "/api/v1/developer/test-assignments/{id}": {
+      "get": {
+        "summary": "Detail assignment dan audit",
+        "description": "ADR 0021/0026. Cookie dan Origin sesuai surface wajib. Developer hanya organisasinya; Admin membaca, administrator memutuskan dan memvalidasi merchant terdaftar. Sumber default integration; releaseKind=managed_shipping memilih release provider terkelola tanpa OAuth fiktif. Request baru/approval memverifikasi signature, checksum dan ownership. Snapshot/revision/idempotency/audit immutable; retry identik membaca state terkini. Approval bukan consent/grant/install. Managed shipping pada engine lokal terisolasi dapat installable=true; integration runtime umum tetap blocked (ADR 0027). Revoke bukan uninstall. Cursor bukan identity; tidak ada pencarian merchant. Payment gateway internal Emisell, bukan distribusi aplikasi umum. Compatibility record historis dipertahankan.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil, tidak memberi akses runtime.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Detail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format/key/cursor invalid"
+          },
+          "401": {
+            "description": "Sesi berakhir"
+          },
+          "403": {
+            "description": "Origin/role tidak berwenang"
+          },
+          "404": {
+            "description": "Target tidak ditemukan atau bukan milik organisasi; approval juga menolak merchant tidak dikenal."
+          },
+          "409": {
+            "description": "Revision, duplicate assignment, idempotency payload atau release state conflict"
+          },
+          "503": {
+            "description": "Layanan tidak tersedia"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "adminSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_admin_session"
+      },
+      "developerSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_developer_session"
+      }
+    },
+    "schemas": {
+      "Readiness": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "configurationReady": {
+            "type": "boolean"
+          },
+          "requiredScopesReady": {
+            "type": "boolean"
+          },
+          "installable": {
+            "type": "boolean",
+            "description": "True only for the explicitly enabled local managed engine with a signed release and current approved assignment. Never merchant consent or active access."
+          },
+          "blockers": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "type": "string",
+              "enum": [
+                "runtime_not_available",
+                "oauth_not_available",
+                "endpoint_runtime_unverified",
+                "release_not_ready",
+                "required_scopes_not_ready",
+                "managed_installation_not_available",
+                "engine_grant_enforcement_not_available"
+              ]
+            }
+          }
+        },
+        "required": [
+          "configurationReady",
+          "requiredScopesReady",
+          "installable",
+          "blockers"
+        ]
+      },
+      "TestApp": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "assignmentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "appName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "capability": {
+            "type": "string",
+            "enum": [
+              "payment/v1",
+              "shipping/v1"
+            ]
+          },
+          "readiness": {
+            "$ref": "#/components/schemas/Readiness"
+          }
+        },
+        "required": [
+          "assignmentId",
+          "appId",
+          "appName",
+          "version",
+          "capability",
+          "readiness"
+        ]
+      },
+      "Assignment": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "organizationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "releaseId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "releaseSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "merchantId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,100}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "requested",
+              "approved",
+              "rejected",
+              "revoked"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "releaseKind": {
+            "type": "string",
+            "enum": [
+              "managed_shipping", "ui"
+            ],
+            "description": "Omit for legacy integration releases. ui selects a signed UI release; UI assignments are not yet installable."
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "releaseId",
+          "releaseSha256",
+          "merchantId",
+          "status",
+          "revision",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "View": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "organizationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "releaseId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "releaseSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "merchantId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,100}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "requested",
+              "approved",
+              "rejected",
+              "revoked"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "app": {
+            "$ref": "#/components/schemas/TestApp"
+          },
+          "releaseKind": {
+            "type": "string",
+            "enum": [
+              "managed_shipping", "ui"
+            ],
+            "description": "Omit for legacy integration releases. ui selects a signed UI release; UI assignments are not yet installable."
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "releaseId",
+          "releaseSha256",
+          "merchantId",
+          "status",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "app"
+        ]
+      },
+      "List": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "assignments": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/View"
+            }
+          },
+          "nextAfterId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "assignments",
+          "nextAfterId"
+        ]
+      },
+      "Detail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/View"
+          },
+          "history": {
+            "type": "array",
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "actorId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "action": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "occurredAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "actorId",
+                "action",
+                "reason",
+                "occurredAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "assignment",
+          "history"
+        ]
+      },
+      "Mutation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/Assignment"
+          }
+        },
+        "required": [
+          "assignment"
+        ]
+      },
+      "Request": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "releaseId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "merchantId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,100}$"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "releaseKind": {
+            "type": "string",
+            "enum": [
+              "managed_shipping", "ui"
+            ],
+            "description": "Omit for legacy integration releases. ui selects a signed UI release; UI assignments are not yet installable."
+          }
+        },
+        "required": [
+          "releaseId",
+          "merchantId",
+          "reason"
+        ]
+      },
+      "Decision": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "rejected",
+              "revoked"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "status",
+          "revision",
+          "reason"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package emisell.payment.v1;
+
+option go_package = "emisell.app/platform/pkg/sdk/gen/emisell/payment/v1;paymentv1";
+
+// payment/v1. Monetary amounts are integer minor units, never floating point.
+// This release is simulation-only, IDR, with full capture/refund only.
+service PaymentService {
+  rpc Create(CreateRequest) returns (CreateResponse);
+  rpc Capture(CaptureRequest) returns (CaptureResponse);
+  rpc Refund(RefundRequest) returns (RefundResponse);
+  rpc Status(StatusRequest) returns (StatusResponse);
+}
+
+// Merchant must match the authorized context of the authenticated Core caller.
+// Every request requires a stable idempotency key, including reads.
+message CreateRequest {
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 1 [deprecated = true];
+  string idempotency_key = 2;
+  string reference = 3;
+  int64 amount_minor = 4;
+  string currency = 5;
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 6;
+}
+message CaptureRequest {
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 1 [deprecated = true];
+  string idempotency_key = 2;
+  string resource_id = 3;
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 4;
+}
+message RefundRequest {
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 1 [deprecated = true];
+  string idempotency_key = 2;
+  string resource_id = 3;
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 4;
+}
+message StatusRequest {
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 1 [deprecated = true];
+  string idempotency_key = 2;
+  string resource_id = 3;
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 4;
+}
+message Payment {
+  string id = 1;
+  string reference = 2;
+  string status = 3;
+  int64 amount_minor = 4;
+  string currency = 5;
+}
+message CreateResponse {
+  Payment payment = 1;
+  string installation_id = 2;
+  bool simulation = 3;
+}
+message CaptureResponse {
+  Payment payment = 1;
+  string installation_id = 2;
+  bool simulation = 3;
+}
+message RefundResponse {
+  Payment payment = 1;
+  string installation_id = 2;
+  bool simulation = 3;
+}
+message StatusResponse {
+  Payment payment = 1;
+  string installation_id = 2;
+  bool simulation = 3;
+}

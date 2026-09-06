@@ -1,0 +1,12 @@
+{
+  "schema": "emisell.ui-release/v1",
+  "policy": "reviewed-ui/v1",
+  "appId": "app_example_ui",
+  "developerId": "org_example",
+  "version": "1.0.0",
+  "name": "Example UI",
+  "summary": "Contoh aplikasi embedded tanpa akses data bisnis",
+  "mode": "embedded",
+  "url": "https://app.example.com/dashboard",
+  "pricing": "free"
+}

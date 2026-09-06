@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package emisell.resource.product.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "emisell.app/platform/pkg/sdk/gen/emisell/resource/product/v1;productv1";
+
+// HANDOFF ONLY: implemented by Emisell Core, not mounted on App Platform :8088.
+// Basic product projection only. No variants, inventory, collections or writes.
+// Both operations need an active read_products grant (write_products may imply
+// it), a trusted server caller, tenant isolation and current grant revision.
+service ProductService {
+  rpc List(ListRequest) returns (ListResponse);
+  rpc Get(GetRequest) returns (GetResponse);
+}
+
+// Assertions supplied by App Platform AFTER authentication and grant lookup.
+// Core must bind every field to verified caller/delegation and authoritative
+// current grant state. Merely receiving this object never authorizes a request.
+message AccessContext {
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 1 [deprecated = true];
+  string installation_id = 2;
+  string app_id = 3;
+  string scope_profile = 4;
+  int64 grant_revision = 5;
+  string request_id = 6;
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 7;
+}
+
+enum ProductStatus {
+  PRODUCT_STATUS_UNSPECIFIED = 0;
+  PRODUCT_STATUS_DRAFT = 1;
+  PRODUCT_STATUS_ACTIVE = 2;
+  PRODUCT_STATUS_ARCHIVED = 3;
+}
+
+message ProductFilter {
+  // Optional, case-sensitive title prefix, max 100 UTF-8 bytes. No query DSL.
+  string title_prefix = 1;
+  // UNSPECIFIED means all statuses, not "active" by default.
+  ProductStatus status = 2;
+}
+
+message ListRequest {
+  AccessContext access = 1;
+  // Zero means 25; range 1..100 otherwise. Never silently clamp.
+  int32 page_size = 2;
+  // Opaque, tamper-evident cursor, max 2048 bytes. Bound to the access tuple,
+  // grant revision, canonical filter and effective page size. Expiry <=15 min.
+  string cursor = 3;
+  ProductFilter filter = 4;
+}
+
+message GetRequest {
+  AccessContext access = 1;
+  // Opaque platform ID, 1..100 ASCII [A-Za-z0-9_-]. No Shopify GID assumption.
+  string product_id = 2;
+}
+
+message Product {
+  string id = 1;
+  // 1..255 UTF-8 bytes.
+  string title = 2;
+  // 1..100 ASCII lowercase letters, digits and hyphens.
+  string handle = 3;
+  ProductStatus status = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message ListResponse {
+  // Ascending bytewise product ID, no duplicates; only authorized tenant rows.
+  repeated Product products = 1;
+  // Empty marks last page. No snapshot consistency guarantee across pages.
+  string next_cursor = 2;
+}
+
+message GetResponse {
+  // Missing or foreign-tenant product returns not_found, never an empty object.
+  Product product = 1;
+}

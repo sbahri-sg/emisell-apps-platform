@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+package emisell.installation.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "emisell.app/platform/pkg/sdk/gen/emisell/installation/v1;installationv1";
+
+// Local reviewed executable fixtures only; NOT catalog metadata or Shopify scopes.
+// Requires a full platform Core key. Core rechecks staff authority and tenant on
+// every call. Detail/mutation ownership includes the preparing service ID AND
+// Core actor ID. ListInstallations is a merchant-wide, read-only summary.
+service InstallationService {
+  rpc ListInstallations(ListInstallationsRequest) returns (ListInstallationsResponse);
+  rpc Consume(ConsumeRequest) returns (ConsumeResponse);
+  rpc GetInstallation(GetInstallationRequest) returns (GetInstallationResponse);
+  rpc Activate(ActivateRequest) returns (ActivateResponse);
+  rpc IssueToken(IssueTokenRequest) returns (IssueTokenResponse);
+  rpc Uninstall(UninstallRequest) returns (UninstallResponse);
+}
+
+// Core must verify the current actor's merchant app-management permission.
+// Pagination is a read position, never authorization. Only current intent-managed
+// installations are listed; legacy installations and uninstalled history are excluded.
+message ListInstallationsRequest {
+  string merchant_id = 1;
+  string core_actor_id = 2;
+  // Default 20, maximum 20. Results ordered by installation_id ascending.
+  int32 page_size = 3;
+  string after_id = 4;
+}
+
+message ListInstallationsResponse {
+  string merchant_id = 1;
+  repeated InstalledApp installations = 2;
+  string next_after_id = 3;
+}
+
+// Display metadata only. No consent digest, actor, credentials or action authority.
+message InstalledApp {
+  string installation_id = 1;
+  string app_id = 2;
+  string app_name = 3;
+  string developer_id = 4;
+  string version = 5;
+  // pending, active or disabling; not a publication/review status.
+  string status = 6;
+  string grant_state = 7;
+  string execution_profile = 8;
+  google.protobuf.Timestamp installed_at = 9;
+}
+
+message ConsumeResponse {
+  LifecycleResponse result = 1;
+}
+
+message GetInstallationRequest {
+  InstallationRequest target = 1;
+}
+
+message GetInstallationResponse {
+  LifecycleResponse result = 1;
+}
+
+message ActivateRequest {
+  InstallationRequest target = 1;
+}
+
+message ActivateResponse {
+  LifecycleResponse result = 1;
+}
+
+message IssueTokenRequest {
+  InstallationRequest target = 1;
+}
+
+message IssueTokenResponse {
+  LifecycleResponse result = 1;
+}
+
+message UninstallRequest {
+  InstallationRequest target = 1;
+}
+
+message UninstallResponse {
+  LifecycleResponse result = 1;
+}
+
+message ConsumeRequest {
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 1 [deprecated = true];
+  string core_actor_id = 2;
+  string idempotency_key = 3;
+  string intent_id = 4;
+  string consent_digest = 5;
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 6;
+}
+
+message InstallationRequest {
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 1 [deprecated = true];
+  string core_actor_id = 2;
+  string installation_id = 3;
+  // Required for mutations; omitted for GetInstallation.
+  string idempotency_key = 4;
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 5;
+}
+
+message InstallationAccess {
+  string installation_id = 1;
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 2 [deprecated = true];
+  string app_id = 3;
+  string version = 4;
+  // pending, active, disabling or uninstalled. Not publication status.
+  string status = 5;
+  // pending, active or revoked; only active grants authorize fixture access.
+  string grant_state = 6;
+  repeated string granted_scopes = 7;
+  repeated string requested_scopes = 8;
+  repeated string capabilities = 9;
+  string intent_id = 10;
+  string manifest_digest = 11;
+  string execution_profile = 12;
+  google.protobuf.Timestamp consumed_at = 13;
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 14;
+  // Ephemeral GetInstallation decision for the enrolled localhost demo only.
+  // Not a resource grant. Missing/false MUST deny embedded identity issuance.
+  bool local_embedded_access = 15;
+  // Ephemeral current-source decision on GetInstallation only. Absence denies
+  // launch; never infer this from the persisted consent snapshot.
+  ReviewedUILaunch reviewed_ui_launch = 16;
+}
+
+message ReviewedUILaunch {
+  string app_id = 1;
+  string client_id = 2;
+  string release_digest = 3;
+  string url = 4;
+  string parent_origin = 5;
+  string mode = 6;
+}
+
+message LifecycleResponse {
+  InstallationAccess installation = 1;
+  bool replayed = 2;
+  // IssueToken only, once; empty on retry. Never log or store in browser.
+  string app_token = 3;
+  string token_id = 4;
+  google.protobuf.Timestamp token_expires_at = 5;
+  // On an issuance retry, reflects revocation OR expiry of that original token.
+  bool token_invalid = 6;
+  // Only the local app installation self-check, NOT resource or internal RPC.
+  string token_audience = 7;
+}

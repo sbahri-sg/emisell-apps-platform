@@ -1,8 +1,0 @@
-.git
-coverage.out
-app-gateway
-tmp
-*.key
-*.pem
-.env*
-!.env.example

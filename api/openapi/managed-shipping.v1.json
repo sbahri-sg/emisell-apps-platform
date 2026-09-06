@@ -1,0 +1,758 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Emisell Managed Shipping Release API",
+    "version": "1.0.0",
+    "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8087"
+    }
+  ],
+  "paths": {
+    "/api/v1/admin/managed-shipping-releases": {
+      "get": {
+        "summary": "Daftar release provider terkelola",
+        "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4317"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; bukan grant atau instalasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/List"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/binding/scope tidak valid."
+          },
+          "401": {
+            "description": "Sesi tidak valid."
+          },
+          "403": {
+            "description": "Origin/role/ownership tidak diizinkan."
+          },
+          "404": {
+            "description": "Tidak ditemukan atau organisasi lain."
+          },
+          "409": {
+            "description": "Konflik revision, idempotency, versi atau state."
+          },
+          "503": {
+            "description": "Signer/persistence belum tersedia."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/managed-shipping-releases/{id}": {
+      "get": {
+        "summary": "Detail, signature dan audit release provider",
+        "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4317"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; bukan grant atau instalasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Detail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/binding/scope tidak valid."
+          },
+          "401": {
+            "description": "Sesi tidak valid."
+          },
+          "403": {
+            "description": "Origin/role/ownership tidak diizinkan."
+          },
+          "404": {
+            "description": "Tidak ditemukan atau organisasi lain."
+          },
+          "409": {
+            "description": "Konflik revision, idempotency, versi atau state."
+          },
+          "503": {
+            "description": "Signer/persistence belum tersedia."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/managed-shipping-releases/{id}/status": {
+      "post": {
+        "summary": "Review, sign atau suspend release provider",
+        "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4317"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Action"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Berhasil; bukan grant atau instalasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/binding/scope tidak valid."
+          },
+          "401": {
+            "description": "Sesi tidak valid."
+          },
+          "403": {
+            "description": "Origin/role/ownership tidak diizinkan."
+          },
+          "404": {
+            "description": "Tidak ditemukan atau organisasi lain."
+          },
+          "409": {
+            "description": "Konflik revision, idempotency, versi atau state."
+          },
+          "503": {
+            "description": "Signer/persistence belum tersedia."
+          }
+        }
+      }
+    },
+    "/api/v1/developer/managed-shipping-releases": {
+      "get": {
+        "summary": "Daftar release provider terkelola",
+        "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4319"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; bukan grant atau instalasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/List"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/binding/scope tidak valid."
+          },
+          "401": {
+            "description": "Sesi tidak valid."
+          },
+          "403": {
+            "description": "Origin/role/ownership tidak diizinkan."
+          },
+          "404": {
+            "description": "Tidak ditemukan atau organisasi lain."
+          },
+          "409": {
+            "description": "Konflik revision, idempotency, versi atau state."
+          },
+          "503": {
+            "description": "Signer/persistence belum tersedia."
+          }
+        }
+      },
+      "post": {
+        "summary": "Ajukan snapshot draft Emisell Kurir untuk review",
+        "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4319"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Submit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Berhasil; bukan grant atau instalasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/binding/scope tidak valid."
+          },
+          "401": {
+            "description": "Sesi tidak valid."
+          },
+          "403": {
+            "description": "Origin/role/ownership tidak diizinkan."
+          },
+          "404": {
+            "description": "Tidak ditemukan atau organisasi lain."
+          },
+          "409": {
+            "description": "Konflik revision, idempotency, versi atau state."
+          },
+          "503": {
+            "description": "Signer/persistence belum tersedia."
+          }
+        }
+      }
+    },
+    "/api/v1/developer/managed-shipping-releases/{id}": {
+      "get": {
+        "summary": "Detail, signature dan audit release provider",
+        "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
+        "security": [
+          {
+            "developerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "const": "http://localhost:4319"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil; bukan grant atau instalasi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Detail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/binding/scope tidak valid."
+          },
+          "401": {
+            "description": "Sesi tidak valid."
+          },
+          "403": {
+            "description": "Origin/role/ownership tidak diizinkan."
+          },
+          "404": {
+            "description": "Tidak ditemukan atau organisasi lain."
+          },
+          "409": {
+            "description": "Konflik revision, idempotency, versi atau state."
+          },
+          "503": {
+            "description": "Signer/persistence belum tersedia."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "adminSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_admin_session"
+      },
+      "developerSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_developer_session"
+      }
+    },
+    "schemas": {
+      "Manifest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "const": "emisell.managed-shipping-release/v1"
+          },
+          "policy": {
+            "const": "managed-kurir-provider/v1"
+          },
+          "appId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,100}$"
+          },
+          "developerId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,100}$"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 180
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000
+          },
+          "draftRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sourceSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "capability": {
+            "const": "shipping/v1"
+          },
+          "scopes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "const": "shipping.read"
+            }
+          },
+          "binding": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "engine": {
+                "const": "api-kurir"
+              },
+              "providerCode": {
+                "const": "emisell"
+              }
+            },
+            "required": [
+              "engine",
+              "providerCode"
+            ]
+          },
+          "pricing": {
+            "const": "free"
+          }
+        },
+        "required": [
+          "schema",
+          "policy",
+          "appId",
+          "developerId",
+          "version",
+          "name",
+          "summary",
+          "description",
+          "draftRevision",
+          "sourceSha256",
+          "capability",
+          "scopes",
+          "binding",
+          "pricing"
+        ]
+      },
+      "Package": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "manifest": {
+            "$ref": "#/components/schemas/Manifest"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "keyId": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string",
+            "contentEncoding": "base64"
+          }
+        },
+        "required": [
+          "manifest",
+          "sha256",
+          "keyId",
+          "signature"
+        ]
+      },
+      "Release": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "manifest": {
+            "$ref": "#/components/schemas/Manifest"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "package": {
+            "$ref": "#/components/schemas/Package"
+          },
+          "status": {
+            "enum": [
+              "submitted",
+              "approved",
+              "rejected",
+              "signed",
+              "suspended"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "manifest",
+          "sha256",
+          "status",
+          "revision",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "Readiness": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "configurationReady": {
+            "type": "boolean"
+          },
+          "requiredScopesReady": {
+            "type": "boolean"
+          },
+          "installable": {
+            "const": false
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "configurationReady",
+          "requiredScopesReady",
+          "installable",
+          "blockers"
+        ]
+      },
+      "Submit": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "appId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,100}$"
+          },
+          "draftRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "binding": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "engine": {
+                "const": "api-kurir"
+              },
+              "providerCode": {
+                "const": "emisell"
+              }
+            },
+            "required": [
+              "engine",
+              "providerCode"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "appId",
+          "draftRevision",
+          "binding",
+          "reason"
+        ]
+      },
+      "Action": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "enum": [
+              "approved",
+              "rejected",
+              "signed",
+              "suspended"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "status",
+          "revision",
+          "reason"
+        ]
+      },
+      "List": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "releases": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "$ref": "#/components/schemas/Release"
+            }
+          },
+          "limit": {
+            "const": 200
+          }
+        },
+        "required": [
+          "releases",
+          "limit"
+        ]
+      },
+      "Result": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "release": {
+            "$ref": "#/components/schemas/Release"
+          },
+          "readiness": {
+            "$ref": "#/components/schemas/Readiness"
+          }
+        },
+        "required": [
+          "release",
+          "readiness"
+        ]
+      },
+      "Detail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "release": {
+            "$ref": "#/components/schemas/Release"
+          },
+          "readiness": {
+            "$ref": "#/components/schemas/Readiness"
+          },
+          "history": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "actorId": {
+                  "type": "string"
+                },
+                "action": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "occurredAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "actorId",
+                "action",
+                "reason",
+                "occurredAt"
+              ]
+            }
+          },
+          "trustedPublicKey": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "contentEncoding": "base64"
+          }
+        },
+        "required": [
+          "release",
+          "readiness",
+          "history",
+          "trustedPublicKey"
+        ]
+      }
+    }
+  }
+}

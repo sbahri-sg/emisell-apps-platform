@@ -1,0 +1,362 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Emisell Admin Core API Keys",
+    "version": "1.0.0",
+    "description": "Local first-party Core integration keys. Not third-party app grants. Only administrator; exact Admin Origin; no-store. Secret is shown once and stored only as SHA-256 hash. Legacy CLI keys remain private."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8087"
+    }
+  ],
+  "paths": {
+    "/api/v1/admin/api-keys": {
+      "get": {
+        "summary": "Legacy · daftar key Core tenant-bound",
+        "deprecated": true,
+        "description": "Maksimal 200 terbaru, tanpa secret/hash; hanya key yang dibuat melalui Admin.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "keys",
+                    "allowedScopes",
+                    "limit",
+                    "maxValidDays"
+                  ],
+                  "properties": {
+                    "keys": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Key"
+                      }
+                    },
+                    "allowedScopes": {
+                      "type": "array",
+                      "items": {
+                        "enum": [
+                          "payments.read",
+                          "payments.write",
+                          "shipping.read",
+                          "shipping.write",
+                          "apps.install_intents.read",
+                          "apps.install_intents.write",
+                          "apps.install_intents.consent"
+                        ]
+                      }
+                    },
+                    "limit": {
+                      "const": 200
+                    },
+                    "maxValidDays": {
+                      "const": 30
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/key request tidak valid"
+          },
+          "401": {
+            "description": "Sesi salah/berakhir"
+          },
+          "403": {
+            "description": "Administrator atau origin diperlukan"
+          },
+          "404": {
+            "description": "Tenant/key tidak ditemukan"
+          },
+          "409": {
+            "description": "Idempotency key sudah dipakai dengan payload berbeda"
+          },
+          "503": {
+            "description": "Dependency tidak tersedia"
+          }
+        }
+      },
+      "post": {
+        "summary": "Legacy · generate key Core tenant-bound (gunakan /platform-keys untuk full access)",
+        "deprecated": true,
+        "description": "Pilih tenant backend yang sudah ada, scope layanan eksplisit, lifetime 1–30 hari. Tidak memberikan scope resource. Idempotent per administrator + key request + normalized body. Secret hanya respons pertama; replay memberi metadata terkini dan secret kosong, tidak membuat key baru. Jika respons pertama hilang, revoke lalu generate dengan request key baru. Tidak menghidupkan key revoked/expired.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Create"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "key",
+                    "secret",
+                    "secretAvailable"
+                  ],
+                  "properties": {
+                    "key": {
+                      "$ref": "#/components/schemas/Key"
+                    },
+                    "secret": {
+                      "type": "string",
+                      "description": "Secret satu kali; kosong pada replay. Jangan log atau simpan di browser storage."
+                    },
+                    "secretAvailable": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/key request tidak valid"
+          },
+          "401": {
+            "description": "Sesi salah/berakhir"
+          },
+          "403": {
+            "description": "Administrator atau origin diperlukan"
+          },
+          "404": {
+            "description": "Tenant/key tidak ditemukan"
+          },
+          "409": {
+            "description": "Idempotency key sudah dipakai dengan payload berbeda"
+          },
+          "503": {
+            "description": "Dependency tidak tersedia"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/api-keys/{id}/revoke": {
+      "post": {
+        "summary": "Legacy · cabut key Core tenant-bound",
+        "deprecated": true,
+        "description": "Naturally idempotent: state revoked permanen, audit sekali pada transisi pertama. Body harus {}. Hanya managed key Admin; tidak mengubah key CLI. Permintaan berikutnya ditolak, in-flight request dapat sudah berjalan. Untuk rotasi: generate key baru, pindahkan consumer, lalu revoke lama.",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,100}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [],
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "key"
+                  ],
+                  "properties": {
+                    "key": {
+                      "$ref": "#/components/schemas/Key"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input/key request tidak valid"
+          },
+          "401": {
+            "description": "Sesi salah/berakhir"
+          },
+          "403": {
+            "description": "Administrator atau origin diperlukan"
+          },
+          "404": {
+            "description": "Tenant/key tidak ditemukan"
+          },
+          "409": {
+            "description": "Idempotency key sudah dipakai dengan payload berbeda"
+          },
+          "503": {
+            "description": "Dependency tidak tersedia"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "adminSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "emisell_admin_session"
+      }
+    },
+    "schemas": {
+      "Key": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "tenantId",
+          "scopes",
+          "createdAt",
+          "expiresAt",
+          "revokedAt",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tenantId": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "payments.read",
+                "payments.write",
+                "shipping.read",
+                "shipping.write",
+                "apps.install_intents.read",
+                "apps.install_intents.write",
+                "apps.install_intents.consent"
+              ]
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revokedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "expired",
+              "revoked"
+            ]
+          }
+        }
+      },
+      "Create": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "tenantId",
+          "scopes",
+          "validDays"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "Trimmed; 1–80 UTF-8 bytes, no control characters."
+          },
+          "tenantId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,100}$"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "payments.read",
+                "payments.write",
+                "shipping.read",
+                "shipping.write",
+                "apps.install_intents.read",
+                "apps.install_intents.write",
+                "apps.install_intents.consent"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 7,
+            "uniqueItems": true
+          },
+          "validDays": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          }
+        }
+      }
+    }
+  }
+}

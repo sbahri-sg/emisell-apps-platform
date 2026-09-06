@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package emisell.shipping.v1;
+
+option go_package = "emisell.app/platform/pkg/sdk/gen/emisell/shipping/v1;shippingv1";
+
+// shipping/v1. This release returns fictional local rates/shipments only.
+service ShippingService {
+  rpc GetRates(GetRatesRequest) returns (GetRatesResponse);
+  rpc Create(CreateRequest) returns (CreateResponse);
+  rpc Track(TrackRequest) returns (TrackResponse);
+}
+message GetRatesRequest {
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 1 [deprecated = true];
+  string idempotency_key = 2;
+  int32 weight_grams = 3;
+  string destination_zone = 4;
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 5;
+  // Provider-neutral origin zone. Required by the opt-in API-Kurir local reference;
+  // legacy simulator requests may omit it. Not a provider location ID.
+  string origin_zone = 6;
+}
+message CreateRequest {
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 1 [deprecated = true];
+  string idempotency_key = 2;
+  string reference = 3;
+  int32 weight_grams = 4;
+  string destination_zone = 5;
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 6;
+}
+message TrackRequest {
+  // Deprecated compatibility alias; new callers send merchant_id only.
+  string tenant_id = 1 [deprecated = true];
+  string idempotency_key = 2;
+  string resource_id = 3;
+  // Emisell merchant ID, taken from verified Core context. No second store ID.
+  string merchant_id = 4;
+}
+message Rate {
+  string service = 1;
+  int64 amount_minor = 2;
+  string currency = 3;
+}
+message Shipment {
+  string id = 1;
+  string reference = 2;
+  string status = 3;
+  int64 amount_minor = 4;
+  string currency = 5;
+}
+message GetRatesResponse {
+  repeated Rate rates = 1;
+  string installation_id = 2;
+  bool simulation = 3;
+}
+message CreateResponse {
+  Shipment shipment = 1;
+  string installation_id = 2;
+  bool simulation = 3;
+}
+message TrackResponse {
+  Shipment shipment = 1;
+  string installation_id = 2;
+  bool simulation = 3;
+}

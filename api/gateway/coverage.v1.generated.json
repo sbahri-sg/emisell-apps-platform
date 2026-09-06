@@ -1,0 +1,1131 @@
+{
+  "contractRevision": "d9ccb646922e3a40f80c9378140fdc08cebdb6c7799fb48adb60fa14a216267d",
+  "version": "emisell.resource.product/v1",
+  "scopeProfile": "shopify-authenticated-2026-09-05",
+  "live": false,
+  "operations": [
+    {
+      "procedure": "/emisell.resource.product.v1.ProductService/List",
+      "title": "ProductService · List",
+      "version": "emisell.resource.product/v1",
+      "requiredScope": "read_products",
+      "acceptedScopes": [
+        "read_products",
+        "write_products"
+      ],
+      "implementation": "planned",
+      "owner": "Tim backend Emisell Core",
+      "description": "Daftar proyeksi produk dasar, cursor pagination, urut ID. Filter status dan awalan judul. Bukan varian, inventory, koleksi atau operasi tulis."
+    },
+    {
+      "procedure": "/emisell.resource.product.v1.ProductService/Get",
+      "title": "ProductService · Get",
+      "version": "emisell.resource.product/v1",
+      "requiredScope": "read_products",
+      "acceptedScopes": [
+        "read_products",
+        "write_products"
+      ],
+      "implementation": "planned",
+      "owner": "Tim backend Emisell Core",
+      "description": "Baca produk dasar menurut ID. Produk milik merchant lain dan ID tidak ada sama-sama not_found tanpa membocorkan keberadaan data."
+    }
+  ],
+  "coverage": [
+    {
+      "scope": "read_all_orders",
+      "resource": "Riwayat pesanan penuh",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_analytics_annotations",
+      "resource": "Anotasi analitik",
+      "referenceStatus": "future_reference",
+      "contractStatus": "reference_only",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Evaluasi relevansi/versi terlebih dahulu. Tidak wajib membuat padanan fitur khusus Shopify."
+    },
+    {
+      "scope": "read_assigned_fulfillment_orders",
+      "resource": "Penugasan fulfillment",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_cart_transforms",
+      "resource": "Transformasi keranjang",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_checkout_and_accounts_configurations",
+      "resource": "Konfigurasi checkout dan akun",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_checkout_branding_settings",
+      "resource": "Tampilan checkout",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_content",
+      "resource": "Konten toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_customer_events",
+      "resource": "Pixel dan aktivitas pelanggan",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_customer_merge",
+      "resource": "Penggabungan pelanggan",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_customer_payment_methods",
+      "resource": "Metode pembayaran pelanggan",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_customers",
+      "resource": "Pelanggan, segmen dan perusahaan",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_delivery_customizations",
+      "resource": "Kustomisasi pengiriman",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_discounts",
+      "resource": "Diskon",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_draft_orders",
+      "resource": "Draft pesanan",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_files",
+      "resource": "File",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_fulfillments",
+      "resource": "Layanan fulfillment",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_gift_cards",
+      "resource": "Kartu hadiah",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_inventory",
+      "resource": "Item dan stok inventaris",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_inventory_shipments",
+      "resource": "Pengiriman inventaris",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_inventory_shipments_received_items",
+      "resource": "Penerimaan inventaris",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_inventory_transfers",
+      "resource": "Transfer inventaris",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_legal_policies",
+      "resource": "Kebijakan hukum toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_locales",
+      "resource": "Bahasa toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_locations",
+      "resource": "Lokasi",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_marketing_events",
+      "resource": "Aktivitas pemasaran",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_marketplace_fulfillment_orders",
+      "resource": "Penugasan fulfillment",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_markets",
+      "resource": "Pasar",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_merchant_approval_signals",
+      "resource": "Sinyal persetujuan toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_merchant_managed_fulfillment_orders",
+      "resource": "Penugasan fulfillment",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_metaobject_definitions",
+      "resource": "Definisi metaobject",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_metaobjects",
+      "resource": "Data metaobject",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_online_store_navigation",
+      "resource": "Navigasi dan redirect toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_online_store_pages",
+      "resource": "Konten toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_order_edits",
+      "resource": "Perubahan pesanan",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_orders",
+      "resource": "Pesanan dan transaksi",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_own_subscription_contracts",
+      "resource": "Kontrak subscription milik aplikasi",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_payment_customizations",
+      "resource": "Kustomisasi pembayaran",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_payment_gateways",
+      "resource": "Konfigurasi aplikasi pembayaran",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_payment_mandate",
+      "resource": "Mandat pembayaran",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_payment_terms",
+      "resource": "Jadwal dan termin pembayaran",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_price_rules",
+      "resource": "Aturan harga",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_privacy_settings",
+      "resource": "Pengaturan privasi",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_products",
+      "resource": "Produk, varian dan koleksi",
+      "referenceStatus": "planned",
+      "contractStatus": "partial",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [
+        "/emisell.resource.product.v1.ProductService/List",
+        "/emisell.resource.product.v1.ProductService/Get"
+      ],
+      "nextAction": "Implementasikan List/Get produk dasar. Varian, koleksi, selling plan dan operasi tulis belum memiliki kontrak; jangan menganggap seluruh scope sudah tercakup."
+    },
+    {
+      "scope": "read_reports",
+      "resource": "Laporan analitik",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_returns",
+      "resource": "Retur",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_script_tags",
+      "resource": "Script toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_shipping",
+      "resource": "Layanan carrier pengiriman",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_shopify_payments_dispute_evidences",
+      "resource": "Bukti sengketa Shopify Payments",
+      "referenceStatus": "reference_only",
+      "contractStatus": "reference_only",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Evaluasi relevansi/versi terlebih dahulu. Tidak wajib membuat padanan fitur khusus Shopify."
+    },
+    {
+      "scope": "read_shopify_payments_dispute_file_uploads",
+      "resource": "File sengketa Shopify Payments",
+      "referenceStatus": "reference_only",
+      "contractStatus": "reference_only",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Evaluasi relevansi/versi terlebih dahulu. Tidak wajib membuat padanan fitur khusus Shopify."
+    },
+    {
+      "scope": "read_shopify_payments_disputes",
+      "resource": "Sengketa Shopify Payments",
+      "referenceStatus": "reference_only",
+      "contractStatus": "reference_only",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Evaluasi relevansi/versi terlebih dahulu. Tidak wajib membuat padanan fitur khusus Shopify."
+    },
+    {
+      "scope": "read_shopify_payments_payouts",
+      "resource": "Payout Shopify Payments",
+      "referenceStatus": "reference_only",
+      "contractStatus": "reference_only",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Evaluasi relevansi/versi terlebih dahulu. Tidak wajib membuat padanan fitur khusus Shopify."
+    },
+    {
+      "scope": "read_store_credit_account_transactions",
+      "resource": "Transaksi kredit toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_store_credit_accounts",
+      "resource": "Akun kredit toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_themes",
+      "resource": "Tema toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_third_party_fulfillment_orders",
+      "resource": "Penugasan fulfillment",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_translations",
+      "resource": "Terjemahan",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_users",
+      "resource": "Staf toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "read_validations",
+      "resource": "Validasi checkout",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_analytics_annotations",
+      "resource": "Anotasi analitik",
+      "referenceStatus": "future_reference",
+      "contractStatus": "reference_only",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Evaluasi relevansi/versi terlebih dahulu. Tidak wajib membuat padanan fitur khusus Shopify."
+    },
+    {
+      "scope": "write_app_proxy",
+      "resource": "Proxy aplikasi",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_assigned_fulfillment_orders",
+      "resource": "Penugasan fulfillment",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_cart_transforms",
+      "resource": "Transformasi keranjang",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_checkout_and_accounts_configurations",
+      "resource": "Konfigurasi checkout dan akun",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_checkout_branding_settings",
+      "resource": "Tampilan checkout",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_content",
+      "resource": "Konten toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_customer_merge",
+      "resource": "Penggabungan pelanggan",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_customers",
+      "resource": "Pelanggan, segmen dan perusahaan",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_delivery_customizations",
+      "resource": "Kustomisasi pengiriman",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_discounts",
+      "resource": "Diskon",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_draft_orders",
+      "resource": "Draft pesanan",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_files",
+      "resource": "File",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_fulfillments",
+      "resource": "Layanan fulfillment",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_gift_cards",
+      "resource": "Kartu hadiah",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_inventory",
+      "resource": "Item dan stok inventaris",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_inventory_shipments",
+      "resource": "Pengiriman inventaris",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_inventory_shipments_received_items",
+      "resource": "Penerimaan inventaris",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_inventory_transfers",
+      "resource": "Transfer inventaris",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_locales",
+      "resource": "Bahasa toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_locations",
+      "resource": "Lokasi",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_marketing_events",
+      "resource": "Aktivitas pemasaran",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_markets",
+      "resource": "Pasar",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_merchant_managed_fulfillment_orders",
+      "resource": "Penugasan fulfillment",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_metaobject_definitions",
+      "resource": "Definisi metaobject",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_metaobjects",
+      "resource": "Data metaobject",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_online_store_navigation",
+      "resource": "Navigasi dan redirect toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_order_edits",
+      "resource": "Perubahan pesanan",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_orders",
+      "resource": "Pesanan dan transaksi",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_own_subscription_contracts",
+      "resource": "Kontrak subscription milik aplikasi",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_payment_customizations",
+      "resource": "Kustomisasi pembayaran",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_payment_gateways",
+      "resource": "Konfigurasi aplikasi pembayaran",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_payment_mandate",
+      "resource": "Mandat pembayaran",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_payment_sessions",
+      "resource": "Sesi, capture, refund dan void pembayaran",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_payment_terms",
+      "resource": "Jadwal dan termin pembayaran",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_pixels",
+      "resource": "Pixel dan aktivitas pelanggan",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_price_rules",
+      "resource": "Aturan harga",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_privacy_settings",
+      "resource": "Pengaturan privasi",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_products",
+      "resource": "Produk, varian dan koleksi",
+      "referenceStatus": "planned",
+      "contractStatus": "partial",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [
+        "/emisell.resource.product.v1.ProductService/List",
+        "/emisell.resource.product.v1.ProductService/Get"
+      ],
+      "nextAction": "Implementasikan List/Get produk dasar. Varian, koleksi, selling plan dan operasi tulis belum memiliki kontrak; jangan menganggap seluruh scope sudah tercakup."
+    },
+    {
+      "scope": "write_reports",
+      "resource": "Laporan analitik",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_returns",
+      "resource": "Retur",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_script_tags",
+      "resource": "Script toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_shipping",
+      "resource": "Layanan carrier pengiriman",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_shopify_payments_dispute_evidences",
+      "resource": "Bukti sengketa Shopify Payments",
+      "referenceStatus": "reference_only",
+      "contractStatus": "reference_only",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Evaluasi relevansi/versi terlebih dahulu. Tidak wajib membuat padanan fitur khusus Shopify."
+    },
+    {
+      "scope": "write_shopify_payments_dispute_file_uploads",
+      "resource": "File sengketa Shopify Payments",
+      "referenceStatus": "reference_only",
+      "contractStatus": "reference_only",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Evaluasi relevansi/versi terlebih dahulu. Tidak wajib membuat padanan fitur khusus Shopify."
+    },
+    {
+      "scope": "write_store_credit_account_transactions",
+      "resource": "Transaksi kredit toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_themes",
+      "resource": "Tema toko",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_third_party_fulfillment_orders",
+      "resource": "Penugasan fulfillment",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_translations",
+      "resource": "Terjemahan",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    },
+    {
+      "scope": "write_validations",
+      "resource": "Validasi checkout",
+      "referenceStatus": "planned",
+      "contractStatus": "missing",
+      "implementation": "planned",
+      "grantable": false,
+      "operations": [],
+      "nextAction": "Tetapkan operasi resource dan schema bersama tim Platform, lalu implementasikan gateway + contract tests."
+    }
+  ],
+  "checks": [
+    "Implementasikan handler Core dan query merchant-scoped sesuai Protobuf, bukan endpoint provider-specific.",
+    "Verifikasi caller/delegation dan cocokkan merchant, app, installation, scope profile serta grant revision; request body bukan sumber otorisasi.",
+    "Grant/installation harus aktif dan fresh; deny untuk revoked, suspended, stale, scope asing atau service credential yang salah audience.",
+    "Jalankan conformance suite pada fixture dua merchant milik tim backend, bukan data produksi.",
+    "Verifikasi trust/crypto, revocation, deadline, batas payload, audit dan telemetry secara terpisah; suite ini bukan sertifikasi keamanan.",
+    "Lampirkan revision implementasi, hasil test, target environment, owner, serta approval sebelum supported-operation registry/adapter diaktifkan.",
+    "Aktivasi membutuhkan consent, consume intent dan grant/token lifecycle. Mengubah status dokumen tidak pernah memberikan grant."
+  ]
+}

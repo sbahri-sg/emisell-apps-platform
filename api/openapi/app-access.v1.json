@@ -1,0 +1,40 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Emisell Local App Installation Access",
+    "version": "1.0.0",
+    "description": "Self-check server-to-server untuk token installation fixture lokal. Bukan OAuth authorization server production dan bukan resource gateway. Key Core, sesi Admin/Developer, Origin, Cookie dan query string ditolak. Token hanya diterbitkan melalui InstallationService/IssueToken setelah grant aktif, sekali tampil, TTL 15 menit; penerbitan baru mencabut token sebelumnya."
+  },
+  "servers": [{"url": "http://127.0.0.1:8087"}],
+  "paths": {
+    "/api/v1/app/installation-access": {
+      "get": {
+        "summary": "Periksa akses instalasi aplikasi lokal",
+        "description": "Periksa token opaque eat_ terhadap audience, merchant, app, installation, grant aktif, expiry, revocation dan release terkini. Semua header binding wajib cocok; tidak menerima merchant dari browser. Tidak memberi akses ke produk, orders, payment RPC atau Admin. Respons no-store; status 200 hanya menyatakan self-check valid pada saat pemeriksaan, bukan delegasi reusable ke Core.",
+        "security": [{"appInstallationToken": []}],
+        "parameters": [
+          {"name": "X-Emisell-Merchant-ID", "in": "header", "required": true, "schema": {"type": "string", "maxLength": 128}},
+          {"name": "X-Emisell-App-ID", "in": "header", "required": true, "schema": {"type": "string", "maxLength": 128}},
+          {"name": "X-Emisell-Installation-ID", "in": "header", "required": true, "schema": {"type": "string", "maxLength": 128}}
+        ],
+        "responses": {
+          "200": {"description": "Token dan grant fixture masih valid", "content": {"application/json": {"schema": {
+            "type": "object", "additionalProperties": false,
+            "required": ["merchantId", "appId", "installationId", "version", "status", "grantState", "scopes", "audience", "resourceGatewayAllowed"],
+            "properties": {
+              "merchantId": {"type": "string"}, "appId": {"type": "string"}, "installationId": {"type": "string"}, "version": {"type": "string"},
+              "status": {"const": "active"}, "grantState": {"const": "active"}, "scopes": {"type": "array", "items": {"type": "string"}},
+              "audience": {"const": "emisell.app-platform.local/installation-access"}, "resourceGatewayAllowed": {"const": false}
+            }
+          }}}},
+          "400": {"description": "Binding header tidak lengkap/valid"},
+          "401": {"description": "Token, audience, binding, expiry atau current installation tidak valid"},
+          "403": {"description": "Browser context, query string, atau policy ditolak"},
+          "409": {"description": "Release atau policy telah berubah"},
+          "503": {"description": "Registry tidak tersedia atau gagal verifikasi"}
+        }
+      }
+    }
+  },
+  "components": {"securitySchemes": {"appInstallationToken": {"type": "http", "scheme": "bearer", "bearerFormat": "eat_ opaque installation token", "description": "Token aplikasi lokal, bukan key full-access Core. Kirim hanya dari backend app ke host Platform tepercaya; jangan log, simpan di browser, atau ikuti redirect."}}}
+}

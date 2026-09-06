@@ -1,0 +1,203 @@
+.admin-transition {
+  min-height: 100svh;
+  background: var(--background);
+}
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 86px;
+  padding: 20px max(28px, calc((100vw - 1080px) / 2));
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+.admin-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.06em;
+}
+.admin-wordmark > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 1.9rem;
+  line-height: 1;
+  padding-bottom: 5px;
+}
+.admin-wordmark .admin-product {
+  border-left: 1px solid var(--border);
+  padding-left: 18px;
+  margin-left: 8px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  font-weight: 550;
+  color: var(--muted-foreground);
+}
+.admin-environment {
+  font-size: 0.8125rem;
+  color: var(--accent-foreground);
+  padding: 6px 10px;
+  background: var(--accent);
+  border-radius: 6px;
+}
+.admin-main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 52px 28px 32px;
+}
+.admin-eyebrow {
+  display: block;
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+.admin-heading h1 {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  line-height: 1.2;
+}
+.admin-heading p {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  font-size: 1rem;
+  margin-top: 12px;
+}
+.admin-unavailable[data-slot='empty'] {
+  margin: 30px 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 34px 24px;
+}
+.admin-unavailable [data-slot='empty-header'] {
+  max-width: 520px;
+}
+.admin-unavailable [data-slot='empty-icon'] {
+  width: 42px;
+  height: 42px;
+  background: var(--accent);
+  color: var(--primary);
+}
+.admin-unavailable [data-slot='empty-icon'] svg {
+  width: 22px;
+  height: 22px;
+}
+.admin-unavailable [data-slot='empty-title'] {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.admin-unavailable [data-slot='empty-description'] {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.admin-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.admin-section-title h2 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.admin-section-title > svg {
+  color: var(--primary);
+}
+.admin-section-title > span {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+.admin-surface-list {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 12px;
+}
+.admin-surface-list article {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 22px 24px;
+}
+.admin-surface-list article + article {
+  border-top: 1px solid var(--border);
+}
+.admin-surface-list article > svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+  color: var(--primary);
+}
+.admin-surface-list article > div {
+  flex: 1;
+  min-width: 0;
+}
+.admin-surface-list h3 {
+  display: inline;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+.admin-surface-list article span {
+  display: inline-block;
+  margin-left: 10px;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+.admin-surface-list p {
+  margin-top: 6px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+}
+.admin-surface-list code {
+  margin-top: 3px;
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+.admin-footnote {
+  margin: 22px 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+@media (max-width: 600px) {
+  .admin-header {
+    padding: 18px 20px;
+    min-height: 76px;
+  }
+  .admin-wordmark .admin-product {
+    display: none;
+  }
+  .admin-main {
+    padding: 32px 20px;
+  }
+  .admin-section-title {
+    flex-wrap: wrap;
+  }
+  .admin-section-title > span {
+    width: 100%;
+    margin-left: 29px;
+  }
+  .admin-surface-list article {
+    padding: 20px 16px;
+    gap: 12px;
+  }
+  .admin-surface-list article span {
+    display: block;
+    margin: 4px 0 0;
+  }
+  .admin-environment {
+    font-size: 0.75rem;
+  }
+}
