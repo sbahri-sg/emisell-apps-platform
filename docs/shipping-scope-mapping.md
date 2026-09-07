@@ -1,27 +1,40 @@
-# Pemetaan izin API-Kurir — pilot lokal
+# Izin pengiriman: built-in dan aplikasi eksternal
 
-Pembaruan 6 September 2026. Dokumen ini menjelaskan implementasi, bukan health check atau bukti grant merchant saat ini.
+Pembaruan 7 September 2026. Dokumentasi ini bukan bukti aktivasi atau grant merchant.
 
-Apps Platform mengelola release, assignment, consent, installation dan native grant. Emisell Backend meminta tarif langsung ke API-Kurir utama; API-Kurir tetap engine remote dengan aplikasi per-provider. Tidak perlu mengirim permintaan tarif melalui runtime simulator Platform.
+**Emisell Kurir adalah built-in:** aktivasi melalui backend Emisell dan API-Kurir,
+tanpa instalasi atau grant Apps Platform. Kontrak pilot lokal lama hanya referensi
+teknis dengan environment `local-isolated`, bukan alur built-in production yang harus diaktifkan.
 
-| Identifier | Jenis | Batas saat ini |
+Untuk aplikasi provider eksternal seperti RajaOngkir, Platform mengelola consent
+dan grant instalasi; API-Kurir tetap menyediakan engine tarif/pengiriman.
+
+| Identifier | Kegunaan | Status/batas |
 |---|---|---|
-| `shipping/v1` | Capability versioned | Deklarasi shipping, bukan izin semua operasi |
-| `shipping.read` | Native scope installation | Scope pilot managed Emisell Kurir; bukan alias `read_shipping` |
-| `rates.read` | Operasi EngineGrantService/Check | Pemeriksaan grant lokal sebelum permintaan/cache tarif pada Core dan API-Kurir utama yang dikonfigurasi untuk pilot |
-| `settings.read` | Operasi kontrak grant lokal | Dikenali Platform/engine referensi; tidak membuktikan enforcement seluruh endpoint settings API-Kurir utama |
-| `read_shipping`, `write_shipping` | Resource scope Gateway Emisell | Masih Planned, grantable false; endpoint carrier resource belum tersedia |
+| `shipping.read` | Izin native membaca layanan shipping | Tarif eksternal opt-in di API-Kurir; belum rollout production |
+| `shipping.write` | Izin native perubahan konfigurasi provider | Pengaitan credential oleh operator; bukan bukti shipment/pickup sudah dilindungi |
+| `rates.read` | Operasi engine membutuhkan `shipping.read` | Pemeriksaan sebelum cache tarif bila diaktifkan |
+| `settings.write` | Operasi engine membutuhkan `shipping.write` | Alat pengaitan credential, bukan endpoint seller publik |
+| `settings.read`, `tracking.read`, `shipments.create` | Operasi kontrak provider | Deklarasi bukan bukti enforcement seluruh jalur runtime |
+| `read_shipping`, `write_shipping` | Resource carrier service Gateway | Tetap Planned/tidak grantable; bukan alias scope native |
 
-## Batas otorisasi
+`shipping/v1` adalah versi capability internal, bukan scope atau izin semua operasi.
 
-- Kontrak engine tetap `local-isolated`, provider exact `emisell`, merchant dari konteks server terverifikasi. Credential engine independen dari key full-access Core dan tidak diberikan ke developer/browser.
-- Release/assignment harus tetap valid dan installation/native grant aktif. Revoke, suspend, uninstall, mismatch atau kegagalan pemeriksaan menolak permintaan baru; jangan fallback untuk melewati penolakan grant.
-- Core dan API-Kurir utama menggunakan konfigurasi pilot lokal eksplisit. Tanpa konfigurasi tersebut, kompatibilitas legacy masih ada; ini bukan rollout enforcement produksi menyeluruh.
-- Berhasil memilih tarif di Create order membuktikan alur tarif lokal, bukan shipment, tracking, perubahan credential, pengaturan provider atau revocation end-to-end produksi.
-- Provider aktif di API-Kurir berbeda dari installation/grant aktif. Install tidak otomatis memilih provider.
+## Batas keamanan dan aktivasi
 
-## Katalog dan dokumentasi
+- Aktifkan hanya pasangan merchant/provider yang disetujui secara eksplisit.
+- Identitas merchant/aplikasi/instalasi harus cocok; scope harus ada pada consent
+  dan grant aktif. Credential tetap milik merchant.
+- Integrasi yang diaktifkan harus menolak saat grant ditolak/tidak tersedia,
+  tanpa fallback legacy. Uninstall tidak menghapus riwayat pengiriman.
+- Emisell Kurir dan merchant existing tidak dimigrasikan otomatis.
+- API-Kurir memuat implementasi opt-in, tetapi konfigurasi production nonaktif.
+  Integrasi instalasi provider Platform dan uji end-to-end belum selesai.
+- Jangan menganggap `shipping.write` membuka shipment, pickup, tracking atau order.
 
-Pemetaan teknis ini hanya berada di dokumentasi integrasi, tidak ditampilkan pada Katalog scope Admin/Developer. Katalog berfokus pada izin resource, kegunaan dan status dari `/access-scopes/verification`; dokumentasi endpoint tidak boleh menyimpan salinan status Active atau menaikkan readiness berdasarkan keberhasilan tarif. Lihat [handoff gateway](emisell-gateway-handoff.md) dan [ADR 0027](adr/0027-isolated-managed-engine-installation.md).
+## Katalog
 
-Perluasan operasi memerlukan kontrak, pemetaan scope, enforcement pada seluruh jalur terkait, isolasi merchant, pengujian deny/revoke/outage serta migration path. Jangan memperluas arti `shipping.read` atau memberikan `write_shipping` otomatis.
+Katalog Admin/Developer menampilkan resource scope berdasarkan verification
+gateway. Status tidak dinaikkan karena tes tarif atau deployment kode berhasil.
+Lihat [ADR 0027](adr/0027-isolated-managed-engine-installation.md) untuk sejarah
+pilot; kontrak pilot tidak mewajibkan Emisell Kurir production memakai Platform.
