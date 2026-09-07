@@ -8,8 +8,10 @@ import (
 	"time"
 
 	"emisell.app/platform/internal/platform/fault"
+	"emisell.app/platform/pkg/accessscope"
 	"emisell.app/platform/pkg/appmanifest"
 	"emisell.app/platform/pkg/embedded"
+	"emisell.app/platform/pkg/webhookconfig"
 )
 
 const IntentTTL = 10 * time.Minute
@@ -20,6 +22,15 @@ const ManagedShippingPolicy = "managed-shipping-local/v1"
 const ManagedShippingProfile = "managed-shipping-local"
 const ProviderAppPolicy = "provider-app/v1"
 const ProviderAppProfile = "provider-app"
+const ResourceAppPolicy = "resource-app/v1"
+
+// ResourceBinding is immutable consent provenance, not an executable catalog.
+type ResourceBinding struct {
+	ReleaseID    string                  `json:"releaseId"`
+	ClientID     string                  `json:"clientId"`
+	AccessScopes accessscope.Declaration `json:"accessScopes"`
+	Webhooks     *webhookconfig.Config   `json:"webhooks,omitempty"`
+}
 
 // Immutable provenance. A local engine grant cannot be replayed in production.
 type ManagedSource struct {
@@ -49,6 +60,7 @@ type IntentRelease struct {
 	ShippingProvider *appmanifest.ShippingProviderBinding `json:"shippingProvider,omitempty"`
 	ManagedSource    *ManagedSource                       `json:"managedSource,omitempty"`
 	UIBinding        *UIBinding                           `json:"uiBinding,omitempty"`
+	ResourceBinding  *ResourceBinding                     `json:"resourceBinding,omitempty"`
 }
 
 const ReviewedUIPolicy = "reviewed-ui/v1"
@@ -83,6 +95,20 @@ type InstallIntent struct {
 }
 
 func NewInstallIntent(id string, owner IntentOwner, release IntentRelease, now time.Time) InstallIntent {
+	if release.ResourceBinding != nil {
+		binding := *release.ResourceBinding
+		binding.AccessScopes.Required = slices.Clone(binding.AccessScopes.Required)
+		binding.AccessScopes.Optional = slices.Clone(binding.AccessScopes.Optional)
+		if binding.Webhooks != nil {
+			c := *binding.Webhooks
+			c.Subscriptions = slices.Clone(c.Subscriptions)
+			for i := range c.Subscriptions {
+				c.Subscriptions[i].Topics = slices.Clone(c.Subscriptions[i].Topics)
+			}
+			binding.Webhooks = &c
+		}
+		release.ResourceBinding = &binding
+	}
 	if release.UIBinding != nil {
 		binding := *release.UIBinding
 		release.UIBinding = &binding

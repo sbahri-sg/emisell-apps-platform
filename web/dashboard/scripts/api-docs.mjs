@@ -220,6 +220,8 @@ const scopeByService = {
   TestDistributionService: {
     ListAssignments:
       'platform full-access Core key + verified merchant app manager (approved test distribution metadata only)',
+    StopAssignment:
+      'platform full-access Core key + current merchant app manager (revoke own approved test assignment only)',
   },
   ConnectionService: {
     Check: 'valid Core credential (own identity only; no resource grant)',
@@ -281,7 +283,9 @@ for (const file of descriptor.file) {
           : service.name === 'EngineGrantService'
             ? 'Pemeriksaan grant dilakukan tanpa cache. Kontrak pilot lokal historis: provider emisell, environment local-isolated, operasi rates.read/settings.read. Bukan alur Emisell Kurir built-in production; built-in terhubung langsung melalui backend Emisell ke API-Kurir tanpa grant Apps Platform. Provider eksternal memakai kontrak izin terpisah: shipping.read untuk tarif dan shipping.write untuk pengaitan credential oleh backend. Implementasi eksternal masih opt-in/nonaktif di production; instalasi dan uji end-to-end belum selesai. Ini bukan alias resource read_shipping/write_shipping yang tetap Planned. Tidak membuktikan enforcement shipment/pickup/tracking. Jangan mengaktifkan pilot ini untuk layanan built-in.'
             : service.name === 'TestDistributionService'
-              ? 'Assignment pengujian untuk merchant terverifikasi. Bukan consent/grant. Release terkelola signed dan assignment approved dapat installable=true hanya pada komposisi engine lokal terisolasi. Integration runtime umum tetap belum tersedia. Maksimum 20 per halaman; cursor bukan identitas. Core memeriksa sesi dan izin apps setiap halaman.'
+              ? method.name === 'StopAssignment'
+                ? 'Hentikan assignment approved milik toko sesi saat ini. Core memeriksa ulang sesi dan izin kelola Apps. Merchant/actor berasal dari backend Core, bukan body browser. Idempotency key wajib; status akhir revoked, audit dipertahankan. Bukan uninstall, approval atau grant baru. Akses runtime yang bergantung pada assignment akan ditolak; aplikasi terpasang dapat di-uninstall terpisah. Retry tidak mengaktifkan kembali pengujian.'
+                : 'Assignment pengujian untuk merchant terverifikasi. Bukan consent/grant. Release terkelola signed dan assignment approved dapat installable=true hanya pada komposisi engine lokal terisolasi. Integration runtime umum tetap belum tersedia. Maksimum 20 per halaman; cursor bukan identitas. Core memeriksa sesi dan izin apps setiap halaman.'
               : service.name === 'ConnectionService'
                 ? 'Uji autentikasi key Core: key platform mengembalikan platformFullAccess=true tanpa merchant/scopes/expiry. Key legacy tetap mengembalikan binding merchant/scopes/expiry. Tidak membaca data merchant, menjalankan transaksi, atau membuktikan scope resource aktif.'
                 : isIntent

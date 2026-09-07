@@ -205,6 +205,9 @@ func (s Server) portalRoutes(router chi.Router) {
 					}
 					write(w, 200, result)
 				})
+				if surface == "developer" && s.WebhookSubscriptions.Pool != nil {
+					s.webhookSubscriptionRoutes(r)
+				}
 				if s.Catalog.Repo != nil {
 					s.catalogPortalRoutes(r, surface)
 				}
@@ -225,6 +228,9 @@ func (s Server) portalRoutes(router chi.Router) {
 				}
 				if s.UIReleases.Repo != nil {
 					s.uiReleaseRoutes(r, surface)
+				}
+				if s.UIResourceReleases.Repo != nil {
+					s.uiResourceReleaseRoutes(r, surface)
 				}
 				r.Post("/logout", func(w http.ResponseWriter, r *http.Request) {
 					var b struct{}

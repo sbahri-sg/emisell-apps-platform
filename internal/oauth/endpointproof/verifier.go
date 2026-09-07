@@ -40,10 +40,12 @@ func public(ip netip.Addr) bool {
 }
 
 type Verifier struct {
-	slots  chan struct{}
-	lookup func(context.Context, string, string) ([]netip.Addr, error)
-	dial   func(context.Context, string, string) (net.Conn, error)
-	roots  *x509.CertPool // nil in production; never configurable from app input.
+	slots     chan struct{}
+	lookup    func(context.Context, string, string) ([]netip.Addr, error)
+	dial      func(context.Context, string, string) (net.Conn, error)
+	roots     *x509.CertPool // nil in production; never configurable from app input.
+	localHost string
+	localTLS  func(tls.ConnectionState) error
 }
 
 func New() *Verifier {
@@ -65,17 +67,24 @@ func (v *Verifier) Verify(ctx context.Context, raw string, expected appclient.Pr
 	}
 	// IPv4-only v1. Validate every A answer, then dial ONE pinned numeric IP.
 	// Proxy env, IPv6/NAT64, redirects and a second DNS lookup cannot bypass it.
-	ips, err := v.lookup(ctx, "ip4", u.Hostname())
-	if err != nil || len(ips) == 0 || len(ips) > 16 {
-		return denied
-	}
-	for _, ip := range ips {
-		if !public(ip) {
+	target := "127.0.0.1:443"
+	if v.localHost != "" {
+		if u.Hostname() != v.localHost {
 			return denied
 		}
+	} else {
+		ips, err := v.lookup(ctx, "ip4", u.Hostname())
+		if err != nil || len(ips) == 0 || len(ips) > 16 {
+			return denied
+		}
+		for _, ip := range ips {
+			if !public(ip) {
+				return denied
+			}
+		}
+		target = net.JoinHostPort(ips[0].String(), "443")
 	}
-	target := net.JoinHostPort(ips[0].String(), "443")
-	t := &http.Transport{Proxy: nil, DisableCompression: true, DisableKeepAlives: true, MaxResponseHeaderBytes: 16 << 10, ResponseHeaderTimeout: 2 * time.Second, TLSHandshakeTimeout: 2 * time.Second, TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS12, ServerName: u.Hostname(), RootCAs: v.roots}, DialContext: func(c context.Context, network, address string) (net.Conn, error) {
+	t := &http.Transport{Proxy: nil, DisableCompression: true, DisableKeepAlives: true, MaxResponseHeaderBytes: 16 << 10, ResponseHeaderTimeout: 2 * time.Second, TLSHandshakeTimeout: 2 * time.Second, TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS12, ServerName: u.Hostname(), RootCAs: v.roots, VerifyConnection: v.localTLS}, DialContext: func(c context.Context, network, address string) (net.Conn, error) {
 		if address != net.JoinHostPort(u.Hostname(), "443") {
 			return nil, denied
 		}

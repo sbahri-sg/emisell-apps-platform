@@ -652,7 +652,8 @@
                 "actorId": {
                   "type": "string",
                   "minLength": 1,
-                  "maxLength": 100
+                  "maxLength": 512,
+                  "description": "Portal actor ID, or core:<service>:<merchant>:<actor> for a seller-initiated stop."
                 },
                 "action": {
                   "type": "string",

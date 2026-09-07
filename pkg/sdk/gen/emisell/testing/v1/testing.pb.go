@@ -21,6 +21,135 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type StopAssignmentRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	MerchantId     string                 `protobuf:"bytes,1,opt,name=merchant_id,json=merchantId,proto3" json:"merchant_id,omitempty"`
+	CoreActorId    string                 `protobuf:"bytes,2,opt,name=core_actor_id,json=coreActorId,proto3" json:"core_actor_id,omitempty"`
+	AssignmentId   string                 `protobuf:"bytes,3,opt,name=assignment_id,json=assignmentId,proto3" json:"assignment_id,omitempty"`
+	IdempotencyKey string                 `protobuf:"bytes,4,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *StopAssignmentRequest) Reset() {
+	*x = StopAssignmentRequest{}
+	mi := &file_emisell_testing_v1_testing_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StopAssignmentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StopAssignmentRequest) ProtoMessage() {}
+
+func (x *StopAssignmentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_emisell_testing_v1_testing_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StopAssignmentRequest.ProtoReflect.Descriptor instead.
+func (*StopAssignmentRequest) Descriptor() ([]byte, []int) {
+	return file_emisell_testing_v1_testing_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *StopAssignmentRequest) GetMerchantId() string {
+	if x != nil {
+		return x.MerchantId
+	}
+	return ""
+}
+
+func (x *StopAssignmentRequest) GetCoreActorId() string {
+	if x != nil {
+		return x.CoreActorId
+	}
+	return ""
+}
+
+func (x *StopAssignmentRequest) GetAssignmentId() string {
+	if x != nil {
+		return x.AssignmentId
+	}
+	return ""
+}
+
+func (x *StopAssignmentRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+type StopAssignmentResponse struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	MerchantId   string                 `protobuf:"bytes,1,opt,name=merchant_id,json=merchantId,proto3" json:"merchant_id,omitempty"`
+	AssignmentId string                 `protobuf:"bytes,2,opt,name=assignment_id,json=assignmentId,proto3" json:"assignment_id,omitempty"`
+	// Always revoked; no installation or grant details are returned.
+	Status        string `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StopAssignmentResponse) Reset() {
+	*x = StopAssignmentResponse{}
+	mi := &file_emisell_testing_v1_testing_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StopAssignmentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StopAssignmentResponse) ProtoMessage() {}
+
+func (x *StopAssignmentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_emisell_testing_v1_testing_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StopAssignmentResponse.ProtoReflect.Descriptor instead.
+func (*StopAssignmentResponse) Descriptor() ([]byte, []int) {
+	return file_emisell_testing_v1_testing_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *StopAssignmentResponse) GetMerchantId() string {
+	if x != nil {
+		return x.MerchantId
+	}
+	return ""
+}
+
+func (x *StopAssignmentResponse) GetAssignmentId() string {
+	if x != nil {
+		return x.AssignmentId
+	}
+	return ""
+}
+
+func (x *StopAssignmentResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 type ListAssignmentsRequest struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
 	MerchantId  string                 `protobuf:"bytes,1,opt,name=merchant_id,json=merchantId,proto3" json:"merchant_id,omitempty"`
@@ -34,7 +163,7 @@ type ListAssignmentsRequest struct {
 
 func (x *ListAssignmentsRequest) Reset() {
 	*x = ListAssignmentsRequest{}
-	mi := &file_emisell_testing_v1_testing_proto_msgTypes[0]
+	mi := &file_emisell_testing_v1_testing_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -46,7 +175,7 @@ func (x *ListAssignmentsRequest) String() string {
 func (*ListAssignmentsRequest) ProtoMessage() {}
 
 func (x *ListAssignmentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_emisell_testing_v1_testing_proto_msgTypes[0]
+	mi := &file_emisell_testing_v1_testing_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -59,7 +188,7 @@ func (x *ListAssignmentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAssignmentsRequest.ProtoReflect.Descriptor instead.
 func (*ListAssignmentsRequest) Descriptor() ([]byte, []int) {
-	return file_emisell_testing_v1_testing_proto_rawDescGZIP(), []int{0}
+	return file_emisell_testing_v1_testing_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ListAssignmentsRequest) GetMerchantId() string {
@@ -102,7 +231,7 @@ type ListAssignmentsResponse struct {
 
 func (x *ListAssignmentsResponse) Reset() {
 	*x = ListAssignmentsResponse{}
-	mi := &file_emisell_testing_v1_testing_proto_msgTypes[1]
+	mi := &file_emisell_testing_v1_testing_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -114,7 +243,7 @@ func (x *ListAssignmentsResponse) String() string {
 func (*ListAssignmentsResponse) ProtoMessage() {}
 
 func (x *ListAssignmentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_emisell_testing_v1_testing_proto_msgTypes[1]
+	mi := &file_emisell_testing_v1_testing_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -127,7 +256,7 @@ func (x *ListAssignmentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAssignmentsResponse.ProtoReflect.Descriptor instead.
 func (*ListAssignmentsResponse) Descriptor() ([]byte, []int) {
-	return file_emisell_testing_v1_testing_proto_rawDescGZIP(), []int{1}
+	return file_emisell_testing_v1_testing_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ListAssignmentsResponse) GetMerchantId() string {
@@ -167,7 +296,7 @@ type TestApp struct {
 
 func (x *TestApp) Reset() {
 	*x = TestApp{}
-	mi := &file_emisell_testing_v1_testing_proto_msgTypes[2]
+	mi := &file_emisell_testing_v1_testing_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -179,7 +308,7 @@ func (x *TestApp) String() string {
 func (*TestApp) ProtoMessage() {}
 
 func (x *TestApp) ProtoReflect() protoreflect.Message {
-	mi := &file_emisell_testing_v1_testing_proto_msgTypes[2]
+	mi := &file_emisell_testing_v1_testing_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -192,7 +321,7 @@ func (x *TestApp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestApp.ProtoReflect.Descriptor instead.
 func (*TestApp) Descriptor() ([]byte, []int) {
-	return file_emisell_testing_v1_testing_proto_rawDescGZIP(), []int{2}
+	return file_emisell_testing_v1_testing_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *TestApp) GetAssignmentId() string {
@@ -258,7 +387,7 @@ type TestReadiness struct {
 
 func (x *TestReadiness) Reset() {
 	*x = TestReadiness{}
-	mi := &file_emisell_testing_v1_testing_proto_msgTypes[3]
+	mi := &file_emisell_testing_v1_testing_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -270,7 +399,7 @@ func (x *TestReadiness) String() string {
 func (*TestReadiness) ProtoMessage() {}
 
 func (x *TestReadiness) ProtoReflect() protoreflect.Message {
-	mi := &file_emisell_testing_v1_testing_proto_msgTypes[3]
+	mi := &file_emisell_testing_v1_testing_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -283,7 +412,7 @@ func (x *TestReadiness) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestReadiness.ProtoReflect.Descriptor instead.
 func (*TestReadiness) Descriptor() ([]byte, []int) {
-	return file_emisell_testing_v1_testing_proto_rawDescGZIP(), []int{3}
+	return file_emisell_testing_v1_testing_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *TestReadiness) GetConfigurationReady() bool {
@@ -318,7 +447,18 @@ var File_emisell_testing_v1_testing_proto protoreflect.FileDescriptor
 
 const file_emisell_testing_v1_testing_proto_rawDesc = "" +
 	"\n" +
-	" emisell/testing/v1/testing.proto\x12\x12emisell.testing.v1\"\x95\x01\n" +
+	" emisell/testing/v1/testing.proto\x12\x12emisell.testing.v1\"\xaa\x01\n" +
+	"\x15StopAssignmentRequest\x12\x1f\n" +
+	"\vmerchant_id\x18\x01 \x01(\tR\n" +
+	"merchantId\x12\"\n" +
+	"\rcore_actor_id\x18\x02 \x01(\tR\vcoreActorId\x12#\n" +
+	"\rassignment_id\x18\x03 \x01(\tR\fassignmentId\x12'\n" +
+	"\x0fidempotency_key\x18\x04 \x01(\tR\x0eidempotencyKey\"v\n" +
+	"\x16StopAssignmentResponse\x12\x1f\n" +
+	"\vmerchant_id\x18\x01 \x01(\tR\n" +
+	"merchantId\x12#\n" +
+	"\rassignment_id\x18\x02 \x01(\tR\fassignmentId\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\"\x95\x01\n" +
 	"\x16ListAssignmentsRequest\x12\x1f\n" +
 	"\vmerchant_id\x18\x01 \x01(\tR\n" +
 	"merchantId\x12\"\n" +
@@ -344,9 +484,10 @@ const file_emisell_testing_v1_testing_proto_rawDesc = "" +
 	"\x13configuration_ready\x18\x01 \x01(\bR\x12configurationReady\x122\n" +
 	"\x15required_scopes_ready\x18\x02 \x01(\bR\x13requiredScopesReady\x12 \n" +
 	"\vinstallable\x18\x03 \x01(\bR\vinstallable\x12\x1a\n" +
-	"\bblockers\x18\x04 \x03(\tR\bblockers2\x85\x01\n" +
+	"\bblockers\x18\x04 \x03(\tR\bblockers2\xee\x01\n" +
 	"\x17TestDistributionService\x12j\n" +
-	"\x0fListAssignments\x12*.emisell.testing.v1.ListAssignmentsRequest\x1a+.emisell.testing.v1.ListAssignmentsResponseB?Z=emisell.app/platform/pkg/sdk/gen/emisell/testing/v1;testingv1b\x06proto3"
+	"\x0fListAssignments\x12*.emisell.testing.v1.ListAssignmentsRequest\x1a+.emisell.testing.v1.ListAssignmentsResponse\x12g\n" +
+	"\x0eStopAssignment\x12).emisell.testing.v1.StopAssignmentRequest\x1a*.emisell.testing.v1.StopAssignmentResponseB?Z=emisell.app/platform/pkg/sdk/gen/emisell/testing/v1;testingv1b\x06proto3"
 
 var (
 	file_emisell_testing_v1_testing_proto_rawDescOnce sync.Once
@@ -360,20 +501,24 @@ func file_emisell_testing_v1_testing_proto_rawDescGZIP() []byte {
 	return file_emisell_testing_v1_testing_proto_rawDescData
 }
 
-var file_emisell_testing_v1_testing_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_emisell_testing_v1_testing_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_emisell_testing_v1_testing_proto_goTypes = []any{
-	(*ListAssignmentsRequest)(nil),  // 0: emisell.testing.v1.ListAssignmentsRequest
-	(*ListAssignmentsResponse)(nil), // 1: emisell.testing.v1.ListAssignmentsResponse
-	(*TestApp)(nil),                 // 2: emisell.testing.v1.TestApp
-	(*TestReadiness)(nil),           // 3: emisell.testing.v1.TestReadiness
+	(*StopAssignmentRequest)(nil),   // 0: emisell.testing.v1.StopAssignmentRequest
+	(*StopAssignmentResponse)(nil),  // 1: emisell.testing.v1.StopAssignmentResponse
+	(*ListAssignmentsRequest)(nil),  // 2: emisell.testing.v1.ListAssignmentsRequest
+	(*ListAssignmentsResponse)(nil), // 3: emisell.testing.v1.ListAssignmentsResponse
+	(*TestApp)(nil),                 // 4: emisell.testing.v1.TestApp
+	(*TestReadiness)(nil),           // 5: emisell.testing.v1.TestReadiness
 }
 var file_emisell_testing_v1_testing_proto_depIdxs = []int32{
-	2, // 0: emisell.testing.v1.ListAssignmentsResponse.apps:type_name -> emisell.testing.v1.TestApp
-	3, // 1: emisell.testing.v1.TestApp.readiness:type_name -> emisell.testing.v1.TestReadiness
-	0, // 2: emisell.testing.v1.TestDistributionService.ListAssignments:input_type -> emisell.testing.v1.ListAssignmentsRequest
-	1, // 3: emisell.testing.v1.TestDistributionService.ListAssignments:output_type -> emisell.testing.v1.ListAssignmentsResponse
-	3, // [3:4] is the sub-list for method output_type
-	2, // [2:3] is the sub-list for method input_type
+	4, // 0: emisell.testing.v1.ListAssignmentsResponse.apps:type_name -> emisell.testing.v1.TestApp
+	5, // 1: emisell.testing.v1.TestApp.readiness:type_name -> emisell.testing.v1.TestReadiness
+	2, // 2: emisell.testing.v1.TestDistributionService.ListAssignments:input_type -> emisell.testing.v1.ListAssignmentsRequest
+	0, // 3: emisell.testing.v1.TestDistributionService.StopAssignment:input_type -> emisell.testing.v1.StopAssignmentRequest
+	3, // 4: emisell.testing.v1.TestDistributionService.ListAssignments:output_type -> emisell.testing.v1.ListAssignmentsResponse
+	1, // 5: emisell.testing.v1.TestDistributionService.StopAssignment:output_type -> emisell.testing.v1.StopAssignmentResponse
+	4, // [4:6] is the sub-list for method output_type
+	2, // [2:4] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
@@ -390,7 +535,7 @@ func file_emisell_testing_v1_testing_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_emisell_testing_v1_testing_proto_rawDesc), len(file_emisell_testing_v1_testing_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

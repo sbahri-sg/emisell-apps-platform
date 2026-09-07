@@ -70,6 +70,8 @@ type Testing struct {
 	ProviderReady         func(context.Context, Assignment, ManagedShippingRelease) error
 	UIReady               func(context.Context, Assignment) error
 	UI                    UIReleases
+	Resources             UIResourceReleases
+	ResourceReady         func(context.Context, Assignment) error
 	ManagedInstallEnabled bool
 	Repo                  AssignmentRepository
 	Releases              Integrations
@@ -89,6 +91,31 @@ func TestPage(after string, size int) (int, error) {
 	return size, nil
 }
 func (s Testing) view(ctx context.Context, a Assignment) (AssignmentView, error) {
+	if a.ReleaseKind == "ui_resource" {
+		if s.Resources.Repo == nil {
+			return AssignmentView{}, fault.Unavailable
+		}
+		v, err := s.Resources.Repo.UIResourceGet(ctx, a.OrganizationID, a.ReleaseID)
+		if err != nil {
+			return AssignmentView{}, err
+		}
+		ready := TestReadiness{RequiredScopesReady: v.Manifest.Validate() == nil, Blockers: []string{"resource_installation_not_available"}}
+		ready.ConfigurationReady = s.Resources.WithSigned(ctx, a.OrganizationID, a.ReleaseID, func(current UIResourceRelease) error {
+			if current.Package.SHA256 != a.ReleaseSHA256 {
+				return fault.Conflict
+			}
+			return nil
+		}) == nil
+		if !ready.ConfigurationReady {
+			ready.Blockers = append(ready.Blockers, "release_not_ready")
+		}
+		if a.Status == "approved" && ready.ConfigurationReady && ready.RequiredScopesReady && s.ResourceReady != nil && s.ResourceReady(ctx, a) == nil {
+			ready.Installable = true
+			ready.Blockers = []string{}
+		}
+		m := v.Manifest.UI
+		return AssignmentView{a, TestApp{a.ID, m.AppID, m.Name, m.Version, "", ready, "resource-app/v1"}}, nil
+	}
 	if a.ReleaseKind == "ui" {
 		if s.UI.Repo == nil {
 			return AssignmentView{}, fault.Unavailable
@@ -210,7 +237,13 @@ func (s Testing) ForMerchant(ctx context.Context, merchant, after string, size i
 		return nil, "", err
 	}
 	rows, next, err := s.Repo.AssignmentList(ctx, "", merchant, after, size)
-	if s.UIReady != nil {
+	if s.Resources.Repo != nil {
+		if repo, ok := s.Repo.(interface {
+			ResourceAssignmentList(context.Context, string, string, int, bool) ([]Assignment, string, error)
+		}); ok {
+			rows, next, err = repo.ResourceAssignmentList(ctx, merchant, after, size, s.UIReady != nil)
+		}
+	} else if s.UIReady != nil {
 		if repo, ok := s.Repo.(interface {
 			UIAssignmentList(context.Context, string, string, int) ([]Assignment, string, error)
 		}); ok {
@@ -237,7 +270,7 @@ func (s Testing) Request(ctx context.Context, p identity.PortalPrincipal, key st
 		return Assignment{}, err
 	}
 	b.Reason = strings.TrimSpace(b.Reason)
-	if (b.ReleaseKind != "" && b.ReleaseKind != "managed_shipping" && b.ReleaseKind != "ui") || !ValidRequestKey(key) || !testIdentifier.MatchString(b.ReleaseID) || !testIdentifier.MatchString(b.MerchantID) || b.Reason == "" || len(b.Reason) > 2000 {
+	if (b.ReleaseKind != "" && b.ReleaseKind != "managed_shipping" && b.ReleaseKind != "ui" && b.ReleaseKind != "ui_resource") || !ValidRequestKey(key) || !testIdentifier.MatchString(b.ReleaseID) || !testIdentifier.MatchString(b.MerchantID) || b.Reason == "" || len(b.Reason) > 2000 {
 		return Assignment{}, fault.Invalid
 	}
 	var result Assignment
@@ -245,6 +278,15 @@ func (s Testing) Request(ctx context.Context, p identity.PortalPrincipal, key st
 		return result, e
 	} else if old != nil {
 		return *old, nil
+	}
+	if b.ReleaseKind == "ui_resource" {
+		err = s.Resources.WithSigned(ctx, org.ID, b.ReleaseID, func(v UIResourceRelease) error {
+			a := Assignment{ReleaseKind: b.ReleaseKind, OrganizationID: org.ID, ReleaseID: v.ID, ReleaseSHA256: v.Package.SHA256, MerchantID: b.MerchantID, Status: "requested", Revision: 1}
+			var e error
+			result, e = s.Repo.AssignmentMutate(ctx, org.ID, p.ID, key, RequestHash([]any{"test-request", b}), "", &a, b.Reason, nil)
+			return e
+		})
+		return result, err
 	}
 	if b.ReleaseKind == "ui" {
 		err = s.UI.WithSigned(ctx, org.ID, b.ReleaseID, func(v UIRelease) error {
@@ -316,6 +358,15 @@ func (s Testing) Decide(ctx context.Context, p identity.PortalPrincipal, id, key
 	if !known {
 		return result, fault.NotFound
 	}
+	if a.ReleaseKind == "ui_resource" {
+		err = s.Resources.WithSigned(ctx, a.OrganizationID, a.ReleaseID, func(v UIResourceRelease) error {
+			if v.Package.SHA256 != a.ReleaseSHA256 {
+				return fault.Conflict
+			}
+			return mutate()
+		})
+		return result, err
+	}
 	if a.ReleaseKind == "ui" {
 		err = s.UI.WithSigned(ctx, a.OrganizationID, a.ReleaseID, func(v UIRelease) error {
 			if v.Package.SHA256 != a.ReleaseSHA256 {
@@ -341,5 +392,46 @@ func (s Testing) Decide(ctx context.Context, p identity.PortalPrincipal, id, key
 		return mutate()
 	})
 	return result, err
+}
+
+// StopForMerchant only removes existing test distribution authority. Core must
+// authenticate its full service key and current merchant Apps manager first.
+// Assignment targets are immutable; no revision is needed for terminal revoke.
+func (s Testing) StopForMerchant(ctx context.Context, merchant, serviceID, actor, id, key string) (Assignment, error) {
+	if !testIdentifier.MatchString(merchant) || serviceID == "" || actor == "" || !testIdentifier.MatchString(id) || !ValidRequestKey(key) {
+		return Assignment{}, fault.Invalid
+	}
+	a, err := s.Repo.AssignmentGet(ctx, "", id)
+	if err != nil {
+		return Assignment{}, err
+	}
+	if a.MerchantID != merchant {
+		return Assignment{}, fault.NotFound
+	}
+	// Namespace seller identities separately from developer/admin portal actors.
+	auditActor := "core:" + serviceID + ":" + merchant + ":" + actor
+	hash := RequestHash([]string{"merchant-stop-testing", merchant, serviceID, actor, id})
+	if prior, e := s.Repo.AssignmentReplay(ctx, "", auditActor, key, hash); e != nil {
+		return Assignment{}, e
+	} else if prior != nil {
+		if prior.ID != id || prior.MerchantID != merchant || prior.Status != "revoked" {
+			return Assignment{}, fault.Conflict
+		}
+		return *prior, nil
+	}
+	if a.Status == "revoked" {
+		return a, nil
+	}
+	return s.Repo.AssignmentMutate(ctx, "", auditActor, key, hash, id, nil, "Seller ended testing for this store.", func(current Assignment) (Assignment, error) {
+		if current.MerchantID != merchant {
+			return current, fault.NotFound
+		}
+		if current.Status != "approved" {
+			return current, fault.Conflict
+		}
+		current.Status = "revoked"
+		current.Revision++
+		return current, nil
+	})
 }
 func resultAfter(fn func() error, v *Assignment) (Assignment, error) { err := fn(); return *v, err }

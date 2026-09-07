@@ -47,6 +47,7 @@ func (s Lifecycle) List(ctx context.Context, p identity.ServicePrincipal, actor,
 }
 
 type Lifecycle struct {
+	Resources ResourceReadiness
 	// Explicit composition only. A missing key denies reviewed UI releases.
 	ReviewedUIKey     []byte
 	Repo              AccessRepository
@@ -76,6 +77,12 @@ func (s Lifecycle) owner(ctx context.Context, p identity.ServicePrincipal, actor
 }
 
 func (s Lifecycle) eligible(ctx context.Context, release domain.IntentRelease) error {
+	if release.InstallPolicy == domain.ResourceAppPolicy {
+		return s.resourceEligible(ctx, release)
+	}
+	if release.ResourceBinding != nil {
+		return fault.Forbidden
+	}
 	if release.InstallPolicy == domain.ReviewedUIPolicy {
 		return s.reviewedUIEligible(ctx, release)
 	}
@@ -176,6 +183,16 @@ func (s Lifecycle) Get(ctx context.Context, p identity.ServicePrincipal, actor, 
 		return domain.Access{}, fault.Invalid
 	}
 	a, err := s.Repo.GetAccess(ctx, o, id)
+	if err == nil && a.Release.InstallPolicy == domain.ResourceAppPolicy {
+		a.ReviewedUILaunch = nil
+		_ = s.WithResourceAccess(ctx, p, actor, id, []string{"read_products"}, func(current domain.Access) error {
+			if current.Release.UIBinding != nil {
+				b := *current.Release.UIBinding
+				a.ReviewedUILaunch = &b
+			}
+			return nil
+		})
+	}
 	if err == nil && a.Release.InstallPolicy == domain.ReviewedUIPolicy {
 		// Details and uninstall remain available on source failure, but no URL is
 		// returned until the complete current source and installation are checked.
@@ -241,6 +258,9 @@ func (s Lifecycle) Execute(ctx context.Context, p identity.ServicePrincipal, act
 				return a, fault.Forbidden
 			}
 			if action == "issue_token" {
+				if a.Release.InstallPolicy == domain.ResourceAppPolicy {
+					return a, fault.Forbidden
+				}
 				if a.Release.InstallPolicy == EmbeddedPilotPolicy || a.Release.InstallPolicy == domain.ReviewedUIPolicy {
 					return a, fault.Forbidden
 				}

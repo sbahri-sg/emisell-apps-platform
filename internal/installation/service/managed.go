@@ -12,6 +12,13 @@ type ManagedReleases interface {
 }
 
 type managedReleaseKey struct{}
+type managedMerchantKey struct{}
+
+// ResourceMerchant is authoritative only inside the managed release callback.
+func ResourceMerchant(ctx context.Context) string {
+	v, _ := ctx.Value(managedMerchantKey{}).(string)
+	return v
+}
 
 type accessReplay interface {
 	ReplayAccess(context.Context, domain.IntentOwner, string, string) (*domain.AccessResult, error)
@@ -40,6 +47,6 @@ func (s Intents) withManaged(ctx context.Context, merchant, app, version string,
 		return fault.NotFound
 	}
 	return s.Managed.WithRelease(ctx, merchant, app, version, func(r domain.IntentRelease) error {
-		return fn(context.WithValue(ctx, managedReleaseKey{}, r))
+		return fn(context.WithValue(context.WithValue(ctx, managedReleaseKey{}, r), managedMerchantKey{}, merchant))
 	})
 }

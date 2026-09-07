@@ -5,9 +5,24 @@ package emisell.testing.v1;
 option go_package = "emisell.app/platform/pkg/sdk/gen/emisell/testing/v1;testingv1";
 
 // First-party Core full key only, after Core verifies the current merchant staff.
-// Distribution metadata only. This service cannot grant access or install apps.
+// Can list or end merchant testing, never approve, grant access or install apps.
 service TestDistributionService {
   rpc ListAssignments(ListAssignmentsRequest) returns (ListAssignmentsResponse);
+  rpc StopAssignment(StopAssignmentRequest) returns (StopAssignmentResponse);
+}
+
+message StopAssignmentRequest {
+  string merchant_id = 1;
+  string core_actor_id = 2;
+  string assignment_id = 3;
+  string idempotency_key = 4;
+}
+
+message StopAssignmentResponse {
+  string merchant_id = 1;
+  string assignment_id = 2;
+  // Always revoked; no installation or grant details are returned.
+  string status = 3;
 }
 
 message ListAssignmentsRequest {

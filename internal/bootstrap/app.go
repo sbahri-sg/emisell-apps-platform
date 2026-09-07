@@ -27,6 +27,7 @@ import (
 	"emisell.app/platform/internal/transport/httpapi"
 	"emisell.app/platform/internal/webhook"
 	webhookrepo "emisell.app/platform/internal/webhook/postgres"
+	"emisell.app/platform/internal/webhook/subscriptions"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 	"net/http"
@@ -58,10 +59,11 @@ func HandlerWithLocalManagedShipping(pool, capabilityPool, clientPool *pgxpool.P
 }
 
 type EmbeddedReviewConfig struct {
-	Runtime      *ReviewedUIRuntime
-	UIReleaseKey ed25519.PrivateKey
-	Key          ed25519.PrivateKey
-	ParentOrigin string
+	Runtime            *ReviewedUIRuntime
+	UIReleaseKey       ed25519.PrivateKey
+	ResourceReleaseKey ed25519.PrivateKey
+	Key                ed25519.PrivateKey
+	ParentOrigin       string
 }
 
 // Explicit composition: no auto-generated signing keys or implicit origin.
@@ -88,12 +90,17 @@ func handlerWithManagedShipping(pool, capabilityPool, clientPool *pgxpool.Pool, 
 		uiKey = embeddedConfig.UIReleaseKey
 	}
 	uiGate := appservice.UIReleases{Repo: apprepo.Postgres{Pool: capabilityPool}, Developers: developers, Key: uiKey}
+	var resourceGate appservice.UIResourceReleases
+	if embeddedConfig != nil && len(embeddedConfig.ResourceReleaseKey) == ed25519.PrivateKeySize {
+		resourceGate = appservice.UIResourceReleases{Repo: apprepo.Postgres{Pool: capabilityPool}, Developers: developers, Key: embeddedConfig.ResourceReleaseKey}
+	}
 	testing := appservice.Testing{Repo: apprepo.Postgres{Pool: pool}, Releases: clientReleaseGate, Merchants: identity.MerchantDirectory{Repo: identityrepo.Repository{Pool: pool}}}
 	testing.UI = uiGate
+	testing.Resources = resourceGate
 	// Dedicated client pool prevents cap→main and main→cap lease inversion.
 	var appClients appclient.Service
 	if clientPool != nil {
-		appClients = appclient.Service{Repo: clientrepo.Repository{Pool: clientPool}, Releases: clientReleases{Integrations: clientReleaseGate, UI: uiGate}, Developers: developers, Verifier: verifier}
+		appClients = appclient.Service{Repo: clientrepo.Repository{Pool: clientPool}, Releases: clientReleases{Integrations: clientReleaseGate, UI: uiGate, Resources: resourceGate}, Developers: developers, Verifier: verifier}
 	}
 	registry := appservice.Registry{Repo: apprepo.Postgres{Pool: pool}}
 	installs := installservice.Service{Repo: installrepo.Repository{Pool: pool}, Apps: registry, Auth: auth}
@@ -126,7 +133,7 @@ func handlerWithManagedShipping(pool, capabilityPool, clientPool *pgxpool.Pool, 
 			}
 		}
 	}
-	return httpapi.Server{OverviewPool: pool, EmbeddedLaunches: launchReviews, ManagedShipping: managed, Testing: testing, AppClients: appClients, Integrations: integrations, AppAccess: appAccess, PlatformKeys: identity.PlatformKeys{Repo: identityrepo.Repository{Pool: pool}}, ManagedKeys: identity.ManagedKeys{Repo: identityrepo.Repository{Pool: pool}}, Catalog: catalog, Portals: portals, Developers: developers, Drafts: drafts, Reviews: reviews, Identity: auth, Apps: registry, Installations: installs, Capabilities: caps, OAuth: connection, Webhooks: webhooks, Connections: monitor, Payments: payments, Origin: origin, Logger: logger, Ready: func(ctx context.Context) error { return pool.Ping(ctx) }}.Handler()
+	return httpapi.Server{WebhookSubscriptions: subscriptions.Repository{Pool: pool}, OverviewPool: pool, EmbeddedLaunches: launchReviews, ManagedShipping: managed, Testing: testing, AppClients: appClients, Integrations: integrations, AppAccess: appAccess, PlatformKeys: identity.PlatformKeys{Repo: identityrepo.Repository{Pool: pool}}, ManagedKeys: identity.ManagedKeys{Repo: identityrepo.Repository{Pool: pool}}, Catalog: catalog, Portals: portals, Developers: developers, Drafts: drafts, Reviews: reviews, Identity: auth, Apps: registry, Installations: installs, Capabilities: caps, OAuth: connection, Webhooks: webhooks, Connections: monitor, Payments: payments, Origin: origin, Logger: logger, Ready: func(ctx context.Context) error { return pool.Ping(ctx) }}.Handler()
 }
 
 // InternalHandler shares domain/use cases but uses service accounts, not browser sessions.

@@ -61,7 +61,7 @@ func (s Service) Ingest(ctx context.Context, e events.Envelope) error {
 		if err != nil {
 			return err
 		}
-		if app.ExecutionProfile != "local-remote" || app.Version != ins.Version {
+		if !allowsLocalWebhook(e.TenantID, e.Subject, e.Type, ins, app) {
 			return nil
 		}
 		return s.Repo.Enqueue(ctx, e)
@@ -90,8 +90,9 @@ func (s Service) DeliverOne(ctx context.Context) (string, error) {
 			if err != nil {
 				return Outcome{}, err
 			}
-			if app.ExecutionProfile != "local-remote" || app.Version != ins.Version {
-				return Outcome{}, fault.Forbidden
+			envelope, decodeErr := events.Decode(delivery.Body)
+			if decodeErr != nil || envelope.ID != delivery.EventID || envelope.TenantID != delivery.Tenant || envelope.Subject != delivery.Installation || !allowsLocalWebhook(delivery.Tenant, delivery.Installation, envelope.Type, ins, app) {
+				return Outcome{Status: "cancelled", Reason: "subscription_or_scope_revoked", Attempts: delivery.Attempts, NextAt: time.Now()}, nil
 			}
 			next := Outcome{Status: "pending", Attempts: delivery.Attempts + 1}
 			next.NextAt = time.Now().Add(time.Duration(1<<min(next.Attempts, 8)) * time.Second)

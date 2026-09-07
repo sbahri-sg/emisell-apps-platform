@@ -17,8 +17,10 @@ import (
 	"emisell.app/platform/internal/identity"
 	"emisell.app/platform/internal/installation/domain"
 	installservice "emisell.app/platform/internal/installation/service"
+	"emisell.app/platform/internal/oauth/appclient"
 	"emisell.app/platform/internal/platform/fault"
 	"emisell.app/platform/internal/platform/ids"
+	"emisell.app/platform/internal/resourceclient"
 	"emisell.app/platform/pkg/merchantid"
 	engine "emisell.app/platform/pkg/sdk/gen/emisell/engine/v1"
 	engineconnect "emisell.app/platform/pkg/sdk/gen/emisell/engine/v1/enginev1connect"
@@ -43,14 +45,16 @@ type caller struct {
 }
 type callerKey struct{}
 type Server struct {
-	EngineKey    string
-	EngineCheck  func(context.Context, string, string, string) (domain.Access, error)
-	Testing      appservice.Testing
-	Accounts     identity.ServiceAccounts
-	Capabilities capability.Service
-	Intents      installservice.Intents
-	Lifecycle    installservice.Lifecycle
-	Logger       *slog.Logger
+	ResourceProducts *resourceclient.Products
+	ResourceClients  appclient.Service
+	EngineKey        string
+	EngineCheck      func(context.Context, string, string, string) (domain.Access, error)
+	Testing          appservice.Testing
+	Accounts         identity.ServiceAccounts
+	Capabilities     capability.Service
+	Intents          installservice.Intents
+	Lifecycle        installservice.Lifecycle
+	Logger           *slog.Logger
 }
 
 func mapError(err error) error {
@@ -80,6 +84,9 @@ func mapError(err error) error {
 }
 func (s Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+	if s.ResourceProducts != nil {
+		mux.Handle("/internal/resources/products", s.resourceProductsHandler())
+	}
 	metrics := prometheus.NewRegistry()
 	calls := prometheus.NewCounterVec(prometheus.CounterOpts{Name: "emisell_rpc_requests_total", Help: "Internal capability RPC results."}, []string{"procedure", "code"})
 	duration := prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: "emisell_rpc_request_duration_seconds", Help: "Internal RPC latency."}, []string{"procedure"})

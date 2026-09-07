@@ -73,6 +73,8 @@ func catalogManifest(c CatalogCandidate) catalogmanifest.Manifest {
 		d := c.Document.AccessScopes.Canonical()
 		m.Schema, m.Policy, m.AccessScopes = catalogmanifest.SchemaAccessScopes, catalogmanifest.PolicyAccessScopes, &d
 	}
+	// Webhook endpoints remain private in the frozen source document. SourceSHA256
+	// above binds that configuration without exposing receiver URLs in App Store metadata.
 	return m
 }
 func (s Catalog) scope(ctx context.Context, p identity.PortalPrincipal) (string, error) {

@@ -44,7 +44,7 @@ void test('documentation covers all contract groups with unique, resolved operat
       o.method === 'RPC',
     );
   }
-  assert.equal(filterOperations('core', '').length, 21);
+  assert.equal(filterOperations('core', '').length, 22);
   const ui = operations.filter((o) => o.source === 'core-reviewed-ui.v1.json');
   assert.equal(ui.length, 2);
   assert.ok(ui.every((o) => o.group === 'core'));
@@ -54,7 +54,8 @@ void test('documentation covers all contract groups with unique, resolved operat
     /tanpa token\/SSO/,
   );
   const testing = filterOperations('core', 'TestDistributionService');
-  assert.equal(testing.length, 1);
+  assert.equal(testing.length, 2);
+  assert.match(testing.find((op) => op.path.endsWith('/StopAssignment'))!.description, /Bukan uninstall/);
   assert.match(testing[0].auth, /Legacy key dan token aplikasi ditolak/);
   assert.match(testing[0].description, /Bukan consent\/grant/);
   assert.match(
@@ -177,7 +178,7 @@ void test('managed release alone never grants installation; local lifecycle is s
 void test('gateway handoff never advertises local live endpoints or active grants', () => {
   const planned = filterOperations('gateway', '');
   assert.equal(planned.length, 2);
-  assert.equal(operations.length, 95);
+  assert.equal(operations.length, 96);
   assert.equal(gateway.coverage.length, 108);
   assert.equal(gateway.live, false);
   assert.ok(

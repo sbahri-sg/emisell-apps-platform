@@ -53,7 +53,7 @@ func (p Repository) WithDelivery(ctx context.Context, id string, fn func(webhook
 	}
 	defer tx.Rollback(ctx)
 	d := webhook.Delivery{ID: id}
-	err = tx.QueryRow(ctx, "SELECT tenant_id,installation_id,body,attempts,created_at FROM platform_webhook.deliveries WHERE id=$1 AND status='pending' AND next_at<=now() FOR UPDATE SKIP LOCKED", id).Scan(&d.Tenant, &d.Installation, &d.Body, &d.Attempts, &d.CreatedAt)
+	err = tx.QueryRow(ctx, "SELECT tenant_id,installation_id,event_id,body,attempts,created_at FROM platform_webhook.deliveries WHERE id=$1 AND status='pending' AND next_at<=now() FOR UPDATE SKIP LOCKED", id).Scan(&d.Tenant, &d.Installation, &d.EventID, &d.Body, &d.Attempts, &d.CreatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return "idle", nil
 	}

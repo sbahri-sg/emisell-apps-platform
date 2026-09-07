@@ -12,6 +12,31 @@ type testingServer struct{ Server }
 
 var testingActor = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.:@-]{0,127}$`)
 
+func (s testingServer) StopAssignment(ctx context.Context, r *connect.Request[testing.StopAssignmentRequest]) (*connect.Response[testing.StopAssignmentResponse], error) {
+	c, ok := ctx.Value(callerKey{}).(caller)
+	if !ok {
+		return nil, mapError(fault.Unauthenticated)
+	}
+	if !c.PlatformFull {
+		return nil, mapError(fault.Forbidden)
+	}
+	p, err := c.BindTenant(r.Msg.MerchantId)
+	if err != nil {
+		return nil, mapError(err)
+	}
+	if !testingActor.MatchString(r.Msg.CoreActorId) {
+		return nil, mapError(fault.Invalid)
+	}
+	if err = s.Accounts.Authorize(ctx, p.ID, p.TenantID); err != nil {
+		return nil, mapError(err)
+	}
+	a, err := s.Testing.StopForMerchant(ctx, p.TenantID, p.ID, r.Msg.CoreActorId, r.Msg.AssignmentId, r.Msg.IdempotencyKey)
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return connect.NewResponse(&testing.StopAssignmentResponse{MerchantId: p.TenantID, AssignmentId: a.ID, Status: a.Status}), nil
+}
+
 func (s testingServer) ListAssignments(ctx context.Context, r *connect.Request[testing.ListAssignmentsRequest]) (*connect.Response[testing.ListAssignmentsResponse], error) {
 	c, ok := ctx.Value(callerKey{}).(caller)
 	if !ok {

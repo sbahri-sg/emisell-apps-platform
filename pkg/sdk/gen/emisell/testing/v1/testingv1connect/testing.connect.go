@@ -36,12 +36,16 @@ const (
 	// TestDistributionServiceListAssignmentsProcedure is the fully-qualified name of the
 	// TestDistributionService's ListAssignments RPC.
 	TestDistributionServiceListAssignmentsProcedure = "/emisell.testing.v1.TestDistributionService/ListAssignments"
+	// TestDistributionServiceStopAssignmentProcedure is the fully-qualified name of the
+	// TestDistributionService's StopAssignment RPC.
+	TestDistributionServiceStopAssignmentProcedure = "/emisell.testing.v1.TestDistributionService/StopAssignment"
 )
 
 // TestDistributionServiceClient is a client for the emisell.testing.v1.TestDistributionService
 // service.
 type TestDistributionServiceClient interface {
 	ListAssignments(context.Context, *connect.Request[v1.ListAssignmentsRequest]) (*connect.Response[v1.ListAssignmentsResponse], error)
+	StopAssignment(context.Context, *connect.Request[v1.StopAssignmentRequest]) (*connect.Response[v1.StopAssignmentResponse], error)
 }
 
 // NewTestDistributionServiceClient constructs a client for the
@@ -61,12 +65,19 @@ func NewTestDistributionServiceClient(httpClient connect.HTTPClient, baseURL str
 			connect.WithSchema(testDistributionServiceMethods.ByName("ListAssignments")),
 			connect.WithClientOptions(opts...),
 		),
+		stopAssignment: connect.NewClient[v1.StopAssignmentRequest, v1.StopAssignmentResponse](
+			httpClient,
+			baseURL+TestDistributionServiceStopAssignmentProcedure,
+			connect.WithSchema(testDistributionServiceMethods.ByName("StopAssignment")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // testDistributionServiceClient implements TestDistributionServiceClient.
 type testDistributionServiceClient struct {
 	listAssignments *connect.Client[v1.ListAssignmentsRequest, v1.ListAssignmentsResponse]
+	stopAssignment  *connect.Client[v1.StopAssignmentRequest, v1.StopAssignmentResponse]
 }
 
 // ListAssignments calls emisell.testing.v1.TestDistributionService.ListAssignments.
@@ -74,10 +85,16 @@ func (c *testDistributionServiceClient) ListAssignments(ctx context.Context, req
 	return c.listAssignments.CallUnary(ctx, req)
 }
 
+// StopAssignment calls emisell.testing.v1.TestDistributionService.StopAssignment.
+func (c *testDistributionServiceClient) StopAssignment(ctx context.Context, req *connect.Request[v1.StopAssignmentRequest]) (*connect.Response[v1.StopAssignmentResponse], error) {
+	return c.stopAssignment.CallUnary(ctx, req)
+}
+
 // TestDistributionServiceHandler is an implementation of the
 // emisell.testing.v1.TestDistributionService service.
 type TestDistributionServiceHandler interface {
 	ListAssignments(context.Context, *connect.Request[v1.ListAssignmentsRequest]) (*connect.Response[v1.ListAssignmentsResponse], error)
+	StopAssignment(context.Context, *connect.Request[v1.StopAssignmentRequest]) (*connect.Response[v1.StopAssignmentResponse], error)
 }
 
 // NewTestDistributionServiceHandler builds an HTTP handler from the service implementation. It
@@ -93,10 +110,18 @@ func NewTestDistributionServiceHandler(svc TestDistributionServiceHandler, opts 
 		connect.WithSchema(testDistributionServiceMethods.ByName("ListAssignments")),
 		connect.WithHandlerOptions(opts...),
 	)
+	testDistributionServiceStopAssignmentHandler := connect.NewUnaryHandler(
+		TestDistributionServiceStopAssignmentProcedure,
+		svc.StopAssignment,
+		connect.WithSchema(testDistributionServiceMethods.ByName("StopAssignment")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/emisell.testing.v1.TestDistributionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TestDistributionServiceListAssignmentsProcedure:
 			testDistributionServiceListAssignmentsHandler.ServeHTTP(w, r)
+		case TestDistributionServiceStopAssignmentProcedure:
+			testDistributionServiceStopAssignmentHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -108,4 +133,8 @@ type UnimplementedTestDistributionServiceHandler struct{}
 
 func (UnimplementedTestDistributionServiceHandler) ListAssignments(context.Context, *connect.Request[v1.ListAssignmentsRequest]) (*connect.Response[v1.ListAssignmentsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("emisell.testing.v1.TestDistributionService.ListAssignments is not implemented"))
+}
+
+func (UnimplementedTestDistributionServiceHandler) StopAssignment(context.Context, *connect.Request[v1.StopAssignmentRequest]) (*connect.Response[v1.StopAssignmentResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("emisell.testing.v1.TestDistributionService.StopAssignment is not implemented"))
 }

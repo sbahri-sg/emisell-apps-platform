@@ -7,6 +7,7 @@ import (
 	"emisell.app/platform/internal/identity"
 	"emisell.app/platform/internal/platform/fault"
 	"emisell.app/platform/pkg/accessscope"
+	"emisell.app/platform/pkg/webhookconfig"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -26,6 +27,7 @@ type AppDocument struct {
 	Scopes       []string                 `json:"scopes"`
 	Endpoint     string                   `json:"endpoint"`
 	AccessScopes *accessscope.Declaration `json:"accessScopes,omitempty"`
+	Webhooks     *webhookconfig.Config    `json:"webhooks,omitempty"`
 }
 type Draft struct {
 	ID             string      `json:"id"`
@@ -57,6 +59,9 @@ func RequestHash(v any) string {
 	return fmt.Sprintf("%x", sha256.Sum256(raw))
 }
 func (d AppDocument) Validate(submit bool) error {
+	if d.Webhooks != nil && d.Webhooks.Validate(d.AccessScopes) != nil {
+		return fault.Invalid
+	}
 	if d.AccessScopes != nil && d.AccessScopes.Validate() != nil {
 		return fault.Invalid
 	}

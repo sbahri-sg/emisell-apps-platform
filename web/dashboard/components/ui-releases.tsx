@@ -26,6 +26,7 @@ import {
   NativeSelectOption,
 } from '@/components/ui/native-select';
 import type { PortalAPI, Session } from '@/lib/portal';
+import ResourceReleases from './resource-releases';
 
 type Release = {
   id: string;
@@ -139,6 +140,7 @@ export default function UIReleases({
           : [];
   return (
     <>
+      <ResourceReleases api={api} session={session} />
       <div className="page-heading">
         <div>
           {developer && <p className="eyebrow">APLIKASI DEVELOPER</p>}

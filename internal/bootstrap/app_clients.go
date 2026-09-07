@@ -12,9 +12,26 @@ import (
 type clientReleases struct {
 	Integrations service.Integrations
 	UI           service.UIReleases
+	Resources    service.UIResourceReleases
 }
 
 func (s clientReleases) WithBinding(ctx context.Context, org, id string, fn func(appclient.Binding) error) error {
+	if fn == nil {
+		return fault.Invalid
+	}
+	if s.Resources.Repo != nil {
+		_, err := s.Resources.Repo.UIResourceGet(ctx, org, id)
+		if err == nil {
+			return s.Resources.WithSigned(ctx, org, id, func(v service.UIResourceRelease) error {
+				m := v.Manifest.UI
+				// Bind the outer digest including required permissions, never UI metadata alone.
+				return fn(appclient.Binding{ReleaseID: v.ID, OrganizationID: m.DeveloperID, AppID: m.AppID, Version: m.Version, Name: m.Name, Digest: v.Package.SHA256, Endpoint: m.URL})
+			})
+		}
+		if !errors.Is(err, fault.NotFound) {
+			return err
+		}
+	}
 	if s.UI.Repo != nil {
 		_, err := s.UI.Repo.UIGet(ctx, org, id)
 		if err == nil {

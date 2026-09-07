@@ -367,6 +367,37 @@ func TestRemoteOAuthInvocationWebhooksAndCleanup(t *testing.T) {
 	}
 }
 
+func TestRemoteWebhookScopeRevokedBeforeDelivery(t *testing.T) {
+	f := remoteSetup(t)
+	ctx := context.Background()
+	ins := f.install(t)
+	f.connect(t, ins)
+	f.expect(t, "POST", f.installPath(f.tenant), action("activate", "remote-pay", nil), ids.New("key"), 200)
+	e := event.New("emisell.capability.invoked.v1", f.tenant, f.user, ins, ids.New("req"), map[string]string{"capability": "payment/v1", "operation": "status"})
+	if err := f.hooks.Ingest(ctx, e); err != nil {
+		t.Fatal(err)
+	}
+	// Simulate a current scope reduction after enqueue while status stays active.
+	if _, err := f.pool.Exec(ctx, `UPDATE platform_installation.installations SET scopes='[]'::jsonb WHERE tenant_id=$1 AND id=$2`, f.tenant, ins); err != nil {
+		t.Fatal(err)
+	}
+	if outcome, err := f.hooks.DeliverOne(ctx); err != nil || outcome != "cancelled" {
+		t.Fatal("scope revocation bypassed", outcome, err)
+	}
+	var received int
+	if err := f.pool.QueryRow(ctx, `SELECT count(*) FROM reference_remote.audit WHERE tenant_id=$1 AND installation_id=$2 AND action='webhook_received'`, f.tenant, ins).Scan(&received); err != nil || received != 0 {
+		t.Fatal("unauthorized receiver effect", received, err)
+	}
+	e.ID = ids.New("evt")
+	if err := f.hooks.Ingest(ctx, e); err != nil {
+		t.Fatal(err)
+	}
+	items, err := f.hooks.List(ctx, f.tenant)
+	if err != nil || len(items) != 1 {
+		t.Fatal("revoked scope enqueued new event", len(items), err)
+	}
+}
+
 func TestRemoteWebhookJetStreamDurability(t *testing.T) {
 	broker := brokerSetup(t)
 	f := remoteSetup(t)

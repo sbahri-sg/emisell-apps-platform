@@ -8,6 +8,8 @@ Repository ini berisi backend Go, satu dashboard dengan fungsi Admin/Developer, 
 
 ## Komponen
 
+CLI developer tersedia di [`packages/developer-cli`](packages/developer-cli/README.md): login developer, draft aplikasi, katalog scope dan pengajuan review melalui API portal. Paket npm `@emisell/cli` telah dipublikasikan pada versi 0.1.1; kandidat lokal 0.2.0 menambah template produk, pencarian, pagination dan Testing. Ini berbeda dari CLI operasional Go di `cmd/cli`.
+
 | Komponen | Lokasi | Alamat lokal |
 | --- | --- | --- |
 | Dashboard Admin & Developer | `web/dashboard` | http://localhost:4317 |
@@ -154,6 +156,7 @@ docs/         Panduan, keputusan arsitektur, dan mockup desain
 - [Rilis integrasi](docs/integration-releases.md) dan [app clients](docs/app-clients.md)
 - [Embedded apps](docs/embedded-apps.md), [demo lokal](docs/embedded-demo.md), dan [UI kit](docs/embedded-ui-kit.md)
 - [API rilis UI](docs/ui-release-api.md)
+- [Webhook, consent resource, dan batas kesiapan produksi](docs/webhook-permissions.md)
 - [Handoff gateway Emisell](docs/emisell-gateway-handoff.md)
 - [Pengujian shipping](docs/shipping-demo-testing.md) dan [pemetaan scope](docs/shipping-scope-mapping.md)
 - [Catatan keputusan dan status implementasi](codex.md)

@@ -2,6 +2,14 @@
 
 Status: diterapkan untuk assignment, persetujuan dan daftar dinamis. Runtime aplikasi developer **belum tersedia**.
 
+Pembaruan 2026-09-08: runtime UI dengan `read_products` tersedia untuk pengujian
+lokal opt-in; lihat [alur terkini](../resource-test-distribution.md). Seller
+dengan izin kelola Apps kini dapat menghentikan assignment approved milik
+tokonya melalui `StopAssignment`, tanpa hak approval. Riwayat tidak dihapus
+dan uninstall tetap terpisah. Untuk runtime yang mensyaratkan assignment aktif,
+pencabutan juga menolak akses berikutnya. Bagian batas runtime di bawah mencatat
+keputusan awal sebelum sambungan ini tersedia.
+
 ## Keputusan
 
 Portal Developer mengajukan release integrasi **signed** milik organisasinya ke `merchantId` yang diketahui. Tidak ada pencarian atau daftar seluruh merchant dari portal. Dashboard Admin memeriksa tujuan pengujian; hanya `administrator` boleh menyetujui, menolak, atau mencabut. Role reviewer/operator hanya membaca. Persetujuan memverifikasi merchant terdaftar melalui public port modul identity.

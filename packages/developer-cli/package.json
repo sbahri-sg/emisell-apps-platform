@@ -1,0 +1,13 @@
+{
+  "name": "@emisell/cli",
+  "version": "0.2.0",
+  "description": "Developer CLI for the Emisell Apps Platform",
+  "homepage": "https://emisell.com",
+  "type": "module",
+  "bin": { "emisell": "bin/emisell.mjs" },
+  "engines": { "node": ">=22" },
+  "files": ["bin/", "src/", "templates/", "README.md"],
+  "scripts": { "test": "node --test test/*.test.mjs", "prepublishOnly": "npm test" },
+  "license": "UNLICENSED",
+  "publishConfig": { "access": "public" }
+}

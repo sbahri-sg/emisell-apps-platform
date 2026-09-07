@@ -16,6 +16,7 @@ import (
 	"emisell.app/platform/internal/platform/ids"
 	"emisell.app/platform/internal/review"
 	"emisell.app/platform/internal/webhook"
+	"emisell.app/platform/internal/webhook/subscriptions"
 	"encoding/json"
 	"errors"
 	"github.com/go-chi/chi/v5"
@@ -38,33 +39,35 @@ import (
 )
 
 type Server struct {
-	OverviewPool     *pgxpool.Pool
-	UIReleases       service.UIReleases
-	EmbeddedLaunches embedded.Reviews
-	Testing          service.Testing
-	AppClients       appclient.Service
-	ManagedKeys      identity.ManagedKeys
-	PlatformKeys     identity.PlatformKeys
-	Portals          identity.Portals
-	Developers       developer.Service
-	Drafts           service.Drafts
-	Reviews          review.Service
-	Catalog          service.Catalog
-	Integrations     service.Integrations
-	ManagedShipping  service.ManagedShipping
-	Identity         identity.Service
-	Apps             service.Registry
-	Installations    installation.Service
-	AppAccess        installation.Lifecycle
-	Capabilities     capability.Service
-	OAuth            *oauth.Service
-	Webhooks         webhook.Monitor
-	Connections      installation.Monitor
-	Payments         capability.Payments
-	Ready            func(context.Context) error
-	Origin           string
-	publicOrigins    config.PublicOrigins
-	Logger           *slog.Logger
+	WebhookSubscriptions subscriptions.Repository
+	OverviewPool         *pgxpool.Pool
+	UIReleases           service.UIReleases
+	UIResourceReleases   service.UIResourceReleases
+	EmbeddedLaunches     embedded.Reviews
+	Testing              service.Testing
+	AppClients           appclient.Service
+	ManagedKeys          identity.ManagedKeys
+	PlatformKeys         identity.PlatformKeys
+	Portals              identity.Portals
+	Developers           developer.Service
+	Drafts               service.Drafts
+	Reviews              review.Service
+	Catalog              service.Catalog
+	Integrations         service.Integrations
+	ManagedShipping      service.ManagedShipping
+	Identity             identity.Service
+	Apps                 service.Registry
+	Installations        installation.Service
+	AppAccess            installation.Lifecycle
+	Capabilities         capability.Service
+	OAuth                *oauth.Service
+	Webhooks             webhook.Monitor
+	Connections          installation.Monitor
+	Payments             capability.Payments
+	Ready                func(context.Context) error
+	Origin               string
+	publicOrigins        config.PublicOrigins
+	Logger               *slog.Logger
 }
 type userKey struct{}
 type requestKey struct{}

@@ -11,6 +11,7 @@ import (
 	"emisell.app/platform/internal/platform/config"
 	"emisell.app/platform/internal/platform/localfiles"
 	"emisell.app/platform/internal/providergrant"
+	"emisell.app/platform/internal/resourceclient"
 	"emisell.app/platform/internal/review"
 	"emisell.app/platform/migrations"
 	"errors"
@@ -36,6 +37,10 @@ func run() error {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 	cfg, err := config.Read()
+	if err != nil {
+		return err
+	}
+	proofVerifier, err := readProofVerifier()
 	if err != nil {
 		return err
 	}
@@ -133,6 +138,30 @@ func run() error {
 	} else if !errors.Is(e, os.ErrNotExist) {
 		return e
 	}
+	resourceKey, err := readUIResourceKey()
+	if err != nil {
+		return err
+	}
+	if uiRuntime != nil {
+		uiRuntime.Source.ResourceKey = resourceKey
+		var resources struct {
+			Environment   string `json:"environment"`
+			Origin        string `json:"origin"`
+			KeyID         string `json:"keyId"`
+			PrivateKeyPEM string `json:"privateKeyPem"`
+		}
+		if e := localfiles.Read(".local/resource-runtime.json", &resources); e == nil {
+			if resources.Environment != "development" || os.Getenv("NODE_ENV") == "production" || os.Getenv("EMISELL_ENV") == "production" || resourceKey == nil {
+				return errors.New("invalid local resource runtime")
+			}
+			uiRuntime.Source.Products, err = resourceclient.NewProducts(resourceclient.Options{Origin: resources.Origin, KeyID: resources.KeyID, PrivateKeyPEM: []byte(resources.PrivateKeyPEM), Environment: "sandbox", AllowHTTP: true, Timeout: 5 * time.Second})
+			if err != nil {
+				return errors.New("invalid local resource runtime")
+			}
+		} else if !errors.Is(e, os.ErrNotExist) {
+			return e
+		}
+	}
 	managedEnabled := false
 	internalHandler := bootstrap.InternalHandlerWithManagedReleases(pool, caps, logger, integrationSigner, managedSigner, connections)
 	if uiRuntime != nil {
@@ -141,7 +170,7 @@ func run() error {
 			return err
 		}
 	}
-	httpHandler := bootstrap.HandlerWithManagedShipping(pool, caps, clientPool, cfg.Origin, logger, signer, integrationSigner, managedSigner, endpointproof.New(), connections)
+	httpHandler := bootstrap.HandlerWithManagedShipping(pool, caps, clientPool, cfg.Origin, logger, signer, integrationSigner, managedSigner, proofVerifier, connections)
 	var engineConfig bootstrap.LocalEngineConfig
 	if e := localfiles.Read(".local/managed-engine.json", &engineConfig); e == nil {
 		local, e := engineConfig.LocalManaged()
@@ -165,7 +194,7 @@ func run() error {
 		} else if !errors.Is(e, os.ErrNotExist) {
 			return e
 		}
-		httpHandler = bootstrap.HandlerWithLocalManagedShipping(pool, caps, clientPool, cfg.Origin, logger, signer, integrationSigner, managedSigner, endpointproof.New(), connections)
+		httpHandler = bootstrap.HandlerWithLocalManagedShipping(pool, caps, clientPool, cfg.Origin, logger, signer, integrationSigner, managedSigner, proofVerifier, connections)
 		internalHandler, e = bootstrap.InternalHandlerWithLocalManaged(pool, caps, logger, integrationSigner, managedSigner, local, connections)
 		if e != nil {
 			return e
@@ -174,9 +203,12 @@ func run() error {
 		return e
 	}
 	if uiRuntime != nil {
-		httpHandler = bootstrap.HandlerWithReviewedUIRuntime(pool, caps, clientPool, cfg.Origin, logger, signer, integrationSigner, managedSigner, endpointproof.New(), managedEnabled, bootstrap.EmbeddedReviewConfig{Runtime: uiRuntime, UIReleaseKey: uiKey, Key: launchKey, ParentOrigin: uiConfig.ParentOrigin}, connections)
+		httpHandler = bootstrap.HandlerWithReviewedUIRuntime(pool, caps, clientPool, cfg.Origin, logger, signer, integrationSigner, managedSigner, proofVerifier, managedEnabled, bootstrap.EmbeddedReviewConfig{Runtime: uiRuntime, UIReleaseKey: uiKey, ResourceReleaseKey: resourceKey, Key: launchKey, ParentOrigin: uiConfig.ParentOrigin}, connections)
 	}
 	httpHandler = bootstrap.AddUIReleaseRoutes(httpHandler, pool, cfg.Origin, logger, uiKey)
+	if resourceKey != nil {
+		httpHandler = bootstrap.AddUIResourceReleaseRoutes(httpHandler, pool, cfg.Origin, logger, resourceKey)
+	}
 	internalHandler, err = providergrant.Attach(internalHandler, os.Getenv("EMISELL_PROVIDER_GRANT_FILE"), providergrant.Postgres{Pool: pool})
 	if err != nil {
 		return err
@@ -206,4 +238,42 @@ func run() error {
 		defer cancel()
 		return errors.Join(server.Shutdown(shutdown), rpc.Shutdown(shutdown))
 	}
+}
+
+func readProofVerifier() (*endpointproof.Verifier, error) {
+	var c struct {
+		Environment    string `json:"environment"`
+		Origin         string `json:"origin"`
+		CertificatePEM string `json:"certificatePem"`
+	}
+	err := localfiles.Read(".local/endpoint-proof.json", &c)
+	if errors.Is(err, os.ErrNotExist) {
+		return endpointproof.New(), nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if os.Getenv("EMISELL_ENV") == "production" || os.Getenv("NODE_ENV") == "production" {
+		return nil, errors.New("local endpoint proof forbidden in production")
+	}
+	return endpointproof.NewDevelopment(c.Environment, c.Origin, []byte(c.CertificatePEM))
+}
+
+// Local authoring only; no installation/grant runtime is enabled by this key.
+func readUIResourceKey() (ed25519.PrivateKey, error) {
+	var c struct {
+		Environment string `json:"environment"`
+		Seed        []byte `json:"seed"`
+	}
+	err := localfiles.Read(".local/ui-resource-signing.json", &c)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if c.Environment != "development" || os.Getenv("EMISELL_ENV") == "production" || os.Getenv("NODE_ENV") == "production" || len(c.Seed) != ed25519.SeedSize {
+		return nil, errors.New("invalid local UI resource signing configuration")
+	}
+	return ed25519.NewKeyFromSeed(c.Seed), nil
 }

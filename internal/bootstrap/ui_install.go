@@ -13,6 +13,7 @@ import (
 	"emisell.app/platform/internal/oauth/embedded"
 	launchrepo "emisell.app/platform/internal/oauth/embedded/postgres"
 	"emisell.app/platform/internal/platform/fault"
+	"emisell.app/platform/internal/resourceclient"
 	"emisell.app/platform/internal/transport/connectapi"
 	"emisell.app/platform/pkg/uirelease"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -49,10 +50,12 @@ func InternalHandlerWithReviewedUI(pool, caps *pgxpool.Pool, logger *slog.Logger
 // Use separate pools for release/assignment, client/launch and installation locks.
 // Callers must keep the callback bounded; no network requests inside it.
 type ReviewedUIInstallSource struct {
-	Releases   apprepo.Postgres
-	Clients    clientrepo.Repository
-	Current    embedded.CurrentBinding
-	ReleaseKey ed25519.PublicKey
+	Releases    apprepo.Postgres
+	Clients     clientrepo.Repository
+	Current     embedded.CurrentBinding
+	ReleaseKey  ed25519.PublicKey
+	ResourceKey ed25519.PrivateKey
+	Products    *resourceclient.Products
 }
 
 type uiAndExistingSources struct {
@@ -61,6 +64,13 @@ type uiAndExistingSources struct {
 }
 
 func (s uiAndExistingSources) WithRelease(ctx context.Context, merchant, app, version string, fn func(domain.IntentRelease) error) error {
+	resource, err := s.UI.Releases.HasResourceUIApp(ctx, app)
+	if err != nil {
+		return err
+	}
+	if resource {
+		return s.UI.WithResourceRelease(ctx, merchant, app, version, fn)
+	}
 	found, err := s.UI.Releases.HasUIApp(ctx, app)
 	if err != nil {
 		return err
@@ -84,6 +94,26 @@ func EnableReviewedUI(base *connectapi.Server, source ReviewedUIInstallSource, k
 	base.Lifecycle.Intents = base.Intents
 	base.Lifecycle.ReviewedUIKey = source.Current.Key
 	base.Testing.UI = service.UIReleases{Repo: source.Releases, Key: key}
+	if len(source.ResourceKey) == ed25519.PrivateKeySize {
+		base.Testing.Resources = service.UIResourceReleases{Repo: source.Releases, Key: source.ResourceKey}
+		if source.Products != nil {
+			base.Lifecycle.Resources = source
+			base.ResourceProducts = source.Products
+			base.ResourceClients = appclient.Service{Repo: source.Clients, Releases: clientReleases{Resources: base.Testing.Resources}}
+			base.Testing.ResourceReady = func(ctx context.Context, a service.Assignment) error {
+				v, err := source.Releases.UIResourceGet(ctx, a.OrganizationID, a.ReleaseID)
+				if err != nil {
+					return err
+				}
+				return source.WithResourceRelease(ctx, a.MerchantID, v.Manifest.UI.AppID, v.Manifest.UI.Version, func(r domain.IntentRelease) error {
+					if r.ManifestDigest != a.ReleaseSHA256 || r.UIBinding.AssignmentID != a.ID {
+						return fault.Forbidden
+					}
+					return nil
+				})
+			}
+		}
+	}
 	base.Testing.UIReady = func(ctx context.Context, a service.Assignment) error {
 		v, err := source.Releases.UIGet(ctx, a.OrganizationID, a.ReleaseID)
 		if err != nil {

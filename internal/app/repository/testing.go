@@ -12,7 +12,7 @@ import (
 )
 
 // JSON projection keeps SQL column ordering independent of the domain struct.
-const assignmentJSON = `jsonb_build_object('id',id,'organizationId',organization_id,'releaseId',COALESCE(release_id,managed_release_id,ui_release_id),'releaseKind',CASE WHEN ui_release_id IS NOT NULL THEN 'ui' WHEN managed_release_id IS NOT NULL THEN 'managed_shipping' ELSE '' END,'releaseSha256',release_sha256,'merchantId',merchant_id,'status',status,'revision',revision,'createdAt',created_at,'updatedAt',updated_at)`
+const assignmentJSON = `jsonb_build_object('id',id,'organizationId',organization_id,'releaseId',COALESCE(release_id,managed_release_id,ui_release_id,resource_release_id),'releaseKind',CASE WHEN resource_release_id IS NOT NULL THEN 'ui_resource' WHEN ui_release_id IS NOT NULL THEN 'ui' WHEN managed_release_id IS NOT NULL THEN 'managed_shipping' ELSE '' END,'releaseSha256',release_sha256,'merchantId',merchant_id,'status',status,'revision',revision,'createdAt',created_at,'updatedAt',updated_at)`
 
 func (p Postgres) AssignmentReplay(ctx context.Context, org, actor, key, hash string) (*service.Assignment, error) {
 	var storedHash, id string
@@ -47,15 +47,18 @@ func (p Postgres) AssignmentGet(ctx context.Context, org, id string) (service.As
 	return scanAssignment(p.Pool.QueryRow(ctx, `SELECT `+assignmentJSON+` FROM platform_app.test_assignments WHERE id=$1 AND ($2='' OR organization_id=$2)`, id, org))
 }
 func (p Postgres) AssignmentList(ctx context.Context, org, merchant, after string, size int) ([]service.Assignment, string, error) {
-	return p.assignmentList(ctx, org, merchant, after, size, false)
+	return p.assignmentList(ctx, org, merchant, after, size, false, false)
 }
 func (p Postgres) UIAssignmentList(ctx context.Context, merchant, after string, size int) ([]service.Assignment, string, error) {
-	return p.assignmentList(ctx, "", merchant, after, size, true)
+	return p.assignmentList(ctx, "", merchant, after, size, true, false)
 }
-func (p Postgres) assignmentList(ctx context.Context, org, merchant, after string, size int, ui bool) ([]service.Assignment, string, error) {
+func (p Postgres) ResourceAssignmentList(ctx context.Context, merchant, after string, size int, ui bool) ([]service.Assignment, string, error) {
+	return p.assignmentList(ctx, "", merchant, after, size, ui, true)
+}
+func (p Postgres) assignmentList(ctx context.Context, org, merchant, after string, size int, ui, resource bool) ([]service.Assignment, string, error) {
 	// Filter before pagination. Portal history is unchanged; merchant distribution
 	// only includes currently public capabilities from this module's releases.
-	rows, err := p.Pool.Query(ctx, `SELECT `+assignmentJSON+` FROM platform_app.test_assignments WHERE ($1='' OR organization_id=$1) AND ($2='' OR (merchant_id=$2 AND status='approved' AND (($6 AND ui_release_id IS NOT NULL) OR managed_release_id IS NOT NULL OR release_id IN (SELECT id FROM platform_app.integration_releases WHERE manifest->'metadata'->>'capability'=$5)))) AND id>$3 ORDER BY id LIMIT $4`, org, merchant, after, size+1, service.PublicCapability, ui)
+	rows, err := p.Pool.Query(ctx, `SELECT `+assignmentJSON+` FROM platform_app.test_assignments WHERE ($1='' OR organization_id=$1) AND ($2='' OR (merchant_id=$2 AND status='approved' AND (($7 AND resource_release_id IS NOT NULL) OR ($6 AND ui_release_id IS NOT NULL) OR managed_release_id IS NOT NULL OR release_id IN (SELECT id FROM platform_app.integration_releases WHERE manifest->'metadata'->>'capability'=$5)))) AND id>$3 ORDER BY id LIMIT $4`, org, merchant, after, size+1, service.PublicCapability, ui, resource)
 	if err != nil {
 		return nil, "", err
 	}
@@ -118,8 +121,10 @@ func (p Postgres) AssignmentMutate(ctx context.Context, org, actor, key, hash, i
 	if create != nil {
 		a = *create
 		a.ID = ids.New("testasgn")
-		var integrationID, managedID, uiID *string
-		if a.ReleaseKind == "ui" {
+		var integrationID, managedID, uiID, resourceID *string
+		if a.ReleaseKind == "ui_resource" {
+			resourceID = &a.ReleaseID
+		} else if a.ReleaseKind == "ui" {
 			uiID = &a.ReleaseID
 		} else if a.ReleaseKind == "managed_shipping" {
 			managedID = &a.ReleaseID
@@ -128,7 +133,7 @@ func (p Postgres) AssignmentMutate(ctx context.Context, org, actor, key, hash, i
 		} else {
 			return a, fault.Invalid
 		}
-		err = tx.QueryRow(ctx, `INSERT INTO platform_app.test_assignments(id,organization_id,release_id,managed_release_id,release_sha256,merchant_id,status,ui_release_id) VALUES($1,$2,$3,$4,$5,$6,'requested',$7) RETURNING created_at,updated_at`, a.ID, a.OrganizationID, integrationID, managedID, a.ReleaseSHA256, a.MerchantID, uiID).Scan(&a.CreatedAt, &a.UpdatedAt)
+		err = tx.QueryRow(ctx, `INSERT INTO platform_app.test_assignments(id,organization_id,release_id,managed_release_id,release_sha256,merchant_id,status,ui_release_id,resource_release_id) VALUES($1,$2,$3,$4,$5,$6,'requested',$7,$8) RETURNING created_at,updated_at`, a.ID, a.OrganizationID, integrationID, managedID, a.ReleaseSHA256, a.MerchantID, uiID, resourceID).Scan(&a.CreatedAt, &a.UpdatedAt)
 	} else {
 		a, err = scanAssignment(tx.QueryRow(ctx, `SELECT `+assignmentJSON+` FROM platform_app.test_assignments WHERE id=$1 AND ($2='' OR organization_id=$2) FOR UPDATE`, id, org))
 		if err != nil {
