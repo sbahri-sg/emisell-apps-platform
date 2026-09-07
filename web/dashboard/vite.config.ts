@@ -66,11 +66,10 @@ export default defineConfig(async () => {
     },
     plugins: [
       vinext(),
-      sites(),
-      cloudflare({
+      ...(process.env.EMISELL_NODE_BUILD === 'true' ? [] : [sites(), cloudflare({
         viteEnvironment: { name: 'rsc', childEnvironments: ['ssr'] },
         config: localBindingConfig,
-      }),
+      })]),
     ],
   };
 });

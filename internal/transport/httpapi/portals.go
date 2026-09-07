@@ -26,18 +26,15 @@ func portalSurface(path string) string {
 	}
 	return ""
 }
-func portalOrigin(surface string) string {
-	if surface == "developer" {
-		return "http://localhost:4319"
-	}
-	return "http://localhost:4317"
+func (s Server) portalOrigin(surface string) string {
+	return s.publicOrigins.ForSurface(surface)
 }
 func portalCookie(surface string) string { return "emisell_" + surface + "_session" }
 func portalPrincipal(r *http.Request) identity.PortalPrincipal {
 	return r.Context().Value(portalKey{}).(identity.PortalPrincipal)
 }
-func setPortalCookie(w http.ResponseWriter, surface, token string, age int) {
-	http.SetCookie(w, &http.Cookie{Name: portalCookie(surface), Value: token, Path: "/api/v1/" + surface, HttpOnly: true, SameSite: http.SameSiteStrictMode, MaxAge: age})
+func (s Server) setPortalCookie(w http.ResponseWriter, surface, token string, age int) {
+	http.SetCookie(w, &http.Cookie{Name: portalCookie(surface), Value: token, Path: "/api/v1/" + surface, HttpOnly: true, Secure: s.publicOrigins.Secure, SameSite: http.SameSiteStrictMode, MaxAge: age})
 }
 func portalToken(r *http.Request, surface string) string {
 	c, e := r.Cookie(portalCookie(surface))
@@ -56,7 +53,14 @@ func (s Server) portalRoutes(router chi.Router) {
 			// on reads too, not only the CSRF checks on mutations. No CORS wildcard.
 			r.Use(func(next http.Handler) http.Handler {
 				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					expected := portalOrigin(surface)
+					expected := s.portalOrigin(surface)
+					if s.publicOrigins.Secure {
+						expectedURL, _ := url.Parse(expected)
+						if r.Host != expectedURL.Host {
+							s.fail(w, r, fault.Forbidden)
+							return
+						}
+					}
 					source := r.Header.Get("Origin")
 					if source == "" {
 						if ref, e := url.Parse(r.Referer()); e == nil && ref.Host != "" {
@@ -100,7 +104,7 @@ func (s Server) portalRoutes(router chi.Router) {
 					s.fail(w, r, err)
 					return
 				}
-				setPortalCookie(w, surface, token, 8*3600)
+				s.setPortalCookie(w, surface, token, 8*3600)
 				write(w, 200, map[string]any{"user": p})
 			})
 			r.Group(func(r chi.Router) {
@@ -211,7 +215,7 @@ func (s Server) portalRoutes(router chi.Router) {
 						s.fail(w, r, err)
 						return
 					}
-					setPortalCookie(w, surface, "", -1)
+					s.setPortalCookie(w, surface, "", -1)
 					write(w, 200, map[string]bool{"ok": true})
 				})
 				r.Get("/submissions", func(w http.ResponseWriter, r *http.Request) {

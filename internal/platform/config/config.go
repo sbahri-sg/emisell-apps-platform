@@ -13,6 +13,25 @@ type Config struct{ Address, Origin, DatabaseURL, RPCAddress string }
 
 func Read() (Config, error) {
 	c := Config{Address: "127.0.0.1:8087", Origin: "http://localhost:4317", DatabaseURL: LocalDatabase, RPCAddress: "127.0.0.1:8088"}
+	if _, err := ReadPublicOrigins(); err != nil {
+		return c, err
+	}
+	if os.Getenv("EMISELL_ENV") == "production" {
+		origins, _ := ReadPublicOrigins()
+		c.Origin = origins.Admin
+		c.Address = "0.0.0.0:8087"
+		c.DatabaseURL = os.Getenv("EMISELL_DATABASE_URL")
+		db, err := url.Parse(c.DatabaseURL)
+		if err != nil || (db.Scheme != "postgres" && db.Scheme != "postgresql") || db.Hostname() == "" || db.User == nil || db.User.Username() == "" || db.Path == "" || db.Path == "/" || db.Fragment != "" {
+			return c, fmt.Errorf("explicit production PostgreSQL URL required")
+		}
+		password, ok := db.User.Password()
+		if !ok || len(password) < 16 || password == "local-development-only" {
+			return c, fmt.Errorf("production database requires a non-default password of at least 16 characters")
+		}
+		// RPC remains loopback-only until the production engine path is certified.
+		return c, nil
+	}
 	if v := os.Getenv("EMISELL_RPC_ADDRESS"); v != "" {
 		c.RPCAddress = v
 	}

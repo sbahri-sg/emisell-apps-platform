@@ -11,6 +11,7 @@ import (
 	"emisell.app/platform/internal/oauth"
 	"emisell.app/platform/internal/oauth/appclient"
 	"emisell.app/platform/internal/oauth/embedded"
+	"emisell.app/platform/internal/platform/config"
 	"emisell.app/platform/internal/platform/fault"
 	"emisell.app/platform/internal/platform/ids"
 	"emisell.app/platform/internal/review"
@@ -28,6 +29,7 @@ import (
 	"mime"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -59,6 +61,7 @@ type Server struct {
 	Payments         capability.Payments
 	Ready            func(context.Context) error
 	Origin           string
+	publicOrigins    config.PublicOrigins
 	Logger           *slog.Logger
 }
 type userKey struct{}
@@ -67,6 +70,13 @@ type requestKey struct{}
 const cookieName = "emisell_local_session"
 
 func (s Server) Handler() http.Handler {
+	var err error
+	s.publicOrigins, err = config.ReadPublicOrigins()
+	if err != nil {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			write(w, 503, map[string]string{"error": "invalid_public_origins"})
+		})
+	}
 	router := chi.NewRouter()
 	metrics := prometheus.NewRegistry()
 	requests := prometheus.NewCounterVec(prometheus.CounterOpts{Name: "emisell_http_requests_total", Help: "Completed local API requests."}, []string{"method", "route", "status"})
@@ -80,8 +90,12 @@ func (s Server) Handler() http.Handler {
 			w.Header().Set("Cache-Control", "no-store")
 			w.Header().Set("X-Content-Type-Options", "nosniff")
 			// Reject DNS rebinding, foreign browser origins, and non-JSON unsafe requests.
+			if os.Getenv("EMISELL_ENV") == "production" && portalSurface(r.URL.Path) == "" && !strings.HasPrefix(r.URL.Path, "/api/v1/store/") && r.URL.Path != "/healthz" && r.URL.Path != "/readyz" {
+				write(w, 404, map[string]string{"error": "not_found"})
+				return
+			}
 			host := strings.Split(r.Host, ":")[0]
-			if host != "localhost" && host != "127.0.0.1" {
+			if (s.publicOrigins.Secure && !s.publicOrigins.AllowsHost(r.Host)) || (!s.publicOrigins.Secure && host != "localhost" && host != "127.0.0.1") {
 				write(w, 403, map[string]string{"error": "forbidden"})
 				return
 			}
@@ -90,7 +104,7 @@ func (s Server) Handler() http.Handler {
 				clientCheck := r.Method == "POST" && r.URL.Path == clientCheckPath && r.URL.RawQuery == "" && r.Header.Get("Origin") == "" && r.Header.Get("Cookie") == ""
 				expectedOrigin := originURL.String()
 				if surface := portalSurface(r.URL.Path); surface != "" {
-					expectedOrigin = portalOrigin(surface)
+					expectedOrigin = s.portalOrigin(surface)
 				}
 				if !callback && !clientCheck && r.Header.Get("Origin") != expectedOrigin {
 					write(w, 403, map[string]string{"error": "forbidden_origin"})

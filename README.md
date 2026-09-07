@@ -162,6 +162,14 @@ Sebagian panduan mencatat milestone historis. Untuk status endpoint gunakan kont
 
 ## Keamanan dan operasional
 
+### Domain deployment
+
+Base URL publik dibaca dari `EMISELL_ADMIN_ORIGIN`, `EMISELL_DEVELOPER_ORIGIN`, dan `EMISELL_STORE_ORIGIN`. Lihat [contoh konfigurasi domain](deploy/domains.env.example). Isi ketiganya dengan domain HTTPS berbeda, tanpa path, port, atau trailing slash. Pada `EMISELL_ENV=production`, domain wajib diisi; konfigurasi yang tidak valid ditolak.
+
+Frontend tetap meminta `/api/v1/...` pada origin sendiri. Reverse proxy harus meneruskan `Host`, `Origin`, dan `Referer` asli serta memisahkan route API sesuai portal. Backend tidak mengambil base URL dari `Host` atau `X-Forwarded-Host`. Cookie portal HTTPS memakai `Secure`, `HttpOnly`, dan host-only; tidak dibagikan antar-subdomain.
+
+Paket Docker untuk **portal/control plane** tersedia: [panduan deployment](docs/docker-deployment.md). Mode production memakai database eksplisit dan API pada jaringan container; RPC tetap loopback. Proxy HTTPS, volume, migration eksplisit dan bootstrap satu akun Admin disediakan. Worker/NATS reference serta engine transaksi belum termasuk paket production. Jangan menyalin konfigurasi simulator atau pilot lokal ke server.
+
 - Jangan commit `.local/`, `.env`, private key, token, password, atau database dump.
 - API key full-access hanya untuk backend terpercaya, bukan browser atau aplikasi pihak ketiga.
 - Jangan membuka listener development ke internet. Konfigurasi ini bukan panduan deployment produksi.

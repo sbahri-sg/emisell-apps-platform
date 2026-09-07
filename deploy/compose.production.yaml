@@ -1,0 +1,81 @@
+name: emisell-apps-platform
+x-api: &api
+  image: emisell-apps-api:local
+  build:
+    context: ..
+    dockerfile: Dockerfile
+  environment:
+    EMISELL_ENV: production
+    EMISELL_ADMIN_ORIGIN: https://${ADMIN_DOMAIN:?Set ADMIN_DOMAIN}
+    EMISELL_DEVELOPER_ORIGIN: https://${DEVELOPER_DOMAIN:?Set DEVELOPER_DOMAIN}
+    EMISELL_STORE_ORIGIN: https://${STORE_DOMAIN:?Set STORE_DOMAIN}
+    EMISELL_DATABASE_URL: postgres://emisell:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/emisell?sslmode=disable
+  volumes:
+    - platform_keys:/app/.local
+  networks: [database, edge]
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: emisell
+      POSTGRES_DB: emisell
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    networks: [database]
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U emisell -d emisell']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  migrate:
+    <<: *api
+    command: [cli, migrate]
+    profiles: [setup]
+    depends_on:
+      postgres: {condition: service_healthy}
+  api:
+    <<: *api
+    restart: unless-stopped
+    depends_on:
+      postgres: {condition: service_healthy}
+  admin:
+    image: emisell-apps-admin:local
+    build: {context: .., dockerfile: Dockerfile.web, args: {SURFACE: dashboard}}
+    networks: [edge]
+    restart: unless-stopped
+  developer:
+    image: emisell-apps-developer:local
+    build: {context: .., dockerfile: Dockerfile.web, args: {SURFACE: developer}}
+    networks: [edge]
+    restart: unless-stopped
+  store:
+    image: emisell-apps-store:local
+    build: {context: .., dockerfile: Dockerfile.web, args: {SURFACE: app-store}}
+    networks: [edge]
+    restart: unless-stopped
+  proxy:
+    image: caddy:2-alpine
+    environment:
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN:?Set ADMIN_DOMAIN}
+      DEVELOPER_DOMAIN: ${DEVELOPER_DOMAIN:?Set DEVELOPER_DOMAIN}
+      STORE_DOMAIN: ${STORE_DOMAIN:?Set STORE_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL}
+    ports: ['80:80', '443:443']
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [edge]
+    restart: unless-stopped
+    depends_on: [api, admin, developer, store]
+volumes:
+  postgres_data:
+  platform_keys:
+  caddy_data:
+  caddy_config:
+networks:
+  database: {internal: true}
+  edge:

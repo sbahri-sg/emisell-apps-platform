@@ -1,0 +1,20 @@
+FROM node:24-bookworm-slim AS build
+WORKDIR /app
+COPY web/dashboard/package*.json web/dashboard/
+COPY web/developer/package*.json web/developer/
+COPY web/app-store/package*.json web/app-store/
+RUN npm ci --prefix web/dashboard && npm ci --prefix web/developer && npm ci --prefix web/app-store
+COPY web/ web/
+ARG SURFACE=dashboard
+ENV EMISELL_NODE_BUILD=true
+RUN case "$SURFACE" in dashboard|developer|app-store) ;; *) exit 1 ;; esac && npm run build --prefix web/$SURFACE
+
+FROM node:24-bookworm-slim AS runtime
+WORKDIR /app
+COPY --from=build --chown=node:node /app/web /app/web
+ARG SURFACE=dashboard
+ENV NODE_ENV=production
+WORKDIR /app/web/${SURFACE}
+USER node
+EXPOSE 3000
+CMD ["node", "node_modules/vinext/dist/cli.js", "start", "--hostname", "0.0.0.0", "--port", "3000"]

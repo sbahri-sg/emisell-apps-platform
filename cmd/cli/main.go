@@ -41,6 +41,12 @@ func main() {
 	}
 }
 func run() error {
+	if len(os.Args) == 3 && os.Args[1] == "bootstrap-admin" {
+		return bootstrapAdmin(os.Args[2], os.Stdin)
+	}
+	if os.Getenv("EMISELL_ENV") == "production" && (len(os.Args) != 2 || !slices.Contains([]string{"migrate", "init-catalog", "init-integration-signing", "init-ui-release-signing"}, os.Args[1])) {
+		return fmt.Errorf("production CLI only supports explicit migration, signing-key setup and bootstrap-admin")
+	}
 	if len(os.Args) == 2 && os.Args[1] == "init-ui-release-signing" {
 		return localfiles.InitUIReleaseKey()
 	}

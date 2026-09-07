@@ -38,6 +38,13 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	if os.Getenv("EMISELL_ENV") == "production" {
+		for _, name := range []string{"remote-platform.json", "managed-engine.json", "reviewed-ui.json", "embedded-pilot.json"} {
+			if _, e := os.Stat(".local/" + name); !errors.Is(e, os.ErrNotExist) {
+				return errors.New("production cannot load local simulator or pilot configuration")
+			}
+		}
+	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	pool, err := pgxpool.New(ctx, cfg.DatabaseURL)
@@ -176,7 +183,11 @@ func run() error {
 	defer rpc.Close()
 	go func() { logger.Info("internal RPC ready", "address", cfg.RPCAddress); done <- rpc.ListenAndServe() }()
 	go func() {
-		logger.Info("local server ready", "address", cfg.Address, "mode", "local-simulator")
+		mode := "local-simulator"
+		if os.Getenv("EMISELL_ENV") == "production" {
+			mode = "production-control-plane"
+		}
+		logger.Info("server ready", "address", cfg.Address, "mode", mode)
 		done <- server.ListenAndServe()
 	}()
 	select {
