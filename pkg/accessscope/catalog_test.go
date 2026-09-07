@@ -2,8 +2,19 @@ package accessscope
 
 import (
 	"slices"
+	"strings"
 	"testing"
 )
+
+func TestShippingScopesRemainUnavailable(t *testing.T) {
+	for _, s := range Reference().Scopes {
+		if s.Handle == "read_shipping" || s.Handle == "write_shipping" {
+			if s.Grantable || s.Status != "planned" || !strings.Contains(s.Notes, "built-in") {
+				t.Fatal("shipping availability or built-in distinction changed", s.Handle)
+			}
+		}
+	}
+}
 
 func TestReferenceIsIsolatedAndNeverGrantable(t *testing.T) {
 	c := Reference()

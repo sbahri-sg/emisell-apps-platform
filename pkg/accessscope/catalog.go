@@ -119,7 +119,7 @@ func Reference() Catalog {
 				s.RequiresAny = []string{"read_orders", "write_orders"}
 				s.Notes = "Referensi akses historis di luar 60 hari; perlu review khusus dan scope pesanan. Batas data Emisell belum diimplementasikan."
 			case "read_shipping", "write_shipping":
-				s.Notes = "Carrier service; tidak sama dengan scope fixture shipping.read/shipping.write atau seluruh capability shipping/v1."
+				s.Notes = "Resource carrier service belum tersedia. Berbeda dari izin native aplikasi provider eksternal; tidak diperlukan untuk Emisell Kurir built-in."
 			case "read_reports", "write_reports":
 				s.Notes = "Scope laporan; resource AnalyticsTarget pada referensi Shopify baru tersedia 2026-10."
 			case "read_users":
