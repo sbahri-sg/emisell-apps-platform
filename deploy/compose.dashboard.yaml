@@ -1,0 +1,58 @@
+# Dashboard-only deployment behind an existing HTTPS reverse proxy.
+name: emisell-apps-platform
+x-api: &api
+  image: emisell-apps-api:deploy
+  build: {context: .., dockerfile: Dockerfile}
+  environment:
+    EMISELL_ENV: production
+    EMISELL_DASHBOARD_ORIGIN: https://${DASHBOARD_DOMAIN:?Set DASHBOARD_DOMAIN}
+    EMISELL_STORE_DISABLED: 'true'
+    EMISELL_DATABASE_URL: postgres://emisell:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/emisell?sslmode=disable
+  volumes: [platform_keys:/app/.local]
+  networks: [database, edge]
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: emisell
+      POSTGRES_DB: emisell
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    networks: [database]
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U emisell -d emisell']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  migrate:
+    <<: *api
+    command: [cli, migrate]
+    profiles: [setup]
+    depends_on:
+      postgres: {condition: service_healthy}
+  api:
+    <<: *api
+    restart: unless-stopped
+    depends_on:
+      postgres: {condition: service_healthy}
+  admin:
+    image: emisell-apps-admin:deploy
+    build: {context: .., dockerfile: Dockerfile.web, args: {SURFACE: dashboard}}
+    networks: [edge]
+    restart: unless-stopped
+  proxy:
+    image: nginx:alpine
+    ports: ['${DASHBOARD_BIND:-127.0.0.1}:${DASHBOARD_PORT:-3003}:8080']
+    volumes: ['./nginx.dashboard.conf:/etc/nginx/conf.d/default.conf:ro']
+    networks: [edge]
+    restart: unless-stopped
+    depends_on: [api, admin]
+volumes:
+  postgres_data:
+  platform_keys:
+networks:
+  database: {internal: true}
+  edge:

@@ -28,6 +28,9 @@ func ReadPublicOrigins() (PublicOrigins, error) {
 	}
 	hosts := map[string]bool{}
 	for index, origin := range []string{c.Admin, c.Developer, c.Store} {
+		if index == 2 && origin == "" && os.Getenv("EMISELL_STORE_DISABLED") == "true" && os.Getenv("EMISELL_DASHBOARD_ORIGIN") != "" {
+			continue
+		}
 		u, err := url.Parse(origin)
 		if err != nil || u.Scheme != "https" || u.Host == "" || u.Path != "" || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" || u.User != nil || u.Opaque != "" || u.Port() != "" {
 			return c, fmt.Errorf("all three public origins must be HTTPS domain origins without path, port, credentials or query")

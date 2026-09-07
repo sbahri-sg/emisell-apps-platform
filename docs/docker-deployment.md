@@ -45,6 +45,14 @@ Volume `postgres_data` menyimpan database, `platform_keys` menyimpan konfigurasi
 
 ## Pengamanan dan verifikasi
 
+### Dashboard saja di belakang proxy HTTPS existing
+
+Gunakan `deploy/compose.dashboard.yaml` jika App Store belum diluncurkan. Isi file env privat dengan `DASHBOARD_DOMAIN` (tanpa skema), `POSTGRES_PASSWORD` acak minimal 16 karakter, serta opsional `DASHBOARD_BIND` dan `DASHBOARD_PORT` (default `127.0.0.1:3003`). Jalankan build, PostgreSQL, migration, dan bootstrap admin seperti prosedur di atas dengan mengganti nama file compose. Setelah itu jalankan `up -d api admin proxy`.
+
+Proxy HTTPS existing harus meneruskan domain dashboard ke port tersebut dengan Host publik tetap utuh. Jangan membuka port HTTP ini ke internet secara langsung. Compose ini tidak mengambil port 80/443, tidak menjalankan App Store, dan API Store ditolak melalui `EMISELL_STORE_DISABLED=true`. Tidak perlu mengisi domain App Store. Admin dan Developer menggunakan dashboard/login yang sama, tetapi otorisasi tetap terpisah berdasarkan akun.
+
+Saat mengganti instalasi lama, cadangkan source/config dan database lama terlebih dahulu. Jangan gunakan ulang volume database proyek berbeda atau menjalankan `down -v`. Deployment ini tetap hanya control plane; engine/worker production diprovision terpisah.
+
 - PostgreSQL dan API tidak memiliki published host port; hanya proxy yang membuka 80/443.
 - Konfigurasi HTTPS harus lengkap; cookie Admin/Developer memakai Secure, HttpOnly, SameSite Strict, tanpa domain bersama.
 - Proxy hanya meneruskan API sesuai portal. Endpoint internal RPC dan simulator tidak diproxy ke internet.

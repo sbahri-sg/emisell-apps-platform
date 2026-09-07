@@ -47,3 +47,20 @@ func TestProductionDoesNotExposeLegacySimulator(t *testing.T) {
 		t.Fatal("trusted forged forwarded host")
 	}
 }
+
+func TestDashboardOnlyDisablesStore(t *testing.T) {
+	t.Setenv("EMISELL_ENV", "production")
+	t.Setenv("EMISELL_ADMIN_ORIGIN", "")
+	t.Setenv("EMISELL_DEVELOPER_ORIGIN", "")
+	t.Setenv("EMISELL_DASHBOARD_ORIGIN", "https://dashboard.example.com")
+	t.Setenv("EMISELL_STORE_ORIGIN", "")
+	t.Setenv("EMISELL_STORE_DISABLED", "true")
+	h := (Server{Origin: "https://dashboard.example.com", Logger: slog.Default()}).Handler()
+	for _, path := range []string{"/api/v1/store/apps", "/api/v1/store/session"} {
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, httptest.NewRequest("GET", "https://dashboard.example.com"+path, nil))
+		if w.Code != 404 {
+			t.Fatalf("disabled store exposed: %s %d", path, w.Code)
+		}
+	}
+}

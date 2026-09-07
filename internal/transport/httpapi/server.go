@@ -90,6 +90,10 @@ func (s Server) Handler() http.Handler {
 			w.Header().Set("Cache-Control", "no-store")
 			w.Header().Set("X-Content-Type-Options", "nosniff")
 			// Reject DNS rebinding, foreign browser origins, and non-JSON unsafe requests.
+			if os.Getenv("EMISELL_STORE_DISABLED") == "true" && strings.HasPrefix(r.URL.Path, "/api/v1/store/") {
+				write(w, 404, map[string]string{"error": "not_found"})
+				return
+			}
 			if os.Getenv("EMISELL_ENV") == "production" && portalSurface(r.URL.Path) == "" && !strings.HasPrefix(r.URL.Path, "/api/v1/portal/") && !strings.HasPrefix(r.URL.Path, "/api/v1/store/") && r.URL.Path != "/healthz" && r.URL.Path != "/readyz" {
 				write(w, 404, map[string]string{"error": "not_found"})
 				return
