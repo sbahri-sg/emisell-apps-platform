@@ -3,6 +3,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import {
   ArrowLeft,
+  ChevronDown,
   ArrowUpRight,
   BookOpen,
   CheckCircle2,
@@ -24,6 +25,7 @@ import {
   Puzzle,
 } from 'lucide-react';
 import AdminOverview from '@/components/admin-overview';
+import { adminNavigationGroups } from '@/lib/admin-navigation';
 import AdminApps from '@/components/admin-apps';
 import AdminDevelopers from '@/components/admin-developers';
 import AdminActivity from '@/components/admin-activity';
@@ -62,6 +64,8 @@ import {
   SidebarProvider,
   SidebarHeader,
   SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
   SidebarFooter,
   SidebarMenu,
   SidebarMenuItem,
@@ -127,6 +131,12 @@ function Navigation({
   busy: boolean;
 }) {
   const { setOpenMobile } = useSidebar();
+  const [technicalOpen, setTechnicalOpen] = useState(false);
+  useEffect(() => {
+    if (adminNavigationGroups.some(group => group.collapsible && group.ids.includes(view))) {
+      setTechnicalOpen(true);
+    }
+  }, [view]);
   const items = developer
     ? [
         { id: 'apps', label: 'Aplikasi saya', icon: FileCode2 },
@@ -142,19 +152,36 @@ function Navigation({
     : [
         { id: 'overview', label: 'Ringkasan', icon: LayoutDashboard },
         { id: 'apps', label: 'Aplikasi', icon: FileCode2 },
-        { id: 'developers', label: 'Developer', icon: FileCode2 },
+        { id: 'developers', label: 'Developer', icon: Users },
         { id: 'activity', label: 'Aktivitas', icon: FileCode2 },
         { id: 'staff', label: 'Kelola staf', icon: Users },
         { id: 'reviews', label: 'Pengajuan review', icon: ShieldCheck },
-        { id: 'testing', label: 'Testing', icon: FlaskConical },
+        { id: 'testing', label: 'Pengujian', icon: FlaskConical },
         { id: 'app-clients', label: 'App clients', icon: KeyRound },
         { id: 'integration-releases', label: 'Rilis integrasi', icon: Code2 },
         { id: 'ui-releases', label: 'Rilis UI', icon: FileCode2 },
         { id: 'catalog', label: 'Rilis & publikasi', icon: CheckCircle2 },
         { id: 'api-docs', label: 'Dokumentasi API', icon: BookOpen },
-        { id: 'api-keys', label: 'API Key', icon: KeyRound },
+        { id: 'api-keys', label: 'API key', icon: KeyRound },
         { id: 'scopes', label: 'Katalog scope', icon: ShieldCheck },
       ];
+  const renderItems = (groupItems: typeof items) => (
+    <SidebarMenu>
+      {groupItems.map(item => (
+        <SidebarMenuItem key={item.id}>
+          <SidebarMenuButton
+            isActive={view === item.id}
+            aria-current={view === item.id ? 'page' : undefined}
+            disabled={busy}
+            onClick={() => { navigate(item.id); setOpenMobile(false); }}
+          >
+            <item.icon />
+            <span>{item.label}</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      ))}
+    </SidebarMenu>
+  );
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader>
@@ -164,23 +191,30 @@ function Navigation({
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.id}>
-              <SidebarMenuButton
-                isActive={view === item.id}
-                disabled={busy}
-                onClick={() => {
-                  navigate(item.id);
-                  setOpenMobile(false);
-                }}
-              >
-                <item.icon />
-                <span>{item.label}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        {developer ? renderItems(items) : adminNavigationGroups.map(group => {
+          const groupItems = group.ids.flatMap(id => items.filter(item => item.id === id));
+          return (
+            <SidebarGroup key={group.label}>
+              {group.collapsible ? (
+                <>
+                  <button
+                    type="button"
+                    className="flex min-h-9 items-center justify-between rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2"
+                    aria-expanded={technicalOpen}
+                    aria-controls="admin-technical-navigation"
+                    onClick={() => setTechnicalOpen(open => !open)}
+                  >
+                    {group.label}
+                    <ChevronDown aria-hidden="true" className={`size-3.5 transition-transform ${technicalOpen ? '' : '-rotate-90'}`} />
+                  </button>
+                  <div id="admin-technical-navigation" hidden={!technicalOpen}>
+                    {renderItems(groupItems)}
+                  </div>
+                </>
+              ) : <><SidebarGroupLabel>{group.label}</SidebarGroupLabel>{renderItems(groupItems)}</>}
+            </SidebarGroup>
+          );
+        })}
         <div className="sidebar-note">
           <span className="local-dot" />
           Emisell Apps<p>Platform aplikasi dan integrasi.</p>
