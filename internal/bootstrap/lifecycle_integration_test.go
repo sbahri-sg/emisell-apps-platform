@@ -18,6 +18,7 @@ import (
 	apprepo "emisell.app/platform/internal/app/repository"
 	appservice "emisell.app/platform/internal/app/service"
 	"emisell.app/platform/internal/bootstrap"
+	"emisell.app/platform/internal/event"
 	"emisell.app/platform/internal/identity"
 	identityrepo "emisell.app/platform/internal/identity/postgres"
 	"emisell.app/platform/internal/installation/domain"
@@ -478,6 +479,39 @@ func TestConsentInstallationRemoteHandshakeAndCleanup(t *testing.T) {
 	if _, err = c.Payment.Create(ctx, connect.NewRequest(&pay.CreateRequest{TenantId: f.tenant, IdempotencyKey: key(), Reference: "consent-remote", AmountMinor: 1000, Currency: "IDR"})); err != nil {
 		t.Fatal("remote capability", err)
 	}
+	// Connect consent and grants must feed the same durable webhook path as the
+	// reference lifecycle. All effects remain in the isolated simulator database.
+	var invoked event.Envelope
+	if err = f.pool.QueryRow(ctx, `SELECT envelope FROM platform_capability.events WHERE tenant_id=$1 AND envelope->>'type'='emisell.capability.invoked.v1' ORDER BY occurred_at LIMIT 1`, f.tenant).Scan(&invoked); err != nil {
+		t.Fatal(err)
+	}
+	for range 2 {
+		if err = f.hooks.Ingest(ctx, invoked); err != nil {
+			t.Fatal(err)
+		}
+	}
+	items, err := f.hooks.List(ctx, f.tenant)
+	if err != nil || len(items) != 1 {
+		t.Fatalf("duplicate enqueue: %d %v", len(items), err)
+	}
+	f.lostHook.Store(true)
+	if outcome, e := f.hooks.DeliverOne(ctx); e != nil || outcome != "pending" {
+		t.Fatal("lost response must retry", outcome, e)
+	}
+	if _, err = f.pool.Exec(ctx, `UPDATE platform_webhook.deliveries SET next_at=now() WHERE tenant_id=$1`, f.tenant); err != nil {
+		t.Fatal(err)
+	}
+	if outcome, e := f.hooks.DeliverOne(ctx); e != nil || outcome != "delivered" {
+		t.Fatal("retry delivery", outcome, e)
+	}
+	var receipts int
+	if err = f.pool.QueryRow(ctx, `SELECT count(*) FROM reference_remote.audit WHERE tenant_id=$1 AND installation_id=$2 AND action='webhook_received'`, f.tenant, a.InstallationId).Scan(&receipts); err != nil || receipts != 1 {
+		t.Fatal("duplicate receiver effect", receipts, err)
+	}
+	late := event.New("emisell.capability.invoked.v1", f.tenant, f.user, a.InstallationId, key(), map[string]string{"capability": "payment/v1", "operation": "status"})
+	if err = f.hooks.Ingest(ctx, late); err != nil {
+		t.Fatal(err)
+	}
 	f.downRevoke.Store(true)
 	u, err := c.Installations.Uninstall(ctx, uninstallRequest(f.tenant, a.InstallationId))
 	if err != nil || u.Msg.Result.Installation.Status != "disabling" || u.Msg.Result.Installation.GrantState != "revoked" {
@@ -485,6 +519,12 @@ func TestConsentInstallationRemoteHandshakeAndCleanup(t *testing.T) {
 	}
 	if appCheck(t, f.fixture, token.Msg.Result.AppToken, f.tenant, "remote-pay", a.InstallationId, nil) != 401 {
 		t.Fatal("token remained valid during remote outage")
+	}
+	if outcome, e := f.hooks.DeliverOne(ctx); e != nil || outcome != "cancelled" {
+		t.Fatal("webhook bypassed revoked installation", outcome, e)
+	}
+	if _, err = c.Payment.Create(ctx, connect.NewRequest(&pay.CreateRequest{TenantId: f.tenant, IdempotencyKey: key(), Reference: "after-revoke", AmountMinor: 1000, Currency: "IDR"})); connect.CodeOf(err) != connect.CodeNotFound {
+		t.Fatal("API remained available after uninstall", err)
 	}
 	repo := installrepo.Repository{Pool: f.pool}
 	cleanup := installrepo.Cleanup{Tenant: f.tenant, ID: a.InstallationId, App: "remote-pay"}
