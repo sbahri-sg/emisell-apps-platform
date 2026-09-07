@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"emisell.app/platform/internal/app/service"
+	"emisell.app/platform/internal/developer"
 	"emisell.app/platform/internal/identity"
 	"emisell.app/platform/internal/platform/fault"
 	"emisell.app/platform/internal/review"
@@ -138,6 +139,19 @@ func (s Server) portalRoutes(router chi.Router) {
 							next = rows[49].ID
 						}
 						write(w, 200, map[string]any{"accounts": rows, "nextAfterId": next})
+					})
+					r.Post("/developers", func(w http.ResponseWriter, r *http.Request) {
+						var input developer.CreateAccount
+						if err := decode(w, r, &input); err != nil {
+							s.fail(w, r, err)
+							return
+						}
+						organization, err := s.Developers.CreateAccount(r.Context(), portalPrincipal(r), input)
+						if err != nil {
+							s.fail(w, r, err)
+							return
+						}
+						write(w, http.StatusCreated, map[string]any{"organization": organization})
 					})
 					r.Get("/developers", func(w http.ResponseWriter, r *http.Request) {
 						rows, err := s.Developers.ListOrganizations(r.Context(), portalPrincipal(r), r.URL.Query().Get("afterId"))

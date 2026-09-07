@@ -33,6 +33,19 @@
       }
     },
     "/api/v1/admin/developers": {
+      "post": {
+        "operationId": "adminCreateDeveloper",
+        "security": [{"AdminSession":[]},{"UnifiedPortalSession":[]}],
+        "description": "Administrator-only account provisioning with exact dashboard Origin. Atomically creates enabled developer login, organization, owner membership and audit entry. Email is normalized and rejected if already used on either surface. Password is hashed, never returned. No invitation email is sent. Not public registration; no existing account is overwritten.",
+        "requestBody": {"required":true,"content":{"application/json":{"schema":{"type":"object","additionalProperties":false,"required":["organizationName","email","password"],"properties":{"organizationName":{"type":"string","minLength":1,"maxLength":120},"email":{"type":"string","format":"email","maxLength":254},"password":{"type":"string","format":"password","writeOnly":true,"minLength":12,"maxLength":256,"description":"12–256 UTF-8 bytes, consistent with portal password policy."}}}}}},
+        "responses": {
+          "201":{"description":"Created organization, containing id, name and memberCount; no credential material"},
+          "400":{"description":"Invalid name, email or password"},
+          "401":{"description":"Missing or expired session"},
+          "403":{"description":"Not administrator or wrong origin"},
+          "409":{"description":"Email already in use; no changes made"}
+        }
+      },
       "get": {
         "operationId": "adminDeveloperOrganizations",
         "security": [{"AdminSession":[]}],
