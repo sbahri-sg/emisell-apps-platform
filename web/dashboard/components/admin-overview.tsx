@@ -1,5 +1,9 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import type { Overview } from '@/lib/overview';
+import type { PortalAPI } from '@/lib/portal';
+
 import {
   Activity,
   ArrowUpRight,
@@ -24,45 +28,80 @@ import {
 import { statuses, type Submission } from '@/lib/portal';
 
 export default function AdminOverview({
+  api,
   submissions,
   navigate,
   openReview,
   refresh,
   busy,
 }: {
+  api: PortalAPI;
   submissions: Submission[];
   navigate: (view: string) => void;
   openReview: (id: string) => void;
   refresh: () => void;
   busy: boolean;
 }) {
+  const [summary, setSummary] = useState<Overview | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [revision, setRevision] = useState(0);
+  const chartMax = Math.max(2, ...(summary?.history ?? []).map((p) => p.count));
+  const chartTotal = (summary?.history ?? []).reduce((n, p) => n + p.count, 0);
+  const chartDate = (date: string) =>
+    new Date(`${date}T00:00:00Z`).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'UTC',
+    });
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    setError('');
+    api
+      .request<Overview>('/overview')
+      .then((value) => {
+        if (alive) setSummary(value);
+      })
+      .catch(() => {
+        if (alive)
+          setError(
+            'Ringkasan gagal diperbarui. Coba lagi; data sebelumnya tetap ditampilkan.',
+          );
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [api, revision]);
   const latest = [...submissions]
     .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
     .slice(0, 3);
-  const pending = submissions.filter((s) => s.status === 'submitted').length;
   const metrics = [
     {
-      title: 'Aplikasi aktif',
-      value: '—',
-      note: 'Statistik belum tersedia',
+      title: 'Aplikasi dipublikasikan',
+      value: summary?.publishedApps ?? '—',
+      note: 'Aplikasi unik berstatus published',
       icon: Grid2X2,
     },
     {
       title: 'Developer',
-      value: '—',
-      note: 'Statistik belum tersedia',
+      value: summary?.developers ?? '—',
+      note: 'Akun developer yang diaktifkan',
       icon: Users,
     },
     {
       title: 'Instalasi aktif',
-      value: '—',
-      note: 'Statistik belum tersedia',
+      value: summary?.activeInstallations ?? '—',
+      note: 'Instalasi berstatus aktif',
       icon: Download,
     },
     {
       title: 'Menunggu review',
-      value: String(pending),
-      note: 'Dalam daftar pengajuan termuat',
+      value: summary?.pendingReviews ?? '—',
+      note: 'Seluruh pengajuan menunggu review',
       icon: Clock3,
     },
   ];
@@ -74,7 +113,14 @@ export default function AdminOverview({
           <p>Kelola aplikasi, developer, dan kesehatan integrasi.</p>
         </div>
         <div className="overview-actions">
-          <Button variant="outline" disabled={busy} onClick={refresh}>
+          <Button
+            variant="outline"
+            disabled={busy || loading}
+            onClick={() => {
+              setRevision((v) => v + 1);
+              refresh();
+            }}
+          >
             <RefreshCw size={16} />
             Perbarui data
           </Button>
@@ -83,6 +129,14 @@ export default function AdminOverview({
           </Button>
         </div>
       </div>
+      {error && <p role="alert">{error}</p>}
+      <p aria-live="polite">
+        {loading
+          ? 'Memperbarui ringkasan…'
+          : summary
+            ? `Diperiksa ${new Date(summary.checkedAt).toLocaleString('id-ID')}`
+            : 'Data belum tersedia'}
+      </p>
       <div className="overview-metrics">
         {metrics.map((m) => (
           <article className="overview-card metric" key={m.title}>
@@ -99,21 +153,111 @@ export default function AdminOverview({
       </div>
       <div className="overview-columns">
         <section className="overview-card overview-chart">
-          <h2>Instalasi aplikasi</h2>
-          <div className="chart-unavailable">
-            <Activity size={30} />
-            <strong>Riwayat instalasi belum tersedia</strong>
-            <p>
-              Grafik akan ditampilkan setelah data statistik platform tersedia.
-            </p>
+          <div className="installation-chart-heading">
+            <div>
+              <h2>Instalasi aplikasi</h2>
+              <p>30 hari terakhir · UTC</p>
+            </div>
+            {summary && (
+              <div className="installation-chart-total">
+                <strong>{chartTotal}</strong>
+                <span>total instalasi</span>
+              </div>
+            )}
           </div>
+          {summary ? (
+            <>
+              <div className="installation-chart-body">
+                <div
+                  className="installation-chart-plot"
+                  role="img"
+                  aria-label={`${chartTotal} instalasi dalam 30 hari. Rincian tersedia di tabel angka harian.`}
+                >
+                  <div className="installation-chart-scale" aria-hidden="true">
+                    <span>{chartMax}</span>
+                    <span>{chartMax / 2}</span>
+                    <span>0</span>
+                  </div>
+                  <div className="installation-chart-bars">
+                    {summary.history.map((p) => (
+                      <div
+                        key={p.date}
+                        title={`${p.date}: ${p.count} instalasi`}
+                        className="installation-chart-bar"
+                        style={{
+                          height: `${(p.count / chartMax) * 100}%`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="installation-chart-dates" aria-hidden="true">
+                  {summary.history
+                    .filter((_, i) => i === 0 || i === 14 || i === 29)
+                    .map((p) => (
+                      <span key={p.date}>{chartDate(p.date)}</span>
+                    ))}
+                </div>
+                <p className="installation-chart-note">
+                  Termasuk instalasi ulang.
+                  {chartTotal === 0
+                    ? ' Belum ada instalasi dalam periode ini.'
+                    : ''}
+                </p>
+              </div>
+              <details className="installation-chart-details">
+                <summary>Lihat angka harian</summary>
+                <div className="installation-chart-table">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tanggal (UTC)</TableHead>
+                        <TableHead>Instalasi</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {summary.history.map((p) => (
+                        <TableRow key={p.date}>
+                          <TableCell>{p.date}</TableCell>
+                          <TableCell>{p.count}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </details>
+            </>
+          ) : (
+            <p className="installation-chart-body">
+              Riwayat belum berhasil dimuat.
+            </p>
+          )}
         </section>
         <section className="overview-card overview-health">
           <h2>Kesehatan platform</h2>
           {[
-            { name: 'API gateway', icon: Network },
-            { name: 'Webhook', icon: Activity },
-            { name: 'Sesi aplikasi', icon: ShieldCheck },
+            {
+              name: 'API & database',
+              icon: Network,
+              detail: 'Pemeriksaan saat ringkasan dimuat',
+              value: summary ? 'Terhubung' : 'Belum diukur',
+            },
+            {
+              name: 'Antrean webhook',
+              icon: Activity,
+              detail: 'Jumlah antrean saat ini; bukan uptime worker',
+              value: summary
+                ? `${summary.webhookPending} menunggu · ${summary.webhookDead} gagal`
+                : 'Belum diukur',
+            },
+            {
+              name: 'Sesi portal',
+              icon: ShieldCheck,
+              detail: 'Sesi belum kedaluwarsa dari akun aktif',
+              value: summary
+                ? `${summary.portalSessions} sesi`
+                : 'Belum diukur',
+            },
           ].map((s) => (
             <div className="health-row" key={s.name}>
               <span className="health-icon">
@@ -121,13 +265,15 @@ export default function AdminOverview({
               </span>
               <div>
                 <strong>{s.name}</strong>
-                <small>Monitoring belum terhubung</small>
+                <small>{s.detail}</small>
               </div>
-              <span className="health-unavailable">Belum diukur</span>
+              <span className="health-unavailable">
+                {error ? 'Gagal diperbarui' : s.value}
+              </span>
             </div>
           ))}
           <div className="health-foot">
-            Tidak menyimpulkan status dari koneksi portal.
+            Snapshot database, bukan pemantauan uptime atau sesi embedded.
           </div>
         </section>
         <section className="overview-card overview-reviews">

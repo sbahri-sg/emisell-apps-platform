@@ -126,7 +126,7 @@ func handlerWithManagedShipping(pool, capabilityPool, clientPool *pgxpool.Pool, 
 			}
 		}
 	}
-	return httpapi.Server{EmbeddedLaunches: launchReviews, ManagedShipping: managed, Testing: testing, AppClients: appClients, Integrations: integrations, AppAccess: appAccess, PlatformKeys: identity.PlatformKeys{Repo: identityrepo.Repository{Pool: pool}}, ManagedKeys: identity.ManagedKeys{Repo: identityrepo.Repository{Pool: pool}}, Catalog: catalog, Portals: portals, Developers: developers, Drafts: drafts, Reviews: reviews, Identity: auth, Apps: registry, Installations: installs, Capabilities: caps, OAuth: connection, Webhooks: webhooks, Connections: monitor, Payments: payments, Origin: origin, Logger: logger, Ready: func(ctx context.Context) error { return pool.Ping(ctx) }}.Handler()
+	return httpapi.Server{OverviewPool: pool, EmbeddedLaunches: launchReviews, ManagedShipping: managed, Testing: testing, AppClients: appClients, Integrations: integrations, AppAccess: appAccess, PlatformKeys: identity.PlatformKeys{Repo: identityrepo.Repository{Pool: pool}}, ManagedKeys: identity.ManagedKeys{Repo: identityrepo.Repository{Pool: pool}}, Catalog: catalog, Portals: portals, Developers: developers, Drafts: drafts, Reviews: reviews, Identity: auth, Apps: registry, Installations: installs, Capabilities: caps, OAuth: connection, Webhooks: webhooks, Connections: monitor, Payments: payments, Origin: origin, Logger: logger, Ready: func(ctx context.Context) error { return pool.Ping(ctx) }}.Handler()
 }
 
 // InternalHandler shares domain/use cases but uses service accounts, not browser sessions.

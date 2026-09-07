@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel"
@@ -37,6 +38,7 @@ import (
 )
 
 type Server struct {
+	OverviewPool     *pgxpool.Pool
 	UIReleases       service.UIReleases
 	EmbeddedLaunches embedded.Reviews
 	Testing          service.Testing

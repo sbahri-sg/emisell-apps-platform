@@ -125,6 +125,7 @@ func (s Server) portalRoutes(router chi.Router) {
 					})
 				})
 				if surface == "admin" {
+					r.Get("/overview", s.overview)
 					r.Get("/staff", func(w http.ResponseWriter, r *http.Request) {
 						rows, err := s.Portals.ListStaff(r.Context(), portalPrincipal(r), r.URL.Query().Get("afterId"))
 						if err != nil {

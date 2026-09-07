@@ -133,7 +133,11 @@ function Navigation({
   const { setOpenMobile } = useSidebar();
   const [technicalOpen, setTechnicalOpen] = useState(false);
   useEffect(() => {
-    if (adminNavigationGroups.some(group => group.collapsible && group.ids.includes(view))) {
+    if (
+      adminNavigationGroups.some(
+        (group) => group.collapsible && group.ids.includes(view),
+      )
+    ) {
       setTechnicalOpen(true);
     }
   }, [view]);
@@ -167,13 +171,16 @@ function Navigation({
       ];
   const renderItems = (groupItems: typeof items) => (
     <SidebarMenu>
-      {groupItems.map(item => (
+      {groupItems.map((item) => (
         <SidebarMenuItem key={item.id}>
           <SidebarMenuButton
             isActive={view === item.id}
             aria-current={view === item.id ? 'page' : undefined}
             disabled={busy}
-            onClick={() => { navigate(item.id); setOpenMobile(false); }}
+            onClick={() => {
+              navigate(item.id);
+              setOpenMobile(false);
+            }}
           >
             <item.icon />
             <span>{item.label}</span>
@@ -191,30 +198,45 @@ function Navigation({
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {developer ? renderItems(items) : adminNavigationGroups.map(group => {
-          const groupItems = group.ids.flatMap(id => items.filter(item => item.id === id));
-          return (
-            <SidebarGroup key={group.label}>
-              {group.collapsible ? (
-                <>
-                  <button
-                    type="button"
-                    className="flex min-h-9 items-center justify-between rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2"
-                    aria-expanded={technicalOpen}
-                    aria-controls="admin-technical-navigation"
-                    onClick={() => setTechnicalOpen(open => !open)}
-                  >
-                    {group.label}
-                    <ChevronDown aria-hidden="true" className={`size-3.5 transition-transform ${technicalOpen ? '' : '-rotate-90'}`} />
-                  </button>
-                  <div id="admin-technical-navigation" hidden={!technicalOpen}>
-                    {renderItems(groupItems)}
-                  </div>
-                </>
-              ) : <><SidebarGroupLabel>{group.label}</SidebarGroupLabel>{renderItems(groupItems)}</>}
-            </SidebarGroup>
-          );
-        })}
+        {developer
+          ? renderItems(items)
+          : adminNavigationGroups.map((group) => {
+              const groupItems = group.ids.flatMap((id) =>
+                items.filter((item) => item.id === id),
+              );
+              return (
+                <SidebarGroup key={group.label}>
+                  {group.collapsible ? (
+                    <>
+                      <button
+                        type="button"
+                        className="flex min-h-9 items-center justify-between rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2"
+                        aria-expanded={technicalOpen}
+                        aria-controls="admin-technical-navigation"
+                        onClick={() => setTechnicalOpen((open) => !open)}
+                      >
+                        {group.label}
+                        <ChevronDown
+                          aria-hidden="true"
+                          className={`size-3.5 transition-transform ${technicalOpen ? '' : '-rotate-90'}`}
+                        />
+                      </button>
+                      <div
+                        id="admin-technical-navigation"
+                        hidden={!technicalOpen}
+                      >
+                        {renderItems(groupItems)}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+                      {renderItems(groupItems)}
+                    </>
+                  )}
+                </SidebarGroup>
+              );
+            })}
         <div className="sidebar-note">
           <span className="local-dot" />
           Emisell Apps<p>Platform aplikasi dan integrasi.</p>
@@ -728,6 +750,7 @@ export default function Portal({
             />
           ) : view === 'overview' && !developer ? (
             <AdminOverview
+              api={api}
               submissions={submissions}
               navigate={navigate}
               busy={busy}
