@@ -11,7 +11,7 @@ FROM debian:bookworm-slim AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
     rm -rf /var/lib/apt/lists/* && groupadd -g 10001 emisell && useradd -u 10001 -g emisell emisell
 WORKDIR /app
-RUN mkdir -p /app/.local && chown -R emisell:emisell /app
+RUN mkdir -p /app/.local && chmod 700 /app/.local && chown -R emisell:emisell /app
 COPY --from=build /out/ /usr/local/bin/
 USER 10001:10001
 EXPOSE 8087
