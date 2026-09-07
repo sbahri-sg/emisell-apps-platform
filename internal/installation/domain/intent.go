@@ -18,6 +18,8 @@ const InstallPolicy = "local-reviewed-fixture/v1"
 
 const ManagedShippingPolicy = "managed-shipping-local/v1"
 const ManagedShippingProfile = "managed-shipping-local"
+const ProviderAppPolicy = "provider-app/v1"
+const ProviderAppProfile = "provider-app"
 
 // Immutable provenance. A local engine grant cannot be replayed in production.
 type ManagedSource struct {
@@ -62,7 +64,7 @@ type UIBinding struct {
 // RoutedCapabilities separates provider app installation from checkout selection.
 // Provider lifecycle fixtures do not participate in the legacy capability resolver.
 func (r IntentRelease) RoutedCapabilities() []string {
-	if r.ExecutionProfile == appmanifest.ShippingProviderFixtureProfile || r.ExecutionProfile == ManagedShippingProfile {
+	if r.ExecutionProfile == appmanifest.ShippingProviderFixtureProfile || r.ExecutionProfile == ManagedShippingProfile || r.ExecutionProfile == ProviderAppProfile {
 		return []string{}
 	}
 	return slices.Clone(r.Capabilities)

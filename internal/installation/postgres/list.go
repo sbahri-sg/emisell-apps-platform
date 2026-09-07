@@ -34,7 +34,7 @@ func (p Repository) ListInstalled(ctx context.Context, merchant, after string, l
 		}
 		pilot := release.InstallPolicy == domain.EmbeddedPilotPolicy && release.AppID == domain.EmbeddedPilotApp && release.Version == "1.0.0" && release.ExecutionProfile == domain.EmbeddedPilotPolicy && len(release.Scopes) == 0 && len(release.Capabilities) == 0
 		ui := release.InstallPolicy == domain.ReviewedUIPolicy && release.ExecutionProfile == domain.ReviewedUIPolicy && release.UIBinding != nil && len(release.Scopes) == 0 && len(release.Capabilities) == 0
-		if v.AppID != release.AppID || v.Version != release.Version || (!ui && !pilot && release.InstallPolicy != domain.InstallPolicy && release.InstallPolicy != domain.ManagedShippingPolicy) {
+		if v.AppID != release.AppID || v.Version != release.Version || (!ui && !pilot && release.InstallPolicy != domain.InstallPolicy && release.InstallPolicy != domain.ManagedShippingPolicy && release.InstallPolicy != domain.ProviderAppPolicy) {
 			return nil, fault.Forbidden
 		}
 		switch v.Status {

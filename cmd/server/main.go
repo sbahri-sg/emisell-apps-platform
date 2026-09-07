@@ -10,6 +10,7 @@ import (
 	"emisell.app/platform/internal/oauth/endpointproof"
 	"emisell.app/platform/internal/platform/config"
 	"emisell.app/platform/internal/platform/localfiles"
+	"emisell.app/platform/internal/providergrant"
 	"emisell.app/platform/internal/review"
 	"emisell.app/platform/migrations"
 	"errors"
@@ -176,6 +177,10 @@ func run() error {
 		httpHandler = bootstrap.HandlerWithReviewedUIRuntime(pool, caps, clientPool, cfg.Origin, logger, signer, integrationSigner, managedSigner, endpointproof.New(), managedEnabled, bootstrap.EmbeddedReviewConfig{Runtime: uiRuntime, UIReleaseKey: uiKey, Key: launchKey, ParentOrigin: uiConfig.ParentOrigin}, connections)
 	}
 	httpHandler = bootstrap.AddUIReleaseRoutes(httpHandler, pool, cfg.Origin, logger, uiKey)
+	internalHandler, err = providergrant.Attach(internalHandler, os.Getenv("EMISELL_PROVIDER_GRANT_FILE"), providergrant.Postgres{Pool: pool})
+	if err != nil {
+		return err
+	}
 	server := &http.Server{Addr: cfg.Address, Handler: httpHandler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 << 10}
 	rpc := &http.Server{Addr: cfg.RPCAddress, Handler: internalHandler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 << 10}
 	done := make(chan error, 2)

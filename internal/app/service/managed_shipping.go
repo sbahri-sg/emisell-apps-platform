@@ -23,6 +23,7 @@ type ManagedShippingRelease struct {
 	UpdatedAt      time.Time                `json:"updatedAt"`
 }
 type ManagedShippingInput struct {
+	Policy        string                  `json:"policy,omitempty"`
 	AppID         string                  `json:"appId"`
 	DraftRevision int                     `json:"draftRevision"`
 	Binding       managedshipping.Binding `json:"binding"`
@@ -115,7 +116,11 @@ func (s ManagedShipping) Submit(ctx context.Context, p identity.PortalPrincipal,
 	if d.OrganizationID != org || d.ID != b.AppID || d.Document.Endpoint != "" || d.Document.AccessScopes != nil || d.Document.Validate(false) != nil {
 		return ManagedShippingRelease{}, fault.Invalid
 	}
-	m := managedshipping.Manifest{Schema: managedshipping.Schema, Policy: managedshipping.Policy, AppID: d.ID, DeveloperID: org,
+	policy := b.Policy
+	if policy == "" {
+		policy = managedshipping.Policy
+	}
+	m := managedshipping.Manifest{Schema: managedshipping.Schema, Policy: policy, AppID: d.ID, DeveloperID: org,
 		Version: d.Document.Version, Name: d.Document.Name, Summary: d.Document.Summary, Description: d.Document.Description,
 		DraftRevision: d.Revision, SourceSHA256: RequestHash(d), Capability: d.Document.Capability, Scopes: d.Document.Scopes, Binding: b.Binding, Pricing: "free"}
 	raw, err := managedshipping.Canonical(m)

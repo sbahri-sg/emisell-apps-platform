@@ -67,6 +67,7 @@ type MerchantDirectory interface {
 	KnownMerchant(context.Context, string) (bool, error)
 }
 type Testing struct {
+	ProviderReady         func(context.Context, Assignment, ManagedShippingRelease) error
 	UIReady               func(context.Context, Assignment) error
 	UI                    UIReleases
 	ManagedInstallEnabled bool
@@ -123,9 +124,15 @@ func (s Testing) view(ctx context.Context, a Assignment) (AssignmentView, error)
 		ready := s.Managed.Readiness(v)
 		ready.ConfigurationReady = ready.ConfigurationReady && v.SHA256 == a.ReleaseSHA256
 		ready.Blockers = []string{"managed_installation_not_available", "engine_grant_enforcement_not_available"}
-		if s.ManagedInstallEnabled {
+		if s.ManagedInstallEnabled && v.Manifest.Policy == "managed-kurir-provider/v1" {
 			ready.Blockers = []string{}
 			ready.Installable = ready.ConfigurationReady && ready.RequiredScopesReady && a.Status == "approved"
+		}
+		if v.Manifest.Policy == "managed-kurir-provider/v2" && s.ProviderReady != nil && ready.ConfigurationReady && ready.RequiredScopesReady && a.Status == "approved" {
+			if s.ProviderReady(ctx, a, v) == nil {
+				ready.Blockers = []string{}
+				ready.Installable = true
+			}
 		}
 		if !ready.ConfigurationReady {
 			ready.Blockers = append(ready.Blockers, "release_not_ready")

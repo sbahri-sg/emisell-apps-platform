@@ -86,7 +86,7 @@ func (s Lifecycle) eligible(ctx context.Context, release domain.IntentRelease) e
 		}
 		return nil
 	}
-	if release.InstallPolicy != domain.InstallPolicy && release.InstallPolicy != domain.ManagedShippingPolicy {
+	if release.InstallPolicy != domain.InstallPolicy && release.InstallPolicy != domain.ManagedShippingPolicy && release.InstallPolicy != domain.ProviderAppPolicy {
 		return fault.Conflict
 	}
 	current, err := s.Intents.release(ctx, release.AppID, release.Version)
@@ -99,7 +99,15 @@ func (s Lifecycle) eligible(ctx context.Context, release domain.IntentRelease) e
 	// Closed allowlist of implemented fixture permissions; Shopify resource handles
 	// and arbitrary scopes cannot turn into grants through this pipeline.
 	want := []string{"orders.read", "payments.read", "payments.write"}
-	if current.ExecutionProfile == domain.ManagedShippingProfile {
+	if current.ExecutionProfile == domain.ProviderAppProfile {
+		if current.InstallPolicy != domain.ProviderAppPolicy || current.ManagedSource == nil || current.ManagedSource.MerchantID == "" || current.ManagedSource.Environment == "" || current.ShippingProvider == nil || current.ShippingProvider.Engine != "api-kurir" || current.ShippingProvider.ProviderCode == "" || !slices.Equal(current.Capabilities, []string{"shipping/v1"}) {
+			return fault.Forbidden
+		}
+		if !slices.Equal(current.Scopes, []string{"shipping.read"}) && !slices.Equal(current.Scopes, []string{"shipping.read", "shipping.write"}) {
+			return fault.Forbidden
+		}
+		want = current.Scopes
+	} else if current.ExecutionProfile == domain.ManagedShippingProfile {
 		if current.InstallPolicy != domain.ManagedShippingPolicy || current.ManagedSource == nil || current.ManagedSource.Environment != "local-isolated" || current.ShippingProvider == nil || current.ShippingProvider.Engine != "api-kurir" || current.ShippingProvider.ProviderCode != "emisell" || !slices.Equal(current.Capabilities, []string{"shipping/v1"}) {
 			return fault.Forbidden
 		}
@@ -236,7 +244,7 @@ func (s Lifecycle) Execute(ctx context.Context, p identity.ServicePrincipal, act
 				if a.Release.InstallPolicy == EmbeddedPilotPolicy || a.Release.InstallPolicy == domain.ReviewedUIPolicy {
 					return a, fault.Forbidden
 				}
-				if a.Release.ExecutionProfile == appmanifest.ShippingProviderFixtureProfile || a.Release.ExecutionProfile == domain.ManagedShippingProfile {
+				if a.Release.ExecutionProfile == appmanifest.ShippingProviderFixtureProfile || a.Release.ExecutionProfile == domain.ManagedShippingProfile || a.Release.ExecutionProfile == domain.ProviderAppProfile {
 					return a, fault.Forbidden // Engine delegation/token audience is not implemented by this fixture.
 				}
 				if a.Installation.Status != "active" || a.GrantState != "active" || !slices.Equal(a.GrantedScopes, a.Release.Scopes) {
@@ -260,7 +268,7 @@ func (s Lifecycle) Execute(ctx context.Context, p identity.ServicePrincipal, act
 					return a, err
 				}
 			}
-			if a.Release.ExecutionProfile == appmanifest.ShippingProviderFixtureProfile || a.Release.ExecutionProfile == domain.ManagedShippingProfile {
+			if a.Release.ExecutionProfile == appmanifest.ShippingProviderFixtureProfile || a.Release.ExecutionProfile == domain.ManagedShippingProfile || a.Release.ExecutionProfile == domain.ProviderAppProfile {
 				if s.ShippingProviders == nil || a.Release.ShippingProvider == nil {
 					return a, fault.Unavailable
 				}

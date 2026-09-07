@@ -10,6 +10,27 @@ import (
 func manifest() Manifest {
 	return Manifest{Schema: Schema, Policy: Policy, AppID: "app_demo", DeveloperID: "org_demo", Version: "1.0.0", Name: "Emisell Kurir", Summary: "Managed provider", Description: "Read-only shipping test", DraftRevision: 1, SourceSHA256: strings.Repeat("a", 64), Capability: "shipping/v1", Scopes: []string{"shipping.read"}, Binding: Binding{"api-kurir", "emisell"}, Pricing: "free"}
 }
+func TestProviderAppV2IsSeparateAndSigned(t *testing.T) {
+	public, key, _ := ed25519.GenerateKey(rand.Reader)
+	for _, provider := range []string{"rajaongkir", "other_provider"} {
+		m := manifest()
+		m.Policy = ProviderAppPolicy
+		m.Binding.ProviderCode = provider
+		m.Scopes = []string{"shipping.read", "shipping.write"}
+		p, err := Sign(m, key)
+		if err != nil || Verify(p, public) != nil {
+			t.Fatal(err)
+		}
+		p.Manifest.Policy = Policy
+		if Verify(p, public) == nil {
+			t.Fatal("policy downgrade accepted")
+		}
+		m.Scopes = append(m.Scopes, "orders.write")
+		if m.Validate() == nil {
+			t.Fatal("foreign scope accepted")
+		}
+	}
+}
 func TestSignVerifyManagedProvider(t *testing.T) {
 	public, key, _ := ed25519.GenerateKey(rand.Reader)
 	m := manifest()

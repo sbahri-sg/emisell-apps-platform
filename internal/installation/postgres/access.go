@@ -242,9 +242,9 @@ func (p Repository) ChangeAccess(ctx context.Context, o domain.IntentOwner, key,
 	v := domain.AccessResult{Access: a}
 	if a.Installation.Status != before.Installation.Status {
 		if a.Installation.Status == "active" {
-			if a.Release.ExecutionProfile == domain.ManagedShippingProfile {
+			if a.Release.ExecutionProfile == domain.ManagedShippingProfile || a.Release.ExecutionProfile == domain.ProviderAppProfile {
 				var busy bool
-				err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM platform_installation.installations i JOIN platform_installation.intent_consumptions c ON c.tenant_id=i.tenant_id AND c.installation_id=i.id WHERE i.tenant_id=$1 AND i.id!=$2 AND i.status='active' AND c.release->>'executionProfile'=$3 AND c.release->'shippingProvider'=$4::jsonb)`, o.TenantID, id, domain.ManagedShippingProfile, a.Release.ShippingProvider).Scan(&busy)
+				err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM platform_installation.installations i JOIN platform_installation.intent_consumptions c ON c.tenant_id=i.tenant_id AND c.installation_id=i.id WHERE i.tenant_id=$1 AND i.id!=$2 AND i.status='active' AND c.release->>'executionProfile'=ANY($3) AND c.release->'shippingProvider'=$4::jsonb)`, o.TenantID, id, []string{domain.ManagedShippingProfile, domain.ProviderAppProfile}, a.Release.ShippingProvider).Scan(&busy)
 				if err != nil {
 					return v, err
 				}

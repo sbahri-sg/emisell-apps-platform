@@ -23,6 +23,10 @@ type managedInstallSource struct {
 
 func (s managedInstallSource) WithRelease(ctx context.Context, merchant, app, version string, fn func(domain.IntentRelease) error) error {
 	return s.Repo.WithManagedAssignment(ctx, merchant, app, version, func(a appservice.Assignment, v appservice.ManagedShippingRelease) error {
+		// V2 provider apps require their own readiness/enforcement composition.
+		if v.Manifest.Policy != "managed-kurir-provider/v1" {
+			return fault.Forbidden
+		}
 		if a.Status != "approved" || a.ReleaseSHA256 != v.SHA256 || !s.Managed.Readiness(v).ConfigurationReady {
 			return fault.Forbidden
 		}

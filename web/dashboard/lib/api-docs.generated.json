@@ -33,7 +33,7 @@
     {
       "name": "managed-shipping.v1.json",
       "format": "OpenAPI",
-      "content": "{\n  \"openapi\": \"3.1.0\",\n  \"info\": {\n    \"title\": \"Emisell Managed Shipping Release API\",\n    \"version\": \"1.0.0\",\n    \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"http://localhost:8087\"\n    }\n  ],\n  \"paths\": {\n    \"/api/v1/admin/managed-shipping-releases\": {\n      \"get\": {\n        \"summary\": \"Daftar release provider terkelola\",\n        \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\",\n        \"security\": [\n          {\n            \"adminSession\": []\n          }\n        ],\n        \"parameters\": [\n          {\n            \"in\": \"header\",\n            \"name\": \"Origin\",\n            \"required\": true,\n            \"schema\": {\n              \"const\": \"http://localhost:4317\"\n            }\n          }\n        ],\n        \"responses\": {\n          \"200\": {\n            \"description\": \"Berhasil; bukan grant atau instalasi.\",\n            \"content\": {\n              \"application/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/List\"\n                }\n              }\n            }\n          },\n          \"400\": {\n            \"description\": \"Input/binding/scope tidak valid.\"\n          },\n          \"401\": {\n            \"description\": \"Sesi tidak valid.\"\n          },\n          \"403\": {\n            \"description\": \"Origin/role/ownership tidak diizinkan.\"\n          },\n          \"404\": {\n            \"description\": \"Tidak ditemukan atau organisasi lain.\"\n          },\n          \"409\": {\n            \"description\": \"Konflik revision, idempotency, versi atau state.\"\n          },\n          \"503\": {\n            \"description\": \"Signer/persistence belum tersedia.\"\n          }\n        }\n      }\n    },\n    \"/api/v1/admin/managed-shipping-releases/{id}\": {\n      \"get\": {\n        \"summary\": \"Detail, signature dan audit release provider\",\n        \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\",\n        \"security\": [\n          {\n            \"adminSession\": []\n          }\n        ],\n        \"parameters\": [\n          {\n            \"in\": \"header\",\n            \"name\": \"Origin\",\n            \"required\": true,\n            \"schema\": {\n              \"const\": \"http://localhost:4317\"\n            }\n          },\n          {\n            \"in\": \"path\",\n            \"name\": \"id\",\n            \"required\": true,\n            \"schema\": {\n              \"type\": \"string\"\n            }\n          }\n        ],\n        \"responses\": {\n          \"200\": {\n            \"description\": \"Berhasil; bukan grant atau instalasi.\",\n            \"content\": {\n              \"application/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/Detail\"\n                }\n              }\n            }\n          },\n          \"400\": {\n            \"description\": \"Input/binding/scope tidak valid.\"\n          },\n          \"401\": {\n            \"description\": \"Sesi tidak valid.\"\n          },\n          \"403\": {\n            \"description\": \"Origin/role/ownership tidak diizinkan.\"\n          },\n          \"404\": {\n            \"description\": \"Tidak ditemukan atau organisasi lain.\"\n          },\n          \"409\": {\n            \"description\": \"Konflik revision, idempotency, versi atau state.\"\n          },\n          \"503\": {\n            \"description\": \"Signer/persistence belum tersedia.\"\n          }\n        }\n      }\n    },\n    \"/api/v1/admin/managed-shipping-releases/{id}/status\": {\n      \"post\": {\n        \"summary\": \"Review, sign atau suspend release provider\",\n        \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\",\n        \"security\": [\n          {\n            \"adminSession\": []\n          }\n        ],\n        \"parameters\": [\n          {\n            \"in\": \"header\",\n            \"name\": \"Origin\",\n            \"required\": true,\n            \"schema\": {\n              \"const\": \"http://localhost:4317\"\n            }\n          },\n          {\n            \"in\": \"path\",\n            \"name\": \"id\",\n            \"required\": true,\n            \"schema\": {\n              \"type\": \"string\"\n            }\n          },\n          {\n            \"in\": \"header\",\n            \"name\": \"Idempotency-Key\",\n            \"required\": true,\n            \"schema\": {\n              \"type\": \"string\",\n              \"pattern\": \"^[A-Za-z0-9_-]{8,128}$\"\n            }\n          }\n        ],\n        \"requestBody\": {\n          \"required\": true,\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/Action\"\n              }\n            }\n          }\n        },\n        \"responses\": {\n          \"200\": {\n            \"description\": \"Berhasil; bukan grant atau instalasi.\",\n            \"content\": {\n              \"application/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/Result\"\n                }\n              }\n            }\n          },\n          \"400\": {\n            \"description\": \"Input/binding/scope tidak valid.\"\n          },\n          \"401\": {\n            \"description\": \"Sesi tidak valid.\"\n          },\n          \"403\": {\n            \"description\": \"Origin/role/ownership tidak diizinkan.\"\n          },\n          \"404\": {\n            \"description\": \"Tidak ditemukan atau organisasi lain.\"\n          },\n          \"409\": {\n            \"description\": \"Konflik revision, idempotency, versi atau state.\"\n          },\n          \"503\": {\n            \"description\": \"Signer/persistence belum tersedia.\"\n          }\n        }\n      }\n    },\n    \"/api/v1/developer/managed-shipping-releases\": {\n      \"get\": {\n        \"summary\": \"Daftar release provider terkelola\",\n        \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\",\n        \"security\": [\n          {\n            \"developerSession\": []\n          }\n        ],\n        \"parameters\": [\n          {\n            \"in\": \"header\",\n            \"name\": \"Origin\",\n            \"required\": true,\n            \"schema\": {\n              \"const\": \"http://localhost:4319\"\n            }\n          }\n        ],\n        \"responses\": {\n          \"200\": {\n            \"description\": \"Berhasil; bukan grant atau instalasi.\",\n            \"content\": {\n              \"application/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/List\"\n                }\n              }\n            }\n          },\n          \"400\": {\n            \"description\": \"Input/binding/scope tidak valid.\"\n          },\n          \"401\": {\n            \"description\": \"Sesi tidak valid.\"\n          },\n          \"403\": {\n            \"description\": \"Origin/role/ownership tidak diizinkan.\"\n          },\n          \"404\": {\n            \"description\": \"Tidak ditemukan atau organisasi lain.\"\n          },\n          \"409\": {\n            \"description\": \"Konflik revision, idempotency, versi atau state.\"\n          },\n          \"503\": {\n            \"description\": \"Signer/persistence belum tersedia.\"\n          }\n        }\n      },\n      \"post\": {\n        \"summary\": \"Ajukan snapshot draft Emisell Kurir untuk review\",\n        \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\",\n        \"security\": [\n          {\n            \"developerSession\": []\n          }\n        ],\n        \"parameters\": [\n          {\n            \"in\": \"header\",\n            \"name\": \"Origin\",\n            \"required\": true,\n            \"schema\": {\n              \"const\": \"http://localhost:4319\"\n            }\n          },\n          {\n            \"in\": \"header\",\n            \"name\": \"Idempotency-Key\",\n            \"required\": true,\n            \"schema\": {\n              \"type\": \"string\",\n              \"pattern\": \"^[A-Za-z0-9_-]{8,128}$\"\n            }\n          }\n        ],\n        \"requestBody\": {\n          \"required\": true,\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/Submit\"\n              }\n            }\n          }\n        },\n        \"responses\": {\n          \"200\": {\n            \"description\": \"Berhasil; bukan grant atau instalasi.\",\n            \"content\": {\n              \"application/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/Result\"\n                }\n              }\n            }\n          },\n          \"400\": {\n            \"description\": \"Input/binding/scope tidak valid.\"\n          },\n          \"401\": {\n            \"description\": \"Sesi tidak valid.\"\n          },\n          \"403\": {\n            \"description\": \"Origin/role/ownership tidak diizinkan.\"\n          },\n          \"404\": {\n            \"description\": \"Tidak ditemukan atau organisasi lain.\"\n          },\n          \"409\": {\n            \"description\": \"Konflik revision, idempotency, versi atau state.\"\n          },\n          \"503\": {\n            \"description\": \"Signer/persistence belum tersedia.\"\n          }\n        }\n      }\n    },\n    \"/api/v1/developer/managed-shipping-releases/{id}\": {\n      \"get\": {\n        \"summary\": \"Detail, signature dan audit release provider\",\n        \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\",\n        \"security\": [\n          {\n            \"developerSession\": []\n          }\n        ],\n        \"parameters\": [\n          {\n            \"in\": \"header\",\n            \"name\": \"Origin\",\n            \"required\": true,\n            \"schema\": {\n              \"const\": \"http://localhost:4319\"\n            }\n          },\n          {\n            \"in\": \"path\",\n            \"name\": \"id\",\n            \"required\": true,\n            \"schema\": {\n              \"type\": \"string\"\n            }\n          }\n        ],\n        \"responses\": {\n          \"200\": {\n            \"description\": \"Berhasil; bukan grant atau instalasi.\",\n            \"content\": {\n              \"application/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/Detail\"\n                }\n              }\n            }\n          },\n          \"400\": {\n            \"description\": \"Input/binding/scope tidak valid.\"\n          },\n          \"401\": {\n            \"description\": \"Sesi tidak valid.\"\n          },\n          \"403\": {\n            \"description\": \"Origin/role/ownership tidak diizinkan.\"\n          },\n          \"404\": {\n            \"description\": \"Tidak ditemukan atau organisasi lain.\"\n          },\n          \"409\": {\n            \"description\": \"Konflik revision, idempotency, versi atau state.\"\n          },\n          \"503\": {\n            \"description\": \"Signer/persistence belum tersedia.\"\n          }\n        }\n      }\n    }\n  },\n  \"components\": {\n    \"securitySchemes\": {\n      \"adminSession\": {\n        \"type\": \"apiKey\",\n        \"in\": \"cookie\",\n        \"name\": \"emisell_admin_session\"\n      },\n      \"developerSession\": {\n        \"type\": \"apiKey\",\n        \"in\": \"cookie\",\n        \"name\": \"emisell_developer_session\"\n      }\n    },\n    \"schemas\": {\n      \"Manifest\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"schema\": {\n            \"const\": \"emisell.managed-shipping-release/v1\"\n          },\n          \"policy\": {\n            \"const\": \"managed-kurir-provider/v1\"\n          },\n          \"appId\": {\n            \"type\": \"string\",\n            \"pattern\": \"^[A-Za-z0-9_-]{1,100}$\"\n          },\n          \"developerId\": {\n            \"type\": \"string\",\n            \"pattern\": \"^[A-Za-z0-9_-]{1,100}$\"\n          },\n          \"version\": {\n            \"type\": \"string\",\n            \"pattern\": \"^(0|[1-9][0-9]{0,5})\\\\.(0|[1-9][0-9]{0,5})\\\\.(0|[1-9][0-9]{0,5})$\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 100\n          },\n          \"summary\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 180\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 5000\n          },\n          \"draftRevision\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"sourceSha256\": {\n            \"type\": \"string\",\n            \"pattern\": \"^[a-f0-9]{64}$\"\n          },\n          \"capability\": {\n            \"const\": \"shipping/v1\"\n          },\n          \"scopes\": {\n            \"type\": \"array\",\n            \"minItems\": 1,\n            \"maxItems\": 1,\n            \"items\": {\n              \"const\": \"shipping.read\"\n            }\n          },\n          \"binding\": {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"engine\": {\n                \"const\": \"api-kurir\"\n              },\n              \"providerCode\": {\n                \"const\": \"emisell\"\n              }\n            },\n            \"required\": [\n              \"engine\",\n              \"providerCode\"\n            ]\n          },\n          \"pricing\": {\n            \"const\": \"free\"\n          }\n        },\n        \"required\": [\n          \"schema\",\n          \"policy\",\n          \"appId\",\n          \"developerId\",\n          \"version\",\n          \"name\",\n          \"summary\",\n          \"description\",\n          \"draftRevision\",\n          \"sourceSha256\",\n          \"capability\",\n          \"scopes\",\n          \"binding\",\n          \"pricing\"\n        ]\n      },\n      \"Package\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"manifest\": {\n            \"$ref\": \"#/components/schemas/Manifest\"\n          },\n          \"sha256\": {\n            \"type\": \"string\",\n            \"pattern\": \"^[a-f0-9]{64}$\"\n          },\n          \"keyId\": {\n            \"type\": \"string\"\n          },\n          \"signature\": {\n            \"type\": \"string\",\n            \"contentEncoding\": \"base64\"\n          }\n        },\n        \"required\": [\n          \"manifest\",\n          \"sha256\",\n          \"keyId\",\n          \"signature\"\n        ]\n      },\n      \"Release\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\"\n          },\n          \"organizationId\": {\n            \"type\": \"string\"\n          },\n          \"manifest\": {\n            \"$ref\": \"#/components/schemas/Manifest\"\n          },\n          \"sha256\": {\n            \"type\": \"string\"\n          },\n          \"package\": {\n            \"$ref\": \"#/components/schemas/Package\"\n          },\n          \"status\": {\n            \"enum\": [\n              \"submitted\",\n              \"approved\",\n              \"rejected\",\n              \"signed\",\n              \"suspended\"\n            ]\n          },\n          \"revision\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"createdAt\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"updatedAt\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          }\n        },\n        \"required\": [\n          \"id\",\n          \"organizationId\",\n          \"manifest\",\n          \"sha256\",\n          \"status\",\n          \"revision\",\n          \"createdAt\",\n          \"updatedAt\"\n        ]\n      },\n      \"Readiness\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"configurationReady\": {\n            \"type\": \"boolean\"\n          },\n          \"requiredScopesReady\": {\n            \"type\": \"boolean\"\n          },\n          \"installable\": {\n            \"const\": false\n          },\n          \"blockers\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          }\n        },\n        \"required\": [\n          \"configurationReady\",\n          \"requiredScopesReady\",\n          \"installable\",\n          \"blockers\"\n        ]\n      },\n      \"Submit\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"appId\": {\n            \"type\": \"string\",\n            \"pattern\": \"^[A-Za-z0-9_-]{1,100}$\"\n          },\n          \"draftRevision\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"binding\": {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"engine\": {\n                \"const\": \"api-kurir\"\n              },\n              \"providerCode\": {\n                \"const\": \"emisell\"\n              }\n            },\n            \"required\": [\n              \"engine\",\n              \"providerCode\"\n            ]\n          },\n          \"reason\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 2000\n          }\n        },\n        \"required\": [\n          \"appId\",\n          \"draftRevision\",\n          \"binding\",\n          \"reason\"\n        ]\n      },\n      \"Action\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"status\": {\n            \"enum\": [\n              \"approved\",\n              \"rejected\",\n              \"signed\",\n              \"suspended\"\n            ]\n          },\n          \"revision\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"reason\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 2000\n          }\n        },\n        \"required\": [\n          \"status\",\n          \"revision\",\n          \"reason\"\n        ]\n      },\n      \"List\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"releases\": {\n            \"type\": \"array\",\n            \"maxItems\": 200,\n            \"items\": {\n              \"$ref\": \"#/components/schemas/Release\"\n            }\n          },\n          \"limit\": {\n            \"const\": 200\n          }\n        },\n        \"required\": [\n          \"releases\",\n          \"limit\"\n        ]\n      },\n      \"Result\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"release\": {\n            \"$ref\": \"#/components/schemas/Release\"\n          },\n          \"readiness\": {\n            \"$ref\": \"#/components/schemas/Readiness\"\n          }\n        },\n        \"required\": [\n          \"release\",\n          \"readiness\"\n        ]\n      },\n      \"Detail\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"release\": {\n            \"$ref\": \"#/components/schemas/Release\"\n          },\n          \"readiness\": {\n            \"$ref\": \"#/components/schemas/Readiness\"\n          },\n          \"history\": {\n            \"type\": \"array\",\n            \"maxItems\": 200,\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": false,\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\"\n                },\n                \"actorId\": {\n                  \"type\": \"string\"\n                },\n                \"action\": {\n                  \"type\": \"string\"\n                },\n                \"reason\": {\n                  \"type\": \"string\"\n                },\n                \"occurredAt\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                }\n              },\n              \"required\": [\n                \"id\",\n                \"actorId\",\n                \"action\",\n                \"reason\",\n                \"occurredAt\"\n              ]\n            }\n          },\n          \"trustedPublicKey\": {\n            \"type\": [\n              \"string\",\n              \"null\"\n            ],\n            \"contentEncoding\": \"base64\"\n          }\n        },\n        \"required\": [\n          \"release\",\n          \"readiness\",\n          \"history\",\n          \"trustedPublicKey\"\n        ]\n      }\n    }\n  }\n}\n"
+      "content": "{\n  \"openapi\": \"3.1.0\",\n  \"info\": {\n    \"title\": \"Emisell Managed Shipping Release API\",\n    \"version\": \"1.0.0\",\n    \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. V1 tetap khusus api-kurir/emisell + shipping.read. V2 mendukung provider terpisah melalui policy eksplisit managed-kurir-provider/v2 dengan shipping.read dan opsional shipping.write; tanpa endpoint/credential. V2 belum installable pada komposisi server default. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"http://localhost:8087\"\n    }\n  ],\n  \"paths\": {\n    \"/api/v1/admin/managed-shipping-releases\": {\n      \"get\": {\n        \"summary\": \"Daftar release provider terkelola\",\n        \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. V1 tetap khusus api-kurir/emisell + shipping.read. V2 mendukung provider terpisah melalui policy eksplisit managed-kurir-provider/v2 dengan shipping.read dan opsional shipping.write; tanpa endpoint/credential. V2 belum installable pada komposisi server default. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\",\n        \"security\": [\n          {\n            \"adminSession\": []\n          }\n        ],\n        \"parameters\": [\n          {\n            \"in\": \"header\",\n            \"name\": \"Origin\",\n            \"required\": true,\n            \"schema\": {\n              \"const\": \"http://localhost:4317\"\n            }\n          }\n        ],\n        \"responses\": {\n          \"200\": {\n            \"description\": \"Berhasil; bukan grant atau instalasi.\",\n            \"content\": {\n              \"application/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/List\"\n                }\n              }\n            }\n          },\n          \"400\": {\n            \"description\": \"Input/binding/scope tidak valid.\"\n          },\n          \"401\": {\n            \"description\": \"Sesi tidak valid.\"\n          },\n          \"403\": {\n            \"description\": \"Origin/role/ownership tidak diizinkan.\"\n          },\n          \"404\": {\n            \"description\": \"Tidak ditemukan atau organisasi lain.\"\n          },\n          \"409\": {\n            \"description\": \"Konflik revision, idempotency, versi atau state.\"\n          },\n          \"503\": {\n            \"description\": \"Signer/persistence belum tersedia.\"\n          }\n        }\n      }\n    },\n    \"/api/v1/admin/managed-shipping-releases/{id}\": {\n      \"get\": {\n        \"summary\": \"Detail, signature dan audit release provider\",\n        \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. V1 tetap khusus api-kurir/emisell + shipping.read. V2 mendukung provider terpisah melalui policy eksplisit managed-kurir-provider/v2 dengan shipping.read dan opsional shipping.write; tanpa endpoint/credential. V2 belum installable pada komposisi server default. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\",\n        \"security\": [\n          {\n            \"adminSession\": []\n          }\n        ],\n        \"parameters\": [\n          {\n            \"in\": \"header\",\n            \"name\": \"Origin\",\n            \"required\": true,\n            \"schema\": {\n              \"const\": \"http://localhost:4317\"\n            }\n          },\n          {\n            \"in\": \"path\",\n            \"name\": \"id\",\n            \"required\": true,\n            \"schema\": {\n              \"type\": \"string\"\n            }\n          }\n        ],\n        \"responses\": {\n          \"200\": {\n            \"description\": \"Berhasil; bukan grant atau instalasi.\",\n            \"content\": {\n              \"application/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/Detail\"\n                }\n              }\n            }\n          },\n          \"400\": {\n            \"description\": \"Input/binding/scope tidak valid.\"\n          },\n          \"401\": {\n            \"description\": \"Sesi tidak valid.\"\n          },\n          \"403\": {\n            \"description\": \"Origin/role/ownership tidak diizinkan.\"\n          },\n          \"404\": {\n            \"description\": \"Tidak ditemukan atau organisasi lain.\"\n          },\n          \"409\": {\n            \"description\": \"Konflik revision, idempotency, versi atau state.\"\n          },\n          \"503\": {\n            \"description\": \"Signer/persistence belum tersedia.\"\n          }\n        }\n      }\n    },\n    \"/api/v1/admin/managed-shipping-releases/{id}/status\": {\n      \"post\": {\n        \"summary\": \"Review, sign atau suspend release provider\",\n        \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. V1 tetap khusus api-kurir/emisell + shipping.read. V2 mendukung provider terpisah melalui policy eksplisit managed-kurir-provider/v2 dengan shipping.read dan opsional shipping.write; tanpa endpoint/credential. V2 belum installable pada komposisi server default. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\",\n        \"security\": [\n          {\n            \"adminSession\": []\n          }\n        ],\n        \"parameters\": [\n          {\n            \"in\": \"header\",\n            \"name\": \"Origin\",\n            \"required\": true,\n            \"schema\": {\n              \"const\": \"http://localhost:4317\"\n            }\n          },\n          {\n            \"in\": \"path\",\n            \"name\": \"id\",\n            \"required\": true,\n            \"schema\": {\n              \"type\": \"string\"\n            }\n          },\n          {\n            \"in\": \"header\",\n            \"name\": \"Idempotency-Key\",\n            \"required\": true,\n            \"schema\": {\n              \"type\": \"string\",\n              \"pattern\": \"^[A-Za-z0-9_-]{8,128}$\"\n            }\n          }\n        ],\n        \"requestBody\": {\n          \"required\": true,\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/Action\"\n              }\n            }\n          }\n        },\n        \"responses\": {\n          \"200\": {\n            \"description\": \"Berhasil; bukan grant atau instalasi.\",\n            \"content\": {\n              \"application/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/Result\"\n                }\n              }\n            }\n          },\n          \"400\": {\n            \"description\": \"Input/binding/scope tidak valid.\"\n          },\n          \"401\": {\n            \"description\": \"Sesi tidak valid.\"\n          },\n          \"403\": {\n            \"description\": \"Origin/role/ownership tidak diizinkan.\"\n          },\n          \"404\": {\n            \"description\": \"Tidak ditemukan atau organisasi lain.\"\n          },\n          \"409\": {\n            \"description\": \"Konflik revision, idempotency, versi atau state.\"\n          },\n          \"503\": {\n            \"description\": \"Signer/persistence belum tersedia.\"\n          }\n        }\n      }\n    },\n    \"/api/v1/developer/managed-shipping-releases\": {\n      \"get\": {\n        \"summary\": \"Daftar release provider terkelola\",\n        \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. V1 tetap khusus api-kurir/emisell + shipping.read. V2 mendukung provider terpisah melalui policy eksplisit managed-kurir-provider/v2 dengan shipping.read dan opsional shipping.write; tanpa endpoint/credential. V2 belum installable pada komposisi server default. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\",\n        \"security\": [\n          {\n            \"developerSession\": []\n          }\n        ],\n        \"parameters\": [\n          {\n            \"in\": \"header\",\n            \"name\": \"Origin\",\n            \"required\": true,\n            \"schema\": {\n              \"const\": \"http://localhost:4319\"\n            }\n          }\n        ],\n        \"responses\": {\n          \"200\": {\n            \"description\": \"Berhasil; bukan grant atau instalasi.\",\n            \"content\": {\n              \"application/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/List\"\n                }\n              }\n            }\n          },\n          \"400\": {\n            \"description\": \"Input/binding/scope tidak valid.\"\n          },\n          \"401\": {\n            \"description\": \"Sesi tidak valid.\"\n          },\n          \"403\": {\n            \"description\": \"Origin/role/ownership tidak diizinkan.\"\n          },\n          \"404\": {\n            \"description\": \"Tidak ditemukan atau organisasi lain.\"\n          },\n          \"409\": {\n            \"description\": \"Konflik revision, idempotency, versi atau state.\"\n          },\n          \"503\": {\n            \"description\": \"Signer/persistence belum tersedia.\"\n          }\n        }\n      },\n      \"post\": {\n        \"summary\": \"Ajukan snapshot draft Emisell Kurir untuk review\",\n        \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. V1 tetap khusus api-kurir/emisell + shipping.read. V2 mendukung provider terpisah melalui policy eksplisit managed-kurir-provider/v2 dengan shipping.read dan opsional shipping.write; tanpa endpoint/credential. V2 belum installable pada komposisi server default. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\",\n        \"security\": [\n          {\n            \"developerSession\": []\n          }\n        ],\n        \"parameters\": [\n          {\n            \"in\": \"header\",\n            \"name\": \"Origin\",\n            \"required\": true,\n            \"schema\": {\n              \"const\": \"http://localhost:4319\"\n            }\n          },\n          {\n            \"in\": \"header\",\n            \"name\": \"Idempotency-Key\",\n            \"required\": true,\n            \"schema\": {\n              \"type\": \"string\",\n              \"pattern\": \"^[A-Za-z0-9_-]{8,128}$\"\n            }\n          }\n        ],\n        \"requestBody\": {\n          \"required\": true,\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/Submit\"\n              }\n            }\n          }\n        },\n        \"responses\": {\n          \"200\": {\n            \"description\": \"Berhasil; bukan grant atau instalasi.\",\n            \"content\": {\n              \"application/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/Result\"\n                }\n              }\n            }\n          },\n          \"400\": {\n            \"description\": \"Input/binding/scope tidak valid.\"\n          },\n          \"401\": {\n            \"description\": \"Sesi tidak valid.\"\n          },\n          \"403\": {\n            \"description\": \"Origin/role/ownership tidak diizinkan.\"\n          },\n          \"404\": {\n            \"description\": \"Tidak ditemukan atau organisasi lain.\"\n          },\n          \"409\": {\n            \"description\": \"Konflik revision, idempotency, versi atau state.\"\n          },\n          \"503\": {\n            \"description\": \"Signer/persistence belum tersedia.\"\n          }\n        }\n      }\n    },\n    \"/api/v1/developer/managed-shipping-releases/{id}\": {\n      \"get\": {\n        \"summary\": \"Detail, signature dan audit release provider\",\n        \"description\": \"Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. V1 tetap khusus api-kurir/emisell + shipping.read. V2 mendukung provider terpisah melalui policy eksplisit managed-kurir-provider/v2 dengan shipping.read dan opsional shipping.write; tanpa endpoint/credential. V2 belum installable pada komposisi server default. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.\",\n        \"security\": [\n          {\n            \"developerSession\": []\n          }\n        ],\n        \"parameters\": [\n          {\n            \"in\": \"header\",\n            \"name\": \"Origin\",\n            \"required\": true,\n            \"schema\": {\n              \"const\": \"http://localhost:4319\"\n            }\n          },\n          {\n            \"in\": \"path\",\n            \"name\": \"id\",\n            \"required\": true,\n            \"schema\": {\n              \"type\": \"string\"\n            }\n          }\n        ],\n        \"responses\": {\n          \"200\": {\n            \"description\": \"Berhasil; bukan grant atau instalasi.\",\n            \"content\": {\n              \"application/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/Detail\"\n                }\n              }\n            }\n          },\n          \"400\": {\n            \"description\": \"Input/binding/scope tidak valid.\"\n          },\n          \"401\": {\n            \"description\": \"Sesi tidak valid.\"\n          },\n          \"403\": {\n            \"description\": \"Origin/role/ownership tidak diizinkan.\"\n          },\n          \"404\": {\n            \"description\": \"Tidak ditemukan atau organisasi lain.\"\n          },\n          \"409\": {\n            \"description\": \"Konflik revision, idempotency, versi atau state.\"\n          },\n          \"503\": {\n            \"description\": \"Signer/persistence belum tersedia.\"\n          }\n        }\n      }\n    }\n  },\n  \"components\": {\n    \"securitySchemes\": {\n      \"adminSession\": {\n        \"type\": \"apiKey\",\n        \"in\": \"cookie\",\n        \"name\": \"emisell_admin_session\"\n      },\n      \"developerSession\": {\n        \"type\": \"apiKey\",\n        \"in\": \"cookie\",\n        \"name\": \"emisell_developer_session\"\n      }\n    },\n    \"schemas\": {\n      \"Manifest\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"schema\": {\n            \"const\": \"emisell.managed-shipping-release/v1\"\n          },\n          \"policy\": {\n            \"enum\": [\n              \"managed-kurir-provider/v1\",\n              \"managed-kurir-provider/v2\"\n            ]\n          },\n          \"appId\": {\n            \"type\": \"string\",\n            \"pattern\": \"^[A-Za-z0-9_-]{1,100}$\"\n          },\n          \"developerId\": {\n            \"type\": \"string\",\n            \"pattern\": \"^[A-Za-z0-9_-]{1,100}$\"\n          },\n          \"version\": {\n            \"type\": \"string\",\n            \"pattern\": \"^(0|[1-9][0-9]{0,5})\\\\.(0|[1-9][0-9]{0,5})\\\\.(0|[1-9][0-9]{0,5})$\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 100\n          },\n          \"summary\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 180\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 5000\n          },\n          \"draftRevision\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"sourceSha256\": {\n            \"type\": \"string\",\n            \"pattern\": \"^[a-f0-9]{64}$\"\n          },\n          \"capability\": {\n            \"const\": \"shipping/v1\"\n          },\n          \"scopes\": {\n            \"oneOf\": [\n              {\n                \"const\": [\n                  \"shipping.read\"\n                ]\n              },\n              {\n                \"const\": [\n                  \"shipping.read\",\n                  \"shipping.write\"\n                ]\n              }\n            ]\n          },\n          \"binding\": {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"engine\": {\n                \"const\": \"api-kurir\"\n              },\n              \"providerCode\": {\n                \"type\": \"string\",\n                \"pattern\": \"^[a-z][a-z0-9_-]{0,63}$\"\n              }\n            },\n            \"required\": [\n              \"engine\",\n              \"providerCode\"\n            ]\n          },\n          \"pricing\": {\n            \"const\": \"free\"\n          }\n        },\n        \"required\": [\n          \"schema\",\n          \"policy\",\n          \"appId\",\n          \"developerId\",\n          \"version\",\n          \"name\",\n          \"summary\",\n          \"description\",\n          \"draftRevision\",\n          \"sourceSha256\",\n          \"capability\",\n          \"scopes\",\n          \"binding\",\n          \"pricing\"\n        ],\n        \"allOf\": [\n          {\n            \"if\": {\n              \"properties\": {\n                \"policy\": {\n                  \"const\": \"managed-kurir-provider/v1\"\n                }\n              }\n            },\n            \"then\": {\n              \"properties\": {\n                \"binding\": {\n                  \"properties\": {\n                    \"providerCode\": {\n                      \"const\": \"emisell\"\n                    }\n                  }\n                },\n                \"scopes\": {\n                  \"const\": [\n                    \"shipping.read\"\n                  ]\n                }\n              }\n            }\n          }\n        ]\n      },\n      \"Package\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"manifest\": {\n            \"$ref\": \"#/components/schemas/Manifest\"\n          },\n          \"sha256\": {\n            \"type\": \"string\",\n            \"pattern\": \"^[a-f0-9]{64}$\"\n          },\n          \"keyId\": {\n            \"type\": \"string\"\n          },\n          \"signature\": {\n            \"type\": \"string\",\n            \"contentEncoding\": \"base64\"\n          }\n        },\n        \"required\": [\n          \"manifest\",\n          \"sha256\",\n          \"keyId\",\n          \"signature\"\n        ]\n      },\n      \"Release\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\"\n          },\n          \"organizationId\": {\n            \"type\": \"string\"\n          },\n          \"manifest\": {\n            \"$ref\": \"#/components/schemas/Manifest\"\n          },\n          \"sha256\": {\n            \"type\": \"string\"\n          },\n          \"package\": {\n            \"$ref\": \"#/components/schemas/Package\"\n          },\n          \"status\": {\n            \"enum\": [\n              \"submitted\",\n              \"approved\",\n              \"rejected\",\n              \"signed\",\n              \"suspended\"\n            ]\n          },\n          \"revision\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"createdAt\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"updatedAt\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          }\n        },\n        \"required\": [\n          \"id\",\n          \"organizationId\",\n          \"manifest\",\n          \"sha256\",\n          \"status\",\n          \"revision\",\n          \"createdAt\",\n          \"updatedAt\"\n        ]\n      },\n      \"Readiness\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"configurationReady\": {\n            \"type\": \"boolean\"\n          },\n          \"requiredScopesReady\": {\n            \"type\": \"boolean\"\n          },\n          \"installable\": {\n            \"const\": false\n          },\n          \"blockers\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          }\n        },\n        \"required\": [\n          \"configurationReady\",\n          \"requiredScopesReady\",\n          \"installable\",\n          \"blockers\"\n        ]\n      },\n      \"Submit\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"appId\": {\n            \"type\": \"string\",\n            \"pattern\": \"^[A-Za-z0-9_-]{1,100}$\"\n          },\n          \"draftRevision\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"binding\": {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"engine\": {\n                \"const\": \"api-kurir\"\n              },\n              \"providerCode\": {\n                \"const\": \"emisell\"\n              }\n            },\n            \"required\": [\n              \"engine\",\n              \"providerCode\"\n            ]\n          },\n          \"reason\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 2000\n          },\n          \"policy\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"managed-kurir-provider/v1\",\n              \"managed-kurir-provider/v2\"\n            ],\n            \"default\": \"managed-kurir-provider/v1\"\n          }\n        },\n        \"required\": [\n          \"appId\",\n          \"draftRevision\",\n          \"binding\",\n          \"reason\"\n        ],\n        \"allOf\": [\n          {\n            \"if\": {\n              \"properties\": {\n                \"policy\": {\n                  \"const\": \"managed-kurir-provider/v1\"\n                }\n              }\n            },\n            \"then\": {\n              \"properties\": {\n                \"binding\": {\n                  \"properties\": {\n                    \"providerCode\": {\n                      \"const\": \"emisell\"\n                    }\n                  }\n                }\n              }\n            }\n          }\n        ]\n      },\n      \"Action\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"status\": {\n            \"enum\": [\n              \"approved\",\n              \"rejected\",\n              \"signed\",\n              \"suspended\"\n            ]\n          },\n          \"revision\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"reason\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 2000\n          }\n        },\n        \"required\": [\n          \"status\",\n          \"revision\",\n          \"reason\"\n        ]\n      },\n      \"List\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"releases\": {\n            \"type\": \"array\",\n            \"maxItems\": 200,\n            \"items\": {\n              \"$ref\": \"#/components/schemas/Release\"\n            }\n          },\n          \"limit\": {\n            \"const\": 200\n          }\n        },\n        \"required\": [\n          \"releases\",\n          \"limit\"\n        ]\n      },\n      \"Result\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"release\": {\n            \"$ref\": \"#/components/schemas/Release\"\n          },\n          \"readiness\": {\n            \"$ref\": \"#/components/schemas/Readiness\"\n          }\n        },\n        \"required\": [\n          \"release\",\n          \"readiness\"\n        ]\n      },\n      \"Detail\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"release\": {\n            \"$ref\": \"#/components/schemas/Release\"\n          },\n          \"readiness\": {\n            \"$ref\": \"#/components/schemas/Readiness\"\n          },\n          \"history\": {\n            \"type\": \"array\",\n            \"maxItems\": 200,\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": false,\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\"\n                },\n                \"actorId\": {\n                  \"type\": \"string\"\n                },\n                \"action\": {\n                  \"type\": \"string\"\n                },\n                \"reason\": {\n                  \"type\": \"string\"\n                },\n                \"occurredAt\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                }\n              },\n              \"required\": [\n                \"id\",\n                \"actorId\",\n                \"action\",\n                \"reason\",\n                \"occurredAt\"\n              ]\n            }\n          },\n          \"trustedPublicKey\": {\n            \"type\": [\n              \"string\",\n              \"null\"\n            ],\n            \"contentEncoding\": \"base64\"\n          }\n        },\n        \"required\": [\n          \"release\",\n          \"readiness\",\n          \"history\",\n          \"trustedPublicKey\"\n        ]\n      }\n    }\n  }\n}\n"
     },
     {
       "name": "app-clients.v1.json",
@@ -14834,7 +14834,7 @@
       "path": "/api/v1/admin/managed-shipping-releases",
       "source": "managed-shipping.v1.json",
       "title": "Daftar release provider terkelola",
-      "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
+      "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. V1 tetap khusus api-kurir/emisell + shipping.read. V2 mendukung provider terpisah melalui policy eksplisit managed-kurir-provider/v2 dengan shipping.read dan opsional shipping.write; tanpa endpoint/credential. V2 belum installable pada komposisi server default. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
       "auth": "Cookie emisell_admin_session",
       "parameters": [
         {
@@ -14876,7 +14876,10 @@
                           "const": "emisell.managed-shipping-release/v1"
                         },
                         "policy": {
-                          "const": "managed-kurir-provider/v1"
+                          "enum": [
+                            "managed-kurir-provider/v1",
+                            "managed-kurir-provider/v2"
+                          ]
                         },
                         "appId": {
                           "type": "string",
@@ -14917,12 +14920,19 @@
                           "const": "shipping/v1"
                         },
                         "scopes": {
-                          "type": "array",
-                          "minItems": 1,
-                          "maxItems": 1,
-                          "items": {
-                            "const": "shipping.read"
-                          }
+                          "oneOf": [
+                            {
+                              "const": [
+                                "shipping.read"
+                              ]
+                            },
+                            {
+                              "const": [
+                                "shipping.read",
+                                "shipping.write"
+                              ]
+                            }
+                          ]
                         },
                         "binding": {
                           "type": "object",
@@ -14932,7 +14942,8 @@
                               "const": "api-kurir"
                             },
                             "providerCode": {
-                              "const": "emisell"
+                              "type": "string",
+                              "pattern": "^[a-z][a-z0-9_-]{0,63}$"
                             }
                           },
                           "required": [
@@ -14959,6 +14970,33 @@
                         "scopes",
                         "binding",
                         "pricing"
+                      ],
+                      "allOf": [
+                        {
+                          "if": {
+                            "properties": {
+                              "policy": {
+                                "const": "managed-kurir-provider/v1"
+                              }
+                            }
+                          },
+                          "then": {
+                            "properties": {
+                              "binding": {
+                                "properties": {
+                                  "providerCode": {
+                                    "const": "emisell"
+                                  }
+                                }
+                              },
+                              "scopes": {
+                                "const": [
+                                  "shipping.read"
+                                ]
+                              }
+                            }
+                          }
+                        }
                       ]
                     },
                     "sha256": {
@@ -14976,7 +15014,10 @@
                               "const": "emisell.managed-shipping-release/v1"
                             },
                             "policy": {
-                              "const": "managed-kurir-provider/v1"
+                              "enum": [
+                                "managed-kurir-provider/v1",
+                                "managed-kurir-provider/v2"
+                              ]
                             },
                             "appId": {
                               "type": "string",
@@ -15017,12 +15058,19 @@
                               "const": "shipping/v1"
                             },
                             "scopes": {
-                              "type": "array",
-                              "minItems": 1,
-                              "maxItems": 1,
-                              "items": {
-                                "const": "shipping.read"
-                              }
+                              "oneOf": [
+                                {
+                                  "const": [
+                                    "shipping.read"
+                                  ]
+                                },
+                                {
+                                  "const": [
+                                    "shipping.read",
+                                    "shipping.write"
+                                  ]
+                                }
+                              ]
                             },
                             "binding": {
                               "type": "object",
@@ -15032,7 +15080,8 @@
                                   "const": "api-kurir"
                                 },
                                 "providerCode": {
-                                  "const": "emisell"
+                                  "type": "string",
+                                  "pattern": "^[a-z][a-z0-9_-]{0,63}$"
                                 }
                               },
                               "required": [
@@ -15059,6 +15108,33 @@
                             "scopes",
                             "binding",
                             "pricing"
+                          ],
+                          "allOf": [
+                            {
+                              "if": {
+                                "properties": {
+                                  "policy": {
+                                    "const": "managed-kurir-provider/v1"
+                                  }
+                                }
+                              },
+                              "then": {
+                                "properties": {
+                                  "binding": {
+                                    "properties": {
+                                      "providerCode": {
+                                        "const": "emisell"
+                                      }
+                                    }
+                                  },
+                                  "scopes": {
+                                    "const": [
+                                      "shipping.read"
+                                    ]
+                                  }
+                                }
+                              }
+                            }
                           ]
                         },
                         "sha256": {
@@ -15163,7 +15239,7 @@
       "path": "/api/v1/admin/managed-shipping-releases/{id}",
       "source": "managed-shipping.v1.json",
       "title": "Detail, signature dan audit release provider",
-      "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
+      "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. V1 tetap khusus api-kurir/emisell + shipping.read. V2 mendukung provider terpisah melalui policy eksplisit managed-kurir-provider/v2 dengan shipping.read dan opsional shipping.write; tanpa endpoint/credential. V2 belum installable pada komposisi server default. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
       "auth": "Cookie emisell_admin_session",
       "parameters": [
         {
@@ -15210,7 +15286,10 @@
                         "const": "emisell.managed-shipping-release/v1"
                       },
                       "policy": {
-                        "const": "managed-kurir-provider/v1"
+                        "enum": [
+                          "managed-kurir-provider/v1",
+                          "managed-kurir-provider/v2"
+                        ]
                       },
                       "appId": {
                         "type": "string",
@@ -15251,12 +15330,19 @@
                         "const": "shipping/v1"
                       },
                       "scopes": {
-                        "type": "array",
-                        "minItems": 1,
-                        "maxItems": 1,
-                        "items": {
-                          "const": "shipping.read"
-                        }
+                        "oneOf": [
+                          {
+                            "const": [
+                              "shipping.read"
+                            ]
+                          },
+                          {
+                            "const": [
+                              "shipping.read",
+                              "shipping.write"
+                            ]
+                          }
+                        ]
                       },
                       "binding": {
                         "type": "object",
@@ -15266,7 +15352,8 @@
                             "const": "api-kurir"
                           },
                           "providerCode": {
-                            "const": "emisell"
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_-]{0,63}$"
                           }
                         },
                         "required": [
@@ -15293,6 +15380,33 @@
                       "scopes",
                       "binding",
                       "pricing"
+                    ],
+                    "allOf": [
+                      {
+                        "if": {
+                          "properties": {
+                            "policy": {
+                              "const": "managed-kurir-provider/v1"
+                            }
+                          }
+                        },
+                        "then": {
+                          "properties": {
+                            "binding": {
+                              "properties": {
+                                "providerCode": {
+                                  "const": "emisell"
+                                }
+                              }
+                            },
+                            "scopes": {
+                              "const": [
+                                "shipping.read"
+                              ]
+                            }
+                          }
+                        }
+                      }
                     ]
                   },
                   "sha256": {
@@ -15310,7 +15424,10 @@
                             "const": "emisell.managed-shipping-release/v1"
                           },
                           "policy": {
-                            "const": "managed-kurir-provider/v1"
+                            "enum": [
+                              "managed-kurir-provider/v1",
+                              "managed-kurir-provider/v2"
+                            ]
                           },
                           "appId": {
                             "type": "string",
@@ -15351,12 +15468,19 @@
                             "const": "shipping/v1"
                           },
                           "scopes": {
-                            "type": "array",
-                            "minItems": 1,
-                            "maxItems": 1,
-                            "items": {
-                              "const": "shipping.read"
-                            }
+                            "oneOf": [
+                              {
+                                "const": [
+                                  "shipping.read"
+                                ]
+                              },
+                              {
+                                "const": [
+                                  "shipping.read",
+                                  "shipping.write"
+                                ]
+                              }
+                            ]
                           },
                           "binding": {
                             "type": "object",
@@ -15366,7 +15490,8 @@
                                 "const": "api-kurir"
                               },
                               "providerCode": {
-                                "const": "emisell"
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_-]{0,63}$"
                               }
                             },
                             "required": [
@@ -15393,6 +15518,33 @@
                           "scopes",
                           "binding",
                           "pricing"
+                        ],
+                        "allOf": [
+                          {
+                            "if": {
+                              "properties": {
+                                "policy": {
+                                  "const": "managed-kurir-provider/v1"
+                                }
+                              }
+                            },
+                            "then": {
+                              "properties": {
+                                "binding": {
+                                  "properties": {
+                                    "providerCode": {
+                                      "const": "emisell"
+                                    }
+                                  }
+                                },
+                                "scopes": {
+                                  "const": [
+                                    "shipping.read"
+                                  ]
+                                }
+                              }
+                            }
+                          }
                         ]
                       },
                       "sha256": {
@@ -15562,7 +15714,7 @@
       "path": "/api/v1/admin/managed-shipping-releases/{id}/status",
       "source": "managed-shipping.v1.json",
       "title": "Review, sign atau suspend release provider",
-      "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
+      "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. V1 tetap khusus api-kurir/emisell + shipping.read. V2 mendukung provider terpisah melalui policy eksplisit managed-kurir-provider/v2 dengan shipping.read dan opsional shipping.write; tanpa endpoint/credential. V2 belum installable pada komposisi server default. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
       "auth": "Cookie emisell_admin_session",
       "parameters": [
         {
@@ -15645,7 +15797,10 @@
                         "const": "emisell.managed-shipping-release/v1"
                       },
                       "policy": {
-                        "const": "managed-kurir-provider/v1"
+                        "enum": [
+                          "managed-kurir-provider/v1",
+                          "managed-kurir-provider/v2"
+                        ]
                       },
                       "appId": {
                         "type": "string",
@@ -15686,12 +15841,19 @@
                         "const": "shipping/v1"
                       },
                       "scopes": {
-                        "type": "array",
-                        "minItems": 1,
-                        "maxItems": 1,
-                        "items": {
-                          "const": "shipping.read"
-                        }
+                        "oneOf": [
+                          {
+                            "const": [
+                              "shipping.read"
+                            ]
+                          },
+                          {
+                            "const": [
+                              "shipping.read",
+                              "shipping.write"
+                            ]
+                          }
+                        ]
                       },
                       "binding": {
                         "type": "object",
@@ -15701,7 +15863,8 @@
                             "const": "api-kurir"
                           },
                           "providerCode": {
-                            "const": "emisell"
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_-]{0,63}$"
                           }
                         },
                         "required": [
@@ -15728,6 +15891,33 @@
                       "scopes",
                       "binding",
                       "pricing"
+                    ],
+                    "allOf": [
+                      {
+                        "if": {
+                          "properties": {
+                            "policy": {
+                              "const": "managed-kurir-provider/v1"
+                            }
+                          }
+                        },
+                        "then": {
+                          "properties": {
+                            "binding": {
+                              "properties": {
+                                "providerCode": {
+                                  "const": "emisell"
+                                }
+                              }
+                            },
+                            "scopes": {
+                              "const": [
+                                "shipping.read"
+                              ]
+                            }
+                          }
+                        }
+                      }
                     ]
                   },
                   "sha256": {
@@ -15745,7 +15935,10 @@
                             "const": "emisell.managed-shipping-release/v1"
                           },
                           "policy": {
-                            "const": "managed-kurir-provider/v1"
+                            "enum": [
+                              "managed-kurir-provider/v1",
+                              "managed-kurir-provider/v2"
+                            ]
                           },
                           "appId": {
                             "type": "string",
@@ -15786,12 +15979,19 @@
                             "const": "shipping/v1"
                           },
                           "scopes": {
-                            "type": "array",
-                            "minItems": 1,
-                            "maxItems": 1,
-                            "items": {
-                              "const": "shipping.read"
-                            }
+                            "oneOf": [
+                              {
+                                "const": [
+                                  "shipping.read"
+                                ]
+                              },
+                              {
+                                "const": [
+                                  "shipping.read",
+                                  "shipping.write"
+                                ]
+                              }
+                            ]
                           },
                           "binding": {
                             "type": "object",
@@ -15801,7 +16001,8 @@
                                 "const": "api-kurir"
                               },
                               "providerCode": {
-                                "const": "emisell"
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_-]{0,63}$"
                               }
                             },
                             "required": [
@@ -15828,6 +16029,33 @@
                           "scopes",
                           "binding",
                           "pricing"
+                        ],
+                        "allOf": [
+                          {
+                            "if": {
+                              "properties": {
+                                "policy": {
+                                  "const": "managed-kurir-provider/v1"
+                                }
+                              }
+                            },
+                            "then": {
+                              "properties": {
+                                "binding": {
+                                  "properties": {
+                                    "providerCode": {
+                                      "const": "emisell"
+                                    }
+                                  }
+                                },
+                                "scopes": {
+                                  "const": [
+                                    "shipping.read"
+                                  ]
+                                }
+                              }
+                            }
+                          }
                         ]
                       },
                       "sha256": {
@@ -15955,7 +16183,7 @@
       "path": "/api/v1/developer/managed-shipping-releases",
       "source": "managed-shipping.v1.json",
       "title": "Daftar release provider terkelola",
-      "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
+      "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. V1 tetap khusus api-kurir/emisell + shipping.read. V2 mendukung provider terpisah melalui policy eksplisit managed-kurir-provider/v2 dengan shipping.read dan opsional shipping.write; tanpa endpoint/credential. V2 belum installable pada komposisi server default. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
       "auth": "Cookie emisell_developer_session",
       "parameters": [
         {
@@ -15997,7 +16225,10 @@
                           "const": "emisell.managed-shipping-release/v1"
                         },
                         "policy": {
-                          "const": "managed-kurir-provider/v1"
+                          "enum": [
+                            "managed-kurir-provider/v1",
+                            "managed-kurir-provider/v2"
+                          ]
                         },
                         "appId": {
                           "type": "string",
@@ -16038,12 +16269,19 @@
                           "const": "shipping/v1"
                         },
                         "scopes": {
-                          "type": "array",
-                          "minItems": 1,
-                          "maxItems": 1,
-                          "items": {
-                            "const": "shipping.read"
-                          }
+                          "oneOf": [
+                            {
+                              "const": [
+                                "shipping.read"
+                              ]
+                            },
+                            {
+                              "const": [
+                                "shipping.read",
+                                "shipping.write"
+                              ]
+                            }
+                          ]
                         },
                         "binding": {
                           "type": "object",
@@ -16053,7 +16291,8 @@
                               "const": "api-kurir"
                             },
                             "providerCode": {
-                              "const": "emisell"
+                              "type": "string",
+                              "pattern": "^[a-z][a-z0-9_-]{0,63}$"
                             }
                           },
                           "required": [
@@ -16080,6 +16319,33 @@
                         "scopes",
                         "binding",
                         "pricing"
+                      ],
+                      "allOf": [
+                        {
+                          "if": {
+                            "properties": {
+                              "policy": {
+                                "const": "managed-kurir-provider/v1"
+                              }
+                            }
+                          },
+                          "then": {
+                            "properties": {
+                              "binding": {
+                                "properties": {
+                                  "providerCode": {
+                                    "const": "emisell"
+                                  }
+                                }
+                              },
+                              "scopes": {
+                                "const": [
+                                  "shipping.read"
+                                ]
+                              }
+                            }
+                          }
+                        }
                       ]
                     },
                     "sha256": {
@@ -16097,7 +16363,10 @@
                               "const": "emisell.managed-shipping-release/v1"
                             },
                             "policy": {
-                              "const": "managed-kurir-provider/v1"
+                              "enum": [
+                                "managed-kurir-provider/v1",
+                                "managed-kurir-provider/v2"
+                              ]
                             },
                             "appId": {
                               "type": "string",
@@ -16138,12 +16407,19 @@
                               "const": "shipping/v1"
                             },
                             "scopes": {
-                              "type": "array",
-                              "minItems": 1,
-                              "maxItems": 1,
-                              "items": {
-                                "const": "shipping.read"
-                              }
+                              "oneOf": [
+                                {
+                                  "const": [
+                                    "shipping.read"
+                                  ]
+                                },
+                                {
+                                  "const": [
+                                    "shipping.read",
+                                    "shipping.write"
+                                  ]
+                                }
+                              ]
                             },
                             "binding": {
                               "type": "object",
@@ -16153,7 +16429,8 @@
                                   "const": "api-kurir"
                                 },
                                 "providerCode": {
-                                  "const": "emisell"
+                                  "type": "string",
+                                  "pattern": "^[a-z][a-z0-9_-]{0,63}$"
                                 }
                               },
                               "required": [
@@ -16180,6 +16457,33 @@
                             "scopes",
                             "binding",
                             "pricing"
+                          ],
+                          "allOf": [
+                            {
+                              "if": {
+                                "properties": {
+                                  "policy": {
+                                    "const": "managed-kurir-provider/v1"
+                                  }
+                                }
+                              },
+                              "then": {
+                                "properties": {
+                                  "binding": {
+                                    "properties": {
+                                      "providerCode": {
+                                        "const": "emisell"
+                                      }
+                                    }
+                                  },
+                                  "scopes": {
+                                    "const": [
+                                      "shipping.read"
+                                    ]
+                                  }
+                                }
+                              }
+                            }
                           ]
                         },
                         "sha256": {
@@ -16284,7 +16588,7 @@
       "path": "/api/v1/developer/managed-shipping-releases",
       "source": "managed-shipping.v1.json",
       "title": "Ajukan snapshot draft Emisell Kurir untuk review",
-      "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
+      "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. V1 tetap khusus api-kurir/emisell + shipping.read. V2 mendukung provider terpisah melalui policy eksplisit managed-kurir-provider/v2 dengan shipping.read dan opsional shipping.write; tanpa endpoint/credential. V2 belum installable pada komposisi server default. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
       "auth": "Cookie emisell_developer_session",
       "parameters": [
         {
@@ -16337,6 +16641,14 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 2000
+          },
+          "policy": {
+            "type": "string",
+            "enum": [
+              "managed-kurir-provider/v1",
+              "managed-kurir-provider/v2"
+            ],
+            "default": "managed-kurir-provider/v1"
           }
         },
         "required": [
@@ -16344,6 +16656,28 @@
           "draftRevision",
           "binding",
           "reason"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "policy": {
+                  "const": "managed-kurir-provider/v1"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "binding": {
+                  "properties": {
+                    "providerCode": {
+                      "const": "emisell"
+                    }
+                  }
+                }
+              }
+            }
+          }
         ]
       },
       "responses": [
@@ -16372,7 +16706,10 @@
                         "const": "emisell.managed-shipping-release/v1"
                       },
                       "policy": {
-                        "const": "managed-kurir-provider/v1"
+                        "enum": [
+                          "managed-kurir-provider/v1",
+                          "managed-kurir-provider/v2"
+                        ]
                       },
                       "appId": {
                         "type": "string",
@@ -16413,12 +16750,19 @@
                         "const": "shipping/v1"
                       },
                       "scopes": {
-                        "type": "array",
-                        "minItems": 1,
-                        "maxItems": 1,
-                        "items": {
-                          "const": "shipping.read"
-                        }
+                        "oneOf": [
+                          {
+                            "const": [
+                              "shipping.read"
+                            ]
+                          },
+                          {
+                            "const": [
+                              "shipping.read",
+                              "shipping.write"
+                            ]
+                          }
+                        ]
                       },
                       "binding": {
                         "type": "object",
@@ -16428,7 +16772,8 @@
                             "const": "api-kurir"
                           },
                           "providerCode": {
-                            "const": "emisell"
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_-]{0,63}$"
                           }
                         },
                         "required": [
@@ -16455,6 +16800,33 @@
                       "scopes",
                       "binding",
                       "pricing"
+                    ],
+                    "allOf": [
+                      {
+                        "if": {
+                          "properties": {
+                            "policy": {
+                              "const": "managed-kurir-provider/v1"
+                            }
+                          }
+                        },
+                        "then": {
+                          "properties": {
+                            "binding": {
+                              "properties": {
+                                "providerCode": {
+                                  "const": "emisell"
+                                }
+                              }
+                            },
+                            "scopes": {
+                              "const": [
+                                "shipping.read"
+                              ]
+                            }
+                          }
+                        }
+                      }
                     ]
                   },
                   "sha256": {
@@ -16472,7 +16844,10 @@
                             "const": "emisell.managed-shipping-release/v1"
                           },
                           "policy": {
-                            "const": "managed-kurir-provider/v1"
+                            "enum": [
+                              "managed-kurir-provider/v1",
+                              "managed-kurir-provider/v2"
+                            ]
                           },
                           "appId": {
                             "type": "string",
@@ -16513,12 +16888,19 @@
                             "const": "shipping/v1"
                           },
                           "scopes": {
-                            "type": "array",
-                            "minItems": 1,
-                            "maxItems": 1,
-                            "items": {
-                              "const": "shipping.read"
-                            }
+                            "oneOf": [
+                              {
+                                "const": [
+                                  "shipping.read"
+                                ]
+                              },
+                              {
+                                "const": [
+                                  "shipping.read",
+                                  "shipping.write"
+                                ]
+                              }
+                            ]
                           },
                           "binding": {
                             "type": "object",
@@ -16528,7 +16910,8 @@
                                 "const": "api-kurir"
                               },
                               "providerCode": {
-                                "const": "emisell"
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_-]{0,63}$"
                               }
                             },
                             "required": [
@@ -16555,6 +16938,33 @@
                           "scopes",
                           "binding",
                           "pricing"
+                        ],
+                        "allOf": [
+                          {
+                            "if": {
+                              "properties": {
+                                "policy": {
+                                  "const": "managed-kurir-provider/v1"
+                                }
+                              }
+                            },
+                            "then": {
+                              "properties": {
+                                "binding": {
+                                  "properties": {
+                                    "providerCode": {
+                                      "const": "emisell"
+                                    }
+                                  }
+                                },
+                                "scopes": {
+                                  "const": [
+                                    "shipping.read"
+                                  ]
+                                }
+                              }
+                            }
+                          }
                         ]
                       },
                       "sha256": {
@@ -16682,7 +17092,7 @@
       "path": "/api/v1/developer/managed-shipping-releases/{id}",
       "source": "managed-shipping.v1.json",
       "title": "Detail, signature dan audit release provider",
-      "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. Saat ini hanya api-kurir/emisell dengan shipping.read, tanpa endpoint/credential. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
+      "description": "Release provider terkelola, bukan OAuth aplikasi eksternal. Draft snapshot, app/organisasi, versi, scope dan binding engine/provider immutable. V1 tetap khusus api-kurir/emisell + shipping.read. V2 mendukung provider terpisah melalui policy eksplisit managed-kurir-provider/v2 dengan shipping.read dan opsional shipping.write; tanpa endpoint/credential. V2 belum installable pada komposisi server default. Admin/reviewer meninjau, hanya administrator menandatangani atau suspend. Signature memakai key managed-shipping terpisah. Assignment tersedia lewat Testing (releaseKind=managed_shipping). Release bukan consent/grant. Lifecycle dan grant tersedia melalui komposisi engine lokal terisolasi (ADR 0027); assignment approved tetap diperlukan, tidak memilih checkout otomatis. Retry mengembalikan state terkini, bukan menghidupkan release suspended. Cookie/Origin sesuai surface wajib.",
       "auth": "Cookie emisell_developer_session",
       "parameters": [
         {
@@ -16729,7 +17139,10 @@
                         "const": "emisell.managed-shipping-release/v1"
                       },
                       "policy": {
-                        "const": "managed-kurir-provider/v1"
+                        "enum": [
+                          "managed-kurir-provider/v1",
+                          "managed-kurir-provider/v2"
+                        ]
                       },
                       "appId": {
                         "type": "string",
@@ -16770,12 +17183,19 @@
                         "const": "shipping/v1"
                       },
                       "scopes": {
-                        "type": "array",
-                        "minItems": 1,
-                        "maxItems": 1,
-                        "items": {
-                          "const": "shipping.read"
-                        }
+                        "oneOf": [
+                          {
+                            "const": [
+                              "shipping.read"
+                            ]
+                          },
+                          {
+                            "const": [
+                              "shipping.read",
+                              "shipping.write"
+                            ]
+                          }
+                        ]
                       },
                       "binding": {
                         "type": "object",
@@ -16785,7 +17205,8 @@
                             "const": "api-kurir"
                           },
                           "providerCode": {
-                            "const": "emisell"
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_-]{0,63}$"
                           }
                         },
                         "required": [
@@ -16812,6 +17233,33 @@
                       "scopes",
                       "binding",
                       "pricing"
+                    ],
+                    "allOf": [
+                      {
+                        "if": {
+                          "properties": {
+                            "policy": {
+                              "const": "managed-kurir-provider/v1"
+                            }
+                          }
+                        },
+                        "then": {
+                          "properties": {
+                            "binding": {
+                              "properties": {
+                                "providerCode": {
+                                  "const": "emisell"
+                                }
+                              }
+                            },
+                            "scopes": {
+                              "const": [
+                                "shipping.read"
+                              ]
+                            }
+                          }
+                        }
+                      }
                     ]
                   },
                   "sha256": {
@@ -16829,7 +17277,10 @@
                             "const": "emisell.managed-shipping-release/v1"
                           },
                           "policy": {
-                            "const": "managed-kurir-provider/v1"
+                            "enum": [
+                              "managed-kurir-provider/v1",
+                              "managed-kurir-provider/v2"
+                            ]
                           },
                           "appId": {
                             "type": "string",
@@ -16870,12 +17321,19 @@
                             "const": "shipping/v1"
                           },
                           "scopes": {
-                            "type": "array",
-                            "minItems": 1,
-                            "maxItems": 1,
-                            "items": {
-                              "const": "shipping.read"
-                            }
+                            "oneOf": [
+                              {
+                                "const": [
+                                  "shipping.read"
+                                ]
+                              },
+                              {
+                                "const": [
+                                  "shipping.read",
+                                  "shipping.write"
+                                ]
+                              }
+                            ]
                           },
                           "binding": {
                             "type": "object",
@@ -16885,7 +17343,8 @@
                                 "const": "api-kurir"
                               },
                               "providerCode": {
-                                "const": "emisell"
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_-]{0,63}$"
                               }
                             },
                             "required": [
@@ -16912,6 +17371,33 @@
                           "scopes",
                           "binding",
                           "pricing"
+                        ],
+                        "allOf": [
+                          {
+                            "if": {
+                              "properties": {
+                                "policy": {
+                                  "const": "managed-kurir-provider/v1"
+                                }
+                              }
+                            },
+                            "then": {
+                              "properties": {
+                                "binding": {
+                                  "properties": {
+                                    "providerCode": {
+                                      "const": "emisell"
+                                    }
+                                  }
+                                },
+                                "scopes": {
+                                  "const": [
+                                    "shipping.read"
+                                  ]
+                                }
+                              }
+                            }
+                          }
                         ]
                       },
                       "sha256": {

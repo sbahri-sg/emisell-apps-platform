@@ -10,6 +10,29 @@ import (
 
 type accessRegistry struct{ manifest appmanifest.Manifest }
 
+func TestProviderAppEligibilityUsesSignedSourceAndSeparateRouting(t *testing.T) {
+	r := domain.IntentRelease{InstallPolicy: domain.ProviderAppPolicy, AppID: "app_raja", Version: "1.0.0", ExecutionProfile: domain.ProviderAppProfile, Scopes: []string{"shipping.read", "shipping.write"}, Capabilities: []string{"shipping/v1"}, ShippingProvider: &appmanifest.ShippingProviderBinding{Engine: "api-kurir", ProviderCode: "rajaongkir"}, ManagedSource: &domain.ManagedSource{ReleaseID: "r", AssignmentID: "a", MerchantID: "m", Environment: "staging"}}
+	s := Lifecycle{}
+	ctx := context.WithValue(context.Background(), managedReleaseKey{}, r)
+	if err := s.eligible(ctx, r); err != nil {
+		t.Fatal(err)
+	}
+	if len(r.RoutedCapabilities()) != 0 {
+		t.Fatal("provider installation changed checkout route")
+	}
+	r.Scopes = []string{"orders.write"}
+	ctx = context.WithValue(context.Background(), managedReleaseKey{}, r)
+	if err := s.eligible(ctx, r); err == nil {
+		t.Fatal("foreign scope allowed")
+	}
+	r.Scopes = []string{"shipping.read"}
+	r.ManagedSource = nil
+	ctx = context.WithValue(context.Background(), managedReleaseKey{}, r)
+	if err := s.eligible(ctx, r); err == nil {
+		t.Fatal("missing provenance allowed")
+	}
+}
+
 func (r accessRegistry) Get(context.Context, string) (appmanifest.Manifest, error) {
 	return r.manifest, nil
 }
