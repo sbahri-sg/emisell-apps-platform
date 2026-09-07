@@ -80,7 +80,7 @@ for (const name of names) {
       const op = pathItem[method];
       if (!op) continue;
       const security = op.security ?? specs[source].security ?? [];
-      const group = path.startsWith('/api/v1/admin/')
+      const group = (path.startsWith('/api/v1/admin/') || ['/api/v1/portal/login','/api/v1/portal/session'].includes(path))
         ? 'admin'
         : path.startsWith('/api/v1/developer/')
           ? 'developer'

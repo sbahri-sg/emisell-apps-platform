@@ -1,7 +1,13 @@
 {
  email {$ACME_EMAIL}
 }
-{$ADMIN_DOMAIN} {
+{$DASHBOARD_DOMAIN} {
+ handle /api/v1/portal/* {
+  reverse_proxy api:8087
+ }
+ handle /api/v1/developer/* {
+  reverse_proxy api:8087
+ }
  handle /api/v1/admin/* {
   reverse_proxy api:8087
  }
@@ -10,17 +16,6 @@
  }
  handle {
   reverse_proxy admin:3000
- }
-}
-{$DEVELOPER_DOMAIN} {
- handle /api/v1/developer/* {
-  reverse_proxy api:8087
- }
- handle /api/* {
-  respond 404
- }
- handle {
-  reverse_proxy developer:3000
  }
 }
 {$STORE_DOMAIN} {

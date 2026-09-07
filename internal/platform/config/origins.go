@@ -16,11 +16,18 @@ type PublicOrigins struct {
 
 func ReadPublicOrigins() (PublicOrigins, error) {
 	c := PublicOrigins{Admin: os.Getenv("EMISELL_ADMIN_ORIGIN"), Developer: os.Getenv("EMISELL_DEVELOPER_ORIGIN"), Store: os.Getenv("EMISELL_STORE_ORIGIN")}
+	if dashboard := os.Getenv("EMISELL_DASHBOARD_ORIGIN"); dashboard != "" {
+		if c.Admin != "" || c.Developer != "" {
+			return c, fmt.Errorf("use dashboard origin without legacy admin/developer origins")
+		}
+		c.Admin = dashboard
+		c.Developer = dashboard
+	}
 	if c.Admin == "" && c.Developer == "" && c.Store == "" && os.Getenv("EMISELL_ENV") != "production" {
 		return PublicOrigins{Admin: "http://localhost:4317", Developer: "http://localhost:4319", Store: "http://localhost:4318"}, nil
 	}
 	hosts := map[string]bool{}
-	for _, origin := range []string{c.Admin, c.Developer, c.Store} {
+	for index, origin := range []string{c.Admin, c.Developer, c.Store} {
 		u, err := url.Parse(origin)
 		if err != nil || u.Scheme != "https" || u.Host == "" || u.Path != "" || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" || u.User != nil || u.Opaque != "" || u.Port() != "" {
 			return c, fmt.Errorf("all three public origins must be HTTPS domain origins without path, port, credentials or query")
@@ -40,6 +47,9 @@ func ReadPublicOrigins() (PublicOrigins, error) {
 			}
 		}
 		if hosts[host] {
+			if index == 1 && os.Getenv("EMISELL_DASHBOARD_ORIGIN") != "" && c.Developer == c.Admin {
+				continue
+			}
 			return c, fmt.Errorf("Admin, Developer and Store must use distinct domains")
 		}
 		hosts[host] = true

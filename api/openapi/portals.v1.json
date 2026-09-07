@@ -16,6 +16,8 @@
     }
   ],
   "paths": {
+    "/api/v1/portal/login": {"post":{"operationId":"unifiedPortalLogin","description":"Unified dashboard login. Body contains only email/password; identity and surface resolved by backend. Ambiguous matching credentials rejected. Sets HttpOnly host-only emisell_portal_session at /api/v1; HTTPS uses Secure. Exact dashboard origin required. Legacy API permissions remain unchanged.","requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","additionalProperties":false,"required":["email","password"],"properties":{"email":{"type":"string"},"password":{"type":"string","format":"password"}}}}}},"responses":{"200":{"description":"Authenticated user with server-selected surface and role"},"401":{"description":"Invalid or ambiguous credentials"},"403":{"description":"Wrong origin"},"429":{"description":"Rate limited"}}}},
+    "/api/v1/portal/session": {"get":{"operationId":"unifiedPortalSession","security":[{"UnifiedPortalSession":[]}],"description":"Read unified cookie session. Requires exact dashboard Origin/Referer; returns user with backend-selected surface. Does not accept client role or organization overrides.","responses":{"200":{"description":"Authenticated user"},"401":{"description":"Missing or expired session"},"403":{"description":"Wrong origin"}}}},
     "/api/v1/admin/staff": {
       "get": {
         "operationId": "adminStaffDirectory",
@@ -2765,6 +2767,7 @@
       }
     },
     "securitySchemes": {
+      "UnifiedPortalSession": {"type":"apiKey","in":"cookie","name":"emisell_portal_session","description":"Shared dashboard cookie at /api/v1. HttpOnly, SameSite Strict, Secure for HTTPS. Server-side session remains bound to one authenticated surface; does not grant both roles."},
       "AdminSession": {
         "type": "apiKey",
         "in": "cookie",

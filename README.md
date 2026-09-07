@@ -2,7 +2,7 @@
 
 Platform untuk mengelola aplikasi, developer, review, rilis, distribusi pengujian, dan integrasi aplikasi dengan ekosistem Emisell.
 
-Repository ini berisi backend Go dan tiga frontend terpisah. Dashboard seller serta backend Emisell Core (`api-service`) berada di repository lain.
+Repository ini berisi backend Go, satu dashboard dengan fungsi Admin/Developer, dan App Store publik. Dashboard seller serta backend Emisell Core (`api-service`) berada di repository lain.
 
 > Status: pengembangan dan pengujian lokal. Fitur yang tersedia tidak berarti seluruh integrasi sudah siap produksi. Approval review, publikasi, instalasi, dan pemberian izin merupakan tahap yang berbeda.
 
@@ -10,9 +10,9 @@ Repository ini berisi backend Go dan tiga frontend terpisah. Dashboard seller se
 
 | Komponen | Lokasi | Alamat lokal |
 | --- | --- | --- |
-| Dashboard Admin | `web/dashboard` | http://localhost:4317 |
+| Dashboard Admin & Developer | `web/dashboard` | http://localhost:4317 |
 | App Store publik | `web/app-store` | http://localhost:4318 |
-| Portal Developer | `web/developer` | http://localhost:4319 |
+| Portal Developer legacy (opsional) | `web/developer` | http://localhost:4319 |
 | HTTP API | `cmd/server` | http://127.0.0.1:8087 |
 | ConnectRPC internal | `cmd/server` | http://127.0.0.1:8088 |
 | Worker | `cmd/worker` | Readiness/metrics pada port 8089 |
@@ -164,7 +164,9 @@ Sebagian panduan mencatat milestone historis. Untuk status endpoint gunakan kont
 
 ### Domain deployment
 
-Base URL publik dibaca dari `EMISELL_ADMIN_ORIGIN`, `EMISELL_DEVELOPER_ORIGIN`, dan `EMISELL_STORE_ORIGIN`. Lihat [contoh konfigurasi domain](deploy/domains.env.example). Isi ketiganya dengan domain HTTPS berbeda, tanpa path, port, atau trailing slash. Pada `EMISELL_ENV=production`, domain wajib diisi; konfigurasi yang tidak valid ditolak.
+Base URL publik dibaca dari `EMISELL_DASHBOARD_ORIGIN` dan `EMISELL_STORE_ORIGIN`. Lihat [contoh konfigurasi domain](deploy/domains.env.example). Isi keduanya dengan domain HTTPS berbeda, tanpa path, port, atau trailing slash. Pada `EMISELL_ENV=production`, domain wajib diisi; konfigurasi yang tidak valid ditolak. Konfigurasi legacy Admin/Developer masih diterima jika tidak memakai `EMISELL_DASHBOARD_ORIGIN`; jangan mencampur keduanya.
+
+Login gabungan memakai `/api/v1/portal/login` dan sesi `/api/v1/portal/session`. Backend memilih surface berdasarkan credential; client tidak boleh mengirim peran. Cookie gabungan tetap terikat satu surface di database, sehingga Developer tidak dapat memakai API Admin. Logout mencabut sesi. Credential yang cocok dengan dua akun sekaligus ditolak, bukan otomatis memilih Admin. Frontend Developer legacy tidak dijalankan oleh Compose baru.
 
 Frontend tetap meminta `/api/v1/...` pada origin sendiri. Reverse proxy harus meneruskan `Host`, `Origin`, dan `Referer` asli serta memisahkan route API sesuai portal. Backend tidak mengambil base URL dari `Host` atau `X-Forwarded-Host`. Cookie portal HTTPS memakai `Secure`, `HttpOnly`, dan host-only; tidak dibagikan antar-subdomain.
 

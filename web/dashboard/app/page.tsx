@@ -1,5 +1,5 @@
-import Portal from '@/components/portal';
+import UnifiedPortal from '@/components/unified-portal';
 
 export default function Home() {
-  return <Portal surface="admin" />;
+  return <UnifiedPortal />;
 }

@@ -90,7 +90,7 @@ func (s Server) Handler() http.Handler {
 			w.Header().Set("Cache-Control", "no-store")
 			w.Header().Set("X-Content-Type-Options", "nosniff")
 			// Reject DNS rebinding, foreign browser origins, and non-JSON unsafe requests.
-			if os.Getenv("EMISELL_ENV") == "production" && portalSurface(r.URL.Path) == "" && !strings.HasPrefix(r.URL.Path, "/api/v1/store/") && r.URL.Path != "/healthz" && r.URL.Path != "/readyz" {
+			if os.Getenv("EMISELL_ENV") == "production" && portalSurface(r.URL.Path) == "" && !strings.HasPrefix(r.URL.Path, "/api/v1/portal/") && !strings.HasPrefix(r.URL.Path, "/api/v1/store/") && r.URL.Path != "/healthz" && r.URL.Path != "/readyz" {
 				write(w, 404, map[string]string{"error": "not_found"})
 				return
 			}
@@ -105,6 +105,12 @@ func (s Server) Handler() http.Handler {
 				expectedOrigin := originURL.String()
 				if surface := portalSurface(r.URL.Path); surface != "" {
 					expectedOrigin = s.portalOrigin(surface)
+					if unifiedToken(r) != "" {
+						expectedOrigin = s.publicOrigins.Admin
+					}
+				}
+				if strings.HasPrefix(r.URL.Path, "/api/v1/portal/") {
+					expectedOrigin = s.publicOrigins.Admin
 				}
 				if !callback && !clientCheck && r.Header.Get("Origin") != expectedOrigin {
 					write(w, 403, map[string]string{"error": "forbidden_origin"})
@@ -155,6 +161,7 @@ func (s Server) Handler() http.Handler {
 	router.Post(paymentCallbackPath, s.paymentCallback)
 	router.Get("/api/v1/app/installation-access", s.appInstallationAccess)
 	s.portalRoutes(router)
+	s.unifiedRoutes(router)
 	s.publicCatalogRoutes(router)
 	s.appClientCheck(router)
 	var throttle sync.Mutex

@@ -177,7 +177,7 @@ void test('managed release alone never grants installation; local lifecycle is s
 void test('gateway handoff never advertises local live endpoints or active grants', () => {
   const planned = filterOperations('gateway', '');
   assert.equal(planned.length, 2);
-  assert.equal(operations.length, 92);
+  assert.equal(operations.length, 94);
   assert.equal(gateway.coverage.length, 108);
   assert.equal(gateway.live, false);
   assert.ok(

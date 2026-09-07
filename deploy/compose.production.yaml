@@ -6,8 +6,7 @@ x-api: &api
     dockerfile: Dockerfile
   environment:
     EMISELL_ENV: production
-    EMISELL_ADMIN_ORIGIN: https://${ADMIN_DOMAIN:?Set ADMIN_DOMAIN}
-    EMISELL_DEVELOPER_ORIGIN: https://${DEVELOPER_DOMAIN:?Set DEVELOPER_DOMAIN}
+    EMISELL_DASHBOARD_ORIGIN: https://${DASHBOARD_DOMAIN:?Set DASHBOARD_DOMAIN}
     EMISELL_STORE_ORIGIN: https://${STORE_DOMAIN:?Set STORE_DOMAIN}
     EMISELL_DATABASE_URL: postgres://emisell:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/emisell?sslmode=disable
   volumes:
@@ -46,11 +45,6 @@ services:
     build: {context: .., dockerfile: Dockerfile.web, args: {SURFACE: dashboard}}
     networks: [edge]
     restart: unless-stopped
-  developer:
-    image: emisell-apps-developer:local
-    build: {context: .., dockerfile: Dockerfile.web, args: {SURFACE: developer}}
-    networks: [edge]
-    restart: unless-stopped
   store:
     image: emisell-apps-store:local
     build: {context: .., dockerfile: Dockerfile.web, args: {SURFACE: app-store}}
@@ -59,8 +53,7 @@ services:
   proxy:
     image: caddy:2-alpine
     environment:
-      ADMIN_DOMAIN: ${ADMIN_DOMAIN:?Set ADMIN_DOMAIN}
-      DEVELOPER_DOMAIN: ${DEVELOPER_DOMAIN:?Set DEVELOPER_DOMAIN}
+      DASHBOARD_DOMAIN: ${DASHBOARD_DOMAIN:?Set DASHBOARD_DOMAIN}
       STORE_DOMAIN: ${STORE_DOMAIN:?Set STORE_DOMAIN}
       ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL}
     ports: ['80:80', '443:443']
@@ -70,7 +63,7 @@ services:
       - caddy_config:/config
     networks: [edge]
     restart: unless-stopped
-    depends_on: [api, admin, developer, store]
+    depends_on: [api, admin, store]
 volumes:
   postgres_data:
   platform_keys:

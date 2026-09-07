@@ -37,6 +37,9 @@ func (s Server) setPortalCookie(w http.ResponseWriter, surface, token string, ag
 	http.SetCookie(w, &http.Cookie{Name: portalCookie(surface), Value: token, Path: "/api/v1/" + surface, HttpOnly: true, Secure: s.publicOrigins.Secure, SameSite: http.SameSiteStrictMode, MaxAge: age})
 }
 func portalToken(r *http.Request, surface string) string {
+	if token := unifiedToken(r); token != "" {
+		return token
+	}
 	c, e := r.Cookie(portalCookie(surface))
 	if e != nil {
 		return ""
@@ -54,6 +57,9 @@ func (s Server) portalRoutes(router chi.Router) {
 			r.Use(func(next http.Handler) http.Handler {
 				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					expected := s.portalOrigin(surface)
+					if unifiedToken(r) != "" {
+						expected = s.publicOrigins.Admin
+					}
 					if s.publicOrigins.Secure {
 						expectedURL, _ := url.Parse(expected)
 						if r.Host != expectedURL.Host {
@@ -216,6 +222,7 @@ func (s Server) portalRoutes(router chi.Router) {
 						return
 					}
 					s.setPortalCookie(w, surface, "", -1)
+					s.unifiedCookie(w, "", -1)
 					write(w, 200, map[string]bool{"ok": true})
 				})
 				r.Get("/submissions", func(w http.ResponseWriter, r *http.Request) {

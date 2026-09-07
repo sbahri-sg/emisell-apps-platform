@@ -200,7 +200,15 @@ function Navigation({
     </Sidebar>
   );
 }
-export default function Portal({ surface }: { surface: Surface }) {
+export default function Portal({
+  surface,
+  unifiedLogin,
+  onSignedOut,
+}: {
+  surface: Surface;
+  unifiedLogin?: (email: string, password: string) => Promise<void>;
+  onSignedOut?: () => void;
+}) {
   const developer = surface === 'developer';
   const [api] = useState(() => new PortalAPI(surface));
   const [session, setSession] = useState<Session | null>(null);
@@ -396,19 +404,29 @@ export default function Portal({ surface }: { surface: Surface }) {
           </span>
         </div>
         <section className="login-panel">
-          {!developer && <p className="eyebrow">ADMIN PLATFORM</p>}
+          {!developer && (
+            <p className="eyebrow">
+              {unifiedLogin ? 'EMISELL APPS' : 'ADMIN PLATFORM'}
+            </p>
+          )}
           <h2>
             {developer ? 'Masuk sebagai developer' : 'Masuk ke dashboard'}
           </h2>
           <p>
-            Gunakan akun khusus {developer ? 'developer' : 'administrasi'}{' '}
-            platform.
+            {unifiedLogin
+              ? 'Masuk dengan akun Admin, staf, atau Developer Anda.'
+              : `Gunakan akun khusus ${developer ? 'developer' : 'administrasi'} platform.`}
           </p>
           {banners}
           <form
             onSubmit={(event) => {
               event.preventDefault();
               void perform(async () => {
+                if (unifiedLogin) {
+                  await unifiedLogin(email, password);
+                  setPassword('');
+                  return;
+                }
                 await api.request('/login', 'POST', { email, password });
                 setPassword('');
                 setShowPassword(false);
@@ -494,6 +512,7 @@ export default function Portal({ surface }: { surface: Surface }) {
         logout={() =>
           void perform(async () => {
             await api.request('/logout', 'POST', {});
+            onSignedOut?.();
             setSession(null);
             setDataReady(false);
             setDrafts([]);
