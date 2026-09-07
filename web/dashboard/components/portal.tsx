@@ -183,7 +183,7 @@ function Navigation({
         </SidebarMenu>
         <div className="sidebar-note">
           <span className="local-dot" />
-          Development lokal<p>Semua aplikasi gratis.</p>
+          Emisell Apps<p>Platform aplikasi dan integrasi.</p>
         </div>
       </SidebarContent>
       <SidebarFooter>
@@ -400,7 +400,7 @@ export default function Portal({
           )}
           <span className="local-chip">
             <span className="local-dot" />
-            Development lokal · :{developer ? '4319' : '4317'}
+            Emisell Apps Platform
           </span>
         </div>
         <section className="login-panel">
