@@ -217,7 +217,7 @@ func (p *Products) read(ctx context.Context, access delegation, id string, query
 	if err != nil {
 		return nil, err
 	}
-	path := "/internal/app-platform/v1/products"
+	path := "/v1/products"
 	if id != "" {
 		path += "/" + id
 	}
@@ -230,6 +230,9 @@ func (p *Products) read(ctx context.Context, access delegation, id string, query
 	request.Header.Set("X-Emisell-Installation-ID", access.InstallationID)
 	request.Header.Set("X-Request-ID", requestID)
 	request.Header.Set("Accept", "application/json")
+	// Select app authentication on the existing Emisell product endpoints.
+	// This marker is not a credential: the signed assertion is still required.
+	request.Header.Set("X-Emisell-App-Access", "resource-v1")
 	response, err := p.client.Do(request)
 	if err != nil {
 		return nil, unavailable()
@@ -251,6 +254,11 @@ func (p *Products) read(ctx context.Context, access delegation, id string, query
 			return nil, &Error{Status: 429, Code: "rate_limited", RetryAfter: retry}
 		}
 		// Internal assertion failures are a service fault, not invalid provider credentials.
+		return nil, unavailable()
+	}
+	// Never accept a guest/seller response from an older server lacking the app
+	// authentication boundary, even if its JSON happens to match our projection.
+	if values := response.Header.Values("X-Emisell-App-Access"); len(values) != 1 || values[0] != "resource-v1" {
 		return nil, unavailable()
 	}
 	const maxBody = 4 << 20

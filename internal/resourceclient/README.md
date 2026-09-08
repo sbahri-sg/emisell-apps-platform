@@ -12,6 +12,23 @@ Each call issues a fresh 45-second RS256 assertion for the existing api-service
 resource contract. It disables proxies and redirects, limits timeout/body size,
 validates response shape and permits plaintext only on sandbox loopback.
 
+Reads now use **`GET /v1/products`** and **`GET /v1/products/:id`**, the existing
+Emisell URLs, with `X-Emisell-App-Access: resource-v1`. The marker selects app
+authentication; it does not replace the signature, installation/merchant binding
+or scope. API-service keeps seller/public cookie traffic on its original path and
+shares tenant-pinned product data access between both callers. App responses remain
+limited to this documented projection; URL reuse does not expose Dashboard fields.
+
+A successful response must acknowledge `X-Emisell-App-Access: resource-v1`.
+Legacy/guest 200 responses, redirects and malformed acknowledgements are rejected.
+There is no automatic fallback to a public or former internal URL. Deploy api-service
+first: its old `/internal/app-platform/v1/products` compatibility alias still works
+for an old Platform client, sharing the same policy/limits. Then deploy this client.
+No production activation or widening of permissions is included in this change.
+
+The matching api-service change is commit `a26dc958` on
+`integration-app-platform`; it must be deployed before this adapter is rolled out.
+
 This is the existing private REST product contract, **not** an implementation of
 the distinct ProductService protobuf handoff (different projection/filter/cursor
 semantics). No public token endpoint, route or production bootstrap is activated.
