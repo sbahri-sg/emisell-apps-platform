@@ -53,7 +53,7 @@ func TestStrictPermissionInput(t *testing.T) {
 	if _, err := Decode(raw); err != nil {
 		t.Fatal(err)
 	}
-	for _, scope := range [][]string{nil, {}, {ReadProducts, ReadProducts}, {"products.read"}, {"read_orders"}, {"write_products"}, {ReadProducts, "read_orders"}} {
+	for _, scope := range [][]string{nil, {}, {ReadProducts, ReadProducts}, {"products.read"}, {"write_orders"}, {"write_products"}, {ReadProducts, "read_orders"}} {
 		changed := m
 		changed.RequiredScopes = scope
 		if changed.Validate() == nil {
@@ -71,5 +71,15 @@ func TestStrictPermissionInput(t *testing.T) {
 	}
 	if _, err := uirelease.Decode(raw); err == nil {
 		t.Fatal("resource contract accepted as UI-only")
+	}
+}
+
+func TestReviewedReadScopeSubsets(t *testing.T) {
+	for _, scopes := range [][]string{{ReadInventory}, {ReadLocations}, {ReadCatalogs}, {ReadCollections}, {ReadCatalogs, ReadCollections}, {ReadOrders}, {ReadShipping}, {ReadOrders, ReadShipping}, {ReadCatalogs, ReadCollections, ReadInventory, ReadLocations, ReadOrders, ReadProducts, ReadShipping}} {
+		m := fixture()
+		m.RequiredScopes = scopes
+		if m.Validate() != nil {
+			t.Fatal("supported canonical subset rejected", scopes)
+		}
 	}
 }

@@ -34,7 +34,7 @@ func TestNodeStarterIdentityContract(t *testing.T) {
 		t.Fatal(err)
 	}
 	input, _ := json.Marshal(map[string]any{"token": token, "key": string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: der})), "identity": id})
-	module, err := filepath.Abs("../../packages/developer-cli/templates/embedded/server/identity.mjs")
+	module, err := filepath.Abs("../../packages/developer-cli/templates/react-router/server/identity.mjs")
 	if err != nil {
 		t.Fatal(err)
 	}

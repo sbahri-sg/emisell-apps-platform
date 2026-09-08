@@ -96,7 +96,7 @@ export default function ResourceReleases({
     >
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="font-semibold">Aplikasi dengan izin produk</h2>
+          <h2 className="font-semibold">Aplikasi dengan izin data toko</h2>
           <p className="text-sm text-muted-foreground">
             Pengajuan asli dari API. Persetujuan rilis bukan izin akses toko.
           </p>
@@ -114,7 +114,7 @@ export default function ResourceReleases({
       ) : error ? (
         <p role="alert">{error}</p>
       ) : rows.length === 0 ? (
-        <p>Belum ada pengajuan izin produk.</p>
+        <p>Belum ada pengajuan izin data toko.</p>
       ) : (
         <ul className="space-y-3">
           {rows.map((r) => (
@@ -126,12 +126,12 @@ export default function ResourceReleases({
               <p className="text-sm">
                 Versi {r.manifest.ui.version} ·{' '}
                 {r.manifest.requiredScopes
-                  .map((s) => (s === 'read_products' ? 'Membaca produk' : s))
+                  .map((s) => (s === 'read_catalogs' ? 'Membaca katalog' : s === 'read_collections' ? 'Membaca koleksi' : s === 'read_inventory' ? 'Membaca stok' : s === 'read_locations' ? 'Membaca lokasi' : s === 'read_products' ? 'Membaca produk' : s === 'read_orders' ? 'Membaca pesanan' : s === 'read_shipping' ? 'Membaca konfigurasi pengiriman' : s))
                   .join(', ')}
               </p>
               <p className="text-sm text-muted-foreground">
                 Assignment Testing, persetujuan seller, dan instalasi aktif
-                tetap diperlukan untuk akses produk.
+                tetap diperlukan untuk akses data toko.
               </p>
               <div className="flex gap-2">
                 {resourceReviewActions(

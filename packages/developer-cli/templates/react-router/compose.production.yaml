@@ -1,0 +1,24 @@
+# Host TLS reverse proxy must preserve the public Host and forward only here.
+# Run this file separately; do not merge it with compose.yaml (preview command).
+services:
+  app:
+    build:
+      context: .
+      target: runtime
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+      EMISELL_APP_URL: ${EMISELL_APP_URL:?Set the HTTPS app origin}
+      EMISELL_DASHBOARD_ORIGIN: ${EMISELL_DASHBOARD_ORIGIN:?Set the HTTPS seller origin}
+      EMISELL_TLS_TERMINATION: external
+      EMISELL_BACKEND_MODE: ${EMISELL_BACKEND_MODE:-disabled}
+    ports:
+      - "127.0.0.1:3000:3000"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    stop_grace_period: 15s

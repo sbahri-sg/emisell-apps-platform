@@ -179,6 +179,13 @@ func NewProducts(options Options) (*Products, error) {
 
 // Each call mints a fresh, narrowly scoped assertion after validating installation context.
 func (p *Products) assertion(access delegation) (string, error) {
+	return p.scopedAssertion(access, ReadProducts)
+}
+
+func (p *Products) scopedAssertion(access delegation, scope string) (string, error) {
+	if scope != ReadProducts && scope != "read_orders" && scope != "read_shipping" && scope != "read_catalogs" && scope != "read_collections" && scope != "read_inventory" && scope != "read_locations" {
+		return "", unavailable()
+	}
 	// Only constructed inside the current lifecycle access gate.
 	now := time.Now().UTC().Unix()
 	expiry := now + 45
@@ -188,7 +195,7 @@ func (p *Products) assertion(access delegation) (string, error) {
 	}
 	header, _ := json.Marshal(map[string]string{"alg": "RS256", "typ": "JWT", "kid": p.keyID})
 	payload, _ := json.Marshal(map[string]any{"iss": "emisell-app-platform", "aud": "emisell-api-service", "sub": "app-gateway", "iat": now, "nbf": now, "exp": expiry,
-		"jti": base64.RawURLEncoding.EncodeToString(jti), "merchant_id": access.MerchantID, "installation_id": access.InstallationID, "app_id": access.AppID, "environment": access.Environment, "scope": []string{ReadProducts}})
+		"jti": base64.RawURLEncoding.EncodeToString(jti), "merchant_id": access.MerchantID, "installation_id": access.InstallationID, "app_id": access.AppID, "environment": access.Environment, "scope": []string{scope}})
 	unsigned := base64.RawURLEncoding.EncodeToString(header) + "." + base64.RawURLEncoding.EncodeToString(payload)
 	digest := sha256.Sum256([]byte(unsigned))
 	sig, err := rsa.SignPKCS1v15(rand.Reader, p.key, crypto.SHA256, digest[:])

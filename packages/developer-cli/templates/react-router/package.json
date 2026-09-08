@@ -1,0 +1,33 @@
+{
+  "name": "emisell-app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "dev": "node server/standalone.mjs",
+    "build": "react-router build",
+    "typecheck": "react-router typegen && tsc --noEmit",
+    "start": "node server/standalone.mjs --built",
+    "docker:build": "docker build --target runtime -t emisell-app .",
+    "docker:preview": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "healthcheck": "node server/healthcheck.mjs"
+  },
+  "dependencies": {
+    "@react-router/express": "7.18.3",
+    "@react-router/node": "7.18.3",
+    "express": "5.2.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-router": "7.18.3"
+  },
+  "devDependencies": {
+    "@react-router/dev": "7.18.3",
+    "@types/node": "^22.0.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "typescript": "5.9.3",
+    "vite": "7.3.6"
+  }
+}

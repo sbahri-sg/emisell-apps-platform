@@ -78,7 +78,7 @@ export async function run(args, { store = new SessionStore(), fetcher = fetch, o
   }
   if (w.length === 2 && w[0] === 'auth' && ['login', 'logout'].includes(w[1])) w.shift();
   const command = w.slice(0, 2).join(' ');
-  if (w[0] === 'app' && ['init', 'dev', 'info', 'doctor'].includes(w[1]) && w.length === 2) {
+  if (w[0] === 'app' && ['init', 'dev', 'build', 'info', 'doctor'].includes(w[1]) && w.length === 2) {
     return runLocal(w[1], f, { ...localOptions, output });
   }
   if (['app deploy', 'app release', 'app config'].includes(command)) {
@@ -122,7 +122,7 @@ export async function run(args, { store = new SessionStore(), fetcher = fetch, o
     const fields = ['name', 'summary', 'version', 'mode', 'url', 'reason'];
     const accepted = w[0] === 'resource-ui' ? [...fields, 'requiredScopes'] : fields;
     if (!body || Array.isArray(body) || typeof body !== 'object' || Object.keys(body).some(k => !accepted.includes(k)) || !fields.every(k => typeof body[k] === 'string' && body[k].trim())) throw Error('Dokumen UI harus berisi name, summary, version, mode, url, reason tanpa credential.');
-    if (w[0] === 'resource-ui' && (!Array.isArray(body.requiredScopes) || body.requiredScopes.length !== 1 || body.requiredScopes[0] !== 'read_products')) throw Error('Resource UI hanya mendukung requiredScopes: ["read_products"]. Pengajuan tidak memberi akses toko.');
+    if (w[0] === 'resource-ui' && (!Array.isArray(body.requiredScopes) || !body.requiredScopes.length || body.requiredScopes.length > 7 || !body.requiredScopes.every((s,i)=>['read_catalogs','read_collections','read_inventory','read_locations','read_orders','read_products','read_shipping'].includes(s) && (i === 0 || body.requiredScopes[i-1] < s)))) throw Error('requiredScopes harus unik dan terurut: read_catalogs, read_collections, read_inventory, read_locations, read_orders, read_products, read_shipping. Pilih hanya izin yang dibutuhkan; pengajuan tidak memberi akses toko.');
   } else if (command === 'testing list' && w.length === 2) {
     allowed(f, ['after-id']);
     path = '/test-assignments' + (f['after-id'] ? `?afterId=${id(f['after-id'])}` : '');

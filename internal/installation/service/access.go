@@ -185,7 +185,7 @@ func (s Lifecycle) Get(ctx context.Context, p identity.ServicePrincipal, actor, 
 	a, err := s.Repo.GetAccess(ctx, o, id)
 	if err == nil && a.Release.InstallPolicy == domain.ResourceAppPolicy {
 		a.ReviewedUILaunch = nil
-		_ = s.WithResourceAccess(ctx, p, actor, id, []string{"read_products"}, func(current domain.Access) error {
+		_ = s.WithResourceAccess(ctx, p, actor, id, a.Release.Scopes, func(current domain.Access) error {
 			if current.Release.UIBinding != nil {
 				b := *current.Release.UIBinding
 				a.ReviewedUILaunch = &b

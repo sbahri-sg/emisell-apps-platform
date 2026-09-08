@@ -56,7 +56,7 @@ API. Browser-supplied merchant IDs or scopes cannot override this binding.
 
 The local starter `/api/products` requires explicit `verifySession` and
 `readProducts` backend adapters; identity verification alone cannot read data.
-The products CLI template displays five products per page, projecting only ID,
+The CLI template's product page displays five products per page, projecting only ID,
 name and price, plus opaque `meta.nextCursor`. The local endpoint accepts only
 `q` (trimmed name/SKU search, at most 100 UTF-8 bytes), `cursor` (at most 1024
 characters) and `limit` (1–20, default 5). Unknown or duplicate filters and
@@ -66,12 +66,14 @@ installation, app, environment and filters; changing search resets pagination.
 Responses are not cached and the demo reads on demand, not by background polling.
 Write access and order/customer access are not part of this test.
 
-Generate the reusable starter with `emisell app init --template products --dir
+Generate the reusable React Router starter with `emisell app init --path
 product-reader --parent-origin https://seller.emisell.test` using the local
-0.2.0 candidate. Its README describes operator configuration and the complete
-review/testing/consent flow. `local-products-backend.mjs` uses an explicitly
-configured private client-secret file, never browser configuration or a
-repository secret. npm publication and production deployment are separate.
+0.4.0 candidate, then run `npm install` in that project. README and TESTING.md
+describe operator configuration and the complete review/testing/consent flow.
+`server/backend.mjs` loads private local settings; `server/local-products.mjs`
+uses an explicitly configured private client-secret file, never browser
+configuration or a repository secret. npm publication and production deployment
+are separate. The legacy HTML generators are removed, not existing projects.
 
 Validation covers signed-release ownership, idempotent assignment requests,
 admin approval, merchant isolation, immutable source, cursor bounds, consent,

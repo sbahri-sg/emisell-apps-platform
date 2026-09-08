@@ -44,7 +44,9 @@ void test('documentation covers all contract groups with unique, resolved operat
       o.method === 'RPC',
     );
   }
-  assert.equal(filterOperations('core', '').length, 22);
+  assert.equal(filterOperations('core', '').length, 23);
+  const registration = operations.find((o) => o.path.endsWith('ConnectionService/EnsureMerchant'))!;
+  assert.match(registration.auth, /no app installation or resource grant/);
   const ui = operations.filter((o) => o.source === 'core-reviewed-ui.v1.json');
   assert.equal(ui.length, 2);
   assert.ok(ui.every((o) => o.group === 'core'));
@@ -178,7 +180,7 @@ void test('managed release alone never grants installation; local lifecycle is s
 void test('gateway handoff never advertises local live endpoints or active grants', () => {
   const planned = filterOperations('gateway', '');
   assert.equal(planned.length, 2);
-  assert.equal(operations.length, 96);
+  assert.equal(operations.length, 97);
   assert.equal(gateway.coverage.length, 108);
   assert.equal(gateway.live, false);
   assert.ok(

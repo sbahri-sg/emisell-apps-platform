@@ -9,7 +9,7 @@ existing tanpa menyalin key issuer atau cookie seller:
 export EMISELL_LOCAL_CORE_ORIGIN=http://127.0.0.1:8000
 export EMISELL_LOCAL_APP_ID=app_REPLACE_WITH_REAL_ID
 export EMISELL_LOCAL_CLIENT_ID=eac_REPLACE_WITH_REAL_ID
-emisell app dev --dir my-app --backend ./my-app/local-core-backend.mjs
+emisell app dev --path my-app
 ```
 
 ID contoh wajib diganti dengan ID rilis/app-client yang sebenarnya. Origin Core
@@ -30,11 +30,13 @@ Jangan mengganti ID dengan klaim dari browser agar terlihat berhasil.
 
 ## Verifier signature mandiri
 
-Jalankan `emisell app dev --dir my-app --backend ./my-app/backend.mjs`.
+Untuk adapter mandiri buatan developer, jalankan
+`emisell app dev --path my-app --backend ./my-app/my-backend.mjs`.
 Opsi backend mengeksekusi modul Node lokal: gunakan hanya kode yang Anda percaya.
-Tanpa opsi ini, atau jika konfigurasi masih kosong, endpoint tetap 503.
+Tanpa opsi ini, adapter bawaan memakai konfigurasi privat melalui server/backend.mjs.
+Jika konfigurasi kosong, endpoint tetap 503.
 
-Konfigurasi `createIdentityVerifier` pada backend.mjs:
+Ekspor `verifySession = createIdentityVerifier(...)` dari modul tersebut, dengan:
 
 - keys: map key ID ke public key Ed25519 SPKI PEM dari operator, bukan dari JWT/browser.
 - issuer: issuer Platform tepercaya, audience: app-client ID yang direview.
@@ -55,4 +57,6 @@ revocation diketahui saat request berikutnya. Operasi bisnis tetap harus memerik
 izin sendiri. Identitas ini bukan resource token atau izin webhook.
 
 File server dan konfigurasi tidak disajikan ke browser. Jangan simpan credential
-di public/. Server preview khusus loopback, bukan deployment produksi.
+di public/. Server Vite khusus loopback. Runtime web hasil build/Docker terpisah
+tersedia melalui DEPLOYMENT.md; adapter identitas/resource production tetap harus
+disambungkan ke layanan yang benar, bukan endpoint preview lokal.

@@ -6,7 +6,8 @@ import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { run } from '../src/cli.mjs';
-import { initApp, startDev } from '../src/development.mjs';
+import { initApp } from '../src/development.mjs';
+import { startTestServer as startDev } from './http-fixture.mjs';
 import { findProject, readProject } from '../src/project.mjs';
 
 const bin = fileURLToPath(new URL('../bin/emisell.mjs', import.meta.url));
@@ -21,16 +22,16 @@ async function fixture(t) {
 
 test('interactive init collects name, destination, template and trusted parent before creating files', async t => {
   const { cwd, messages, options } = await fixture(t);
-  const answers = ['My Product App', 'my-product-app', '2', 'https://seller.emisell.test'];
+  const answers = ['My Product App', 'my-product-app', 'https://seller.emisell.test'];
   const questions = [];
   await run(['app', 'init'], { ...options, interactive: true, prompt: async question => {
     assert.deepEqual(await readdir(cwd), []);
     questions.push(question); return answers.shift();
   } });
-  assert.equal(questions.length, 4);
+  assert.equal(questions.length, 3);
   const config = await readProject(join(cwd, 'my-product-app'));
   assert.equal(config.name, 'My Product App');
-  assert.equal(config.template, 'products');
+  assert.equal(config.template, 'react-router');
   assert.equal(config.parentOrigin, 'https://seller.emisell.test');
   assert.match(messages[0], /emisell app doctor/);
   assert.match(messages[0], /Belum terhubung ke toko/);
@@ -53,7 +54,7 @@ test('name/path flags, short aliases and legacy --dir remain noninteractive and 
   await run(['app', 'init', '-n', 'New App', '-p', 'new-app', '--parent-origin', 'http://localhost:3000'], options);
   assert.equal((await readProject(join(cwd, 'new-app'))).name, 'New App');
   await run(['app', 'init', '--dir', 'old-app', '--parent-origin', 'http://localhost:3000'], options);
-  assert.equal((await readProject(join(cwd, 'old-app'))).template, 'embedded');
+  assert.equal((await readProject(join(cwd, 'old-app'))).template, 'react-router');
   await run(['app', 'init', '--name', 'Name Only', '--parent-origin', 'http://localhost:3000'], options);
   assert.equal((await readProject(join(cwd, 'name-only'))).name, 'Name Only');
   const before = await readFile(join(cwd, 'old-app', 'emisell.app.json'), 'utf8');
@@ -64,7 +65,7 @@ test('name/path flags, short aliases and legacy --dir remain noninteractive and 
 
 test('info and doctor find project from subdirectories without exposing secrets or executing backend', async t => {
   const { cwd, options, messages } = await fixture(t);
-  const project = await initApp(join(cwd, 'app'), 'http://localhost:3000', 'products');
+  const project = await initApp(join(cwd, 'app'), 'http://localhost:3000', 'react-router');
   const file = join(project, 'emisell.app.json');
   const config = JSON.parse(await readFile(file));
   const secret = 'private-canary-must-not-be-shown';
@@ -74,13 +75,14 @@ test('info and doctor find project from subdirectories without exposing secrets 
   await writeFile(join(project, '.env'), 'SECRET=' + secret);
   await writeFile(join(project, 'trap.mjs'), 'throw Error("Backend must not execute");');
   const code = await run(['app', 'doctor', '--json'], { ...options, cwd: join(project, 'server') });
-  assert.equal(code, 0);
+  assert.equal(code, 1);
   const report = JSON.parse(messages.at(-1));
-  assert.equal(report.readyForLocalPreview, true);
+  assert.equal(report.readyForLocalPreview, false);
+  assert.equal(report.checks.find(check => check.id === 'dependencies').status, 'error');
   assert.equal(report.storeAccess, 'not-checked');
   await run(['app', 'info', '-j'], { ...options, cwd: join(project, 'public') });
   const info = JSON.parse(messages.at(-1));
-  assert.deepEqual(info.templateScopes, ['read_products']);
+  assert.deepEqual(info.templateScopes, ['read_catalogs', 'read_collections', 'read_inventory', 'read_locations', 'read_orders', 'read_products', 'read_shipping']);
   assert.equal(info.endpointProofConfigured, true);
   assert.equal(info.storeAccess, 'not-checked');
   assert.equal(messages.join('').includes(secret), false);
@@ -111,14 +113,14 @@ test('legacy configs and asset errors are checked consistently without granting 
   const project = await initApp(join(cwd, 'app'), 'http://localhost:3000');
   const file = join(project, 'emisell.app.json');
   const config = JSON.parse(await readFile(file));
-  delete config.name; delete config.template;
+  delete config.name;
   await writeFile(file, JSON.stringify(config));
-  assert.equal((await readProject(project)).template, 'embedded');
-  assert.equal(await run(['app', 'doctor', '--dir', project, '--json'], options), 0);
-  await unlink(join(project, 'public', 'app.mjs'));
+  assert.equal((await readProject(project)).template, 'react-router');
+  assert.equal(await run(['app', 'doctor', '--dir', project, '--json'], options), 1);
+  await unlink(join(project, 'app', 'root.tsx'));
   assert.equal(await run(['app', 'doctor', '--dir', project, '--json'], options), 1);
   assert.equal(JSON.parse(messages.at(-1)).checks.find(check => check.id === 'assets').status, 'error');
-  await symlink(join(project, 'emisell.app.json'), join(project, 'public', 'app.mjs'));
+  await symlink(join(project, 'emisell.app.json'), join(project, 'app', 'root.tsx'));
   assert.equal(await run(['app', 'doctor', '--dir', project], options), 1);
 });
 
@@ -140,6 +142,7 @@ test('dev works from project cwd/subdirectory and preserves explicit backend pat
       },
       output: value => {
         messages.push(value);
+        if (!value.startsWith('Preview:')) return;
         read = fetch(`http://127.0.0.1:${server.address().port}`).then(async res => {
           assert.equal(res.status, 200); await res.arrayBuffer();
         }).finally(() => { server.closeAllConnections(); server.close(); });
@@ -148,7 +151,7 @@ test('dev works from project cwd/subdirectory and preserves explicit backend pat
     await read;
     assert.equal(code, 0);
   }
-  assert.match(messages[0], /akses data ditolak/);
+  assert.match(messages.join('\n'), /akses data ditolak/);
 });
 
 test('occupied port gets actionable error and existing preview stays running', async t => {

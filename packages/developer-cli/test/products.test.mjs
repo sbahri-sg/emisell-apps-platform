@@ -6,8 +6,9 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
-import { initApp, startDev } from '../src/development.mjs';
-import { productQuery, productPage } from '../templates/products/server/product-query.mjs';
+import { initApp } from '../src/development.mjs';
+import { startTestServer as startDev } from './http-fixture.mjs';
+import { productQuery, productPage } from '../templates/react-router/server/product-query.mjs';
 import { run } from '../src/cli.mjs';
 
 test('product queries and projected pages are bounded and reject authority overrides', () => {
@@ -21,8 +22,8 @@ test('generated products template serves UI only and forwards search/pagination 
   const base = await realpath(await mkdtemp(join(tmpdir(), 'emisell-products-')));
   t.after(() => rm(base, { recursive: true, force: true }));
   const root = join(base, 'app');
-  await run(['app', 'init', '--dir', root, '--parent-origin', 'https://seller.emisell.test', '--template', 'products'], { output(){} });
-  assert.equal(JSON.parse(await readFile(join(root, 'emisell.app.json'), 'utf8')).template, 'products');
+  await run(['app', 'init', '--dir', root, '--parent-origin', 'https://seller.emisell.test', '--template', 'react-router'], { output(){} });
+  assert.equal(JSON.parse(await readFile(join(root, 'emisell.app.json'), 'utf8')).template, 'react-router');
   assert.match(await readFile(join(root, 'README.md'), 'utf8'), /--release-kind ui_resource/);
   await assert.rejects(initApp(join(base, 'invalid'), 'http://localhost:3000', 'other'), /Template/);
   let active = true; const reads = [];
@@ -32,7 +33,7 @@ test('generated products template serves UI only and forwards search/pagination 
   }, readProducts: async (token, {query}) => { reads.push(query); return { data:[{id:'p',name:'Blue',price:'1000'}], meta:{nextCursor:'page.sig'} }; } });
   t.after(() => { server.closeAllConnections(); server.close(); });
   const url = `http://127.0.0.1:${server.address().port}`;
-  for (const asset of ['/', '/products.css', '/app.mjs']) assert.equal((await fetch(url+asset)).status, 200);
+  for (const asset of ['/', '/products']) assert.equal((await fetch(url+asset)).status, 200);
   for (const file of ['/local-products-backend.mjs', '/server/local-products.mjs', '/client.secret', '/emisell.app.json']) assert.equal((await fetch(url+file)).status, 404);
   const send = query => fetch(url+'/api/products'+query, {method:'POST',headers:{Origin:url,Authorization:'Bearer abc.def.sig'}});
   assert.equal((await send('?q=Blue&limit=2&cursor=page.sig')).status, 200);
@@ -44,18 +45,18 @@ test('generated products template serves UI only and forwards search/pagination 
 test('generated local product backend pins Core, rotates private secrets and never follows redirects', async t => {
   const base = await realpath(await mkdtemp(join(tmpdir(), 'emisell-reader-')));
   t.after(() => rm(base, { recursive:true, force:true }));
-  const root = await initApp(join(base, 'app'), 'http://localhost:3000', 'products');
+  const root = await initApp(join(base, 'app'), 'http://localhost:3000', 'react-router');
   const { createLocalProductReader } = await import(pathToFileURL(join(root,'server/local-products.mjs')));
   const appId = 'app_'+'A'.repeat(26), clientId = 'eac_'+'A'.repeat(26), secretFile = join(base,'client.secret');
   let secret = 'eacs_'+'s'.repeat(43), status=200, reads=0;
   await writeFile(secretFile,secret,{mode:0o600});
   const core = createServer((req,res) => {
-    reads++; assert.equal(req.url,'/v1/app-platform/core/reviewed-ui/products?limit=2&q=Blue&cursor=page.sig');
+    reads++; assert.equal(req.url,'/v1/products?limit=2&q=Blue&cursor=page.sig');
     assert.equal(req.headers['x-emisell-app-secret'],secret);
     assert.equal(req.headers['x-emisell-app-client'],clientId);
     assert.equal(req.headers.authorization,'Bearer abc.def.sig');
     assert.equal(req.headers.cookie,undefined); assert.equal(req.headers.origin,undefined);
-    res.writeHead(status,{'Content-Type':'application/json',Location:'https://example.invalid'});
+    res.writeHead(status,{'Content-Type':'application/json','X-Emisell-App-Access':'resource-v1',Location:'https://example.invalid'});
     res.end(JSON.stringify({data:[{id:'p',name:'Blue',price:'1',secret:'hidden'}],meta:{nextCursor:'next.sig'}}));
   });
   core.listen(0,'127.0.0.1'); await once(core,'listening');

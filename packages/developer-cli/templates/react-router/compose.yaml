@@ -1,0 +1,21 @@
+# Built UI preview only. No host Core connection, merchant data, or public port.
+services:
+  app:
+    build:
+      context: .
+      target: runtime
+    command: ["node", "server/standalone.mjs", "--built", "--container-preview"]
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "4330"
+      EMISELL_BACKEND_MODE: disabled
+    ports:
+      - "127.0.0.1:4330:4330"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    stop_grace_period: 15s

@@ -1,10 +1,18 @@
 # Product Reader — uji lokal
 
-Template ini memakai `read_products`: daftar produk, pencarian nama/SKU, dan pagination cursor. Tidak mengubah produk atau membaca order. Tidak ada polling. Akses aktual diperiksa ulang backend setiap permintaan.
+Untuk Stok/Lokasi, gunakan alur review dan instalasi yang sama dengan rilis baru
+berisi `"requiredScopes": ["read_inventory", "read_locations"]` (atau tambah
+`read_products` bila halaman Produk juga diperlukan). Buka menu **Stok** dan **Lokasi**:
+uji baca, Berikutnya, detail, dan pencarian nama lokasi. Tidak ada pencarian nama
+produk pada scope inventory. Periksa stok negatif/lokasi nonaktif jika tersedia;
+jangan mengubah stok toko hanya untuk testing. Setelah izin dicabut, pembacaan baru
+harus ditolak. Instalasi lama tidak otomatis mendapat kedua scope tersebut.
+
+Halaman Produk pada template React Router memakai `read_products`: daftar produk, pencarian nama/SKU, dan pagination cursor. Tidak mengubah produk atau membaca order. Tidak ada polling. Akses aktual diperiksa ulang backend setiap permintaan.
 
 ## Konfigurasi backend
 
-Memerlukan api-service dan Apps Platform versi yang mendukung reviewed resource UI lokal. Adapter ini **hanya untuk pengembangan lokal**, bukan OAuth/server produksi. `app dev` tanpa `--backend` akan menolak akses data.
+Memerlukan api-service dan Apps Platform versi yang mendukung reviewed resource UI lokal. Adapter ini **hanya untuk pengembangan lokal**, bukan OAuth/server produksi. `app dev` memakai `server/backend.mjs`; tanpa konfigurasi yang valid akses ditolak.
 
 Set environment di terminal (ganti placeholder dengan ID milik aplikasimu):
 
@@ -13,7 +21,7 @@ export EMISELL_LOCAL_CORE_ORIGIN=http://127.0.0.1:8000
 export EMISELL_LOCAL_APP_ID=APP_ID
 export EMISELL_LOCAL_CLIENT_ID=CLIENT_ID
 export EMISELL_LOCAL_CLIENT_SECRET_FILE=/absolute/private/path/client.secret
-emisell app dev --dir . --backend ./local-products-backend.mjs
+emisell app dev
 ```
 
 Simpan **hanya secret confidential client** dalam file privat tersebut, bukan di `public/`, `emisell.app.json`, manifest, argumen CLI, atau Git. Gunakan file biasa (bukan symlink), path absolut, izin `600` pada macOS/Linux, di direktori privat. Backend membacanya setiap permintaan agar rotasi tidak memerlukan perubahan UI. Jangan memakai API key platform atau cookie seller sebagai client secret.
@@ -50,4 +58,4 @@ emisell testing list
 7. Seller memilih **Open app → Baca produk**. Uji nama/SKU, Berikutnya, Sebelumnya, dan hasil kosong. Pencarian dilakukan di backend, bukan hanya lima baris di layar; cursor terikat toko, instalasi, aplikasi dan filter. Ulangi dari halaman pertama jika produk berubah saat paging.
 8. Setelah testing selesai, **Stop testing** mencabut assignment dan menghentikan akses yang bergantung padanya. Ini tidak menghapus instalasi; gunakan **Uninstall** secara terpisah bila diperlukan.
 
-Hanya aset UI yang diizinkan yang disajikan preview; backend dan file konfigurasi tidak disajikan. Harga ditampilkan tanpa simbol mata uang karena DTO saat ini belum mengirim mata uang. Pencarian maksimum 100 byte UTF-8. Jangan menaikkan scope atau memakai identitas browser sebagai izin akses tanpa jalur backend yang telah ditinjau.
+Source frontend dan aset Vite diperlukan untuk hot reload; backend dan file konfigurasi privat tidak disajikan. Harga ditampilkan tanpa simbol mata uang karena DTO saat ini belum mengirim mata uang. Pencarian maksimum 100 byte UTF-8. Jangan menaikkan scope atau memakai identitas browser sebagai izin akses tanpa jalur backend yang telah ditinjau.

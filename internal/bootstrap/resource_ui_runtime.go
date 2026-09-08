@@ -37,7 +37,7 @@ func (s ReviewedUIInstallSource) WithResourceRelease(ctx context.Context, mercha
 			return fn(domain.IntentRelease{AppID: m.AppID, Name: m.Name, DeveloperID: m.DeveloperID, Version: m.Version, ManifestDigest: v.Package.SHA256,
 				InstallPolicy: domain.ResourceAppPolicy, ExecutionProfile: domain.ResourceAppPolicy, Scopes: slices.Clone(v.Manifest.RequiredScopes), Capabilities: []string{},
 				UIBinding:       &domain.UIBinding{AssignmentID: a.ID, ReleaseID: v.ID, Launch: b.Launch, Signature: b.Signature},
-				ResourceBinding: &domain.ResourceBinding{ReleaseID: v.ID, ClientID: c.ID, AccessScopes: accessscope.Declaration{Profile: accessscope.Profile, Required: slices.Clone(v.Manifest.RequiredScopes), Optional: []string{}}}})
+				ResourceBinding: &domain.ResourceBinding{ReleaseID: v.ID, ClientID: c.ID, AccessScopes: accessscope.Declaration{Profile: accessscope.ReviewedProfile(v.Manifest.RequiredScopes), Required: slices.Clone(v.Manifest.RequiredScopes), Optional: []string{}}}})
 		})
 	})
 }
@@ -49,7 +49,7 @@ func (s ReviewedUIInstallSource) ReadyResource(ctx context.Context, r domain.Int
 		return fault.Unavailable
 	}
 	b, u := r.ResourceBinding, r.UIBinding
-	if !slices.Equal(r.Scopes, []string{uiresource.ReadProducts}) || !slices.Equal(b.AccessScopes.Required, r.Scopes) || len(b.AccessScopes.Optional) != 0 || b.Webhooks != nil ||
+	if !uiresource.ValidScopes(r.Scopes) || !slices.Equal(b.AccessScopes.Required, r.Scopes) || len(b.AccessScopes.Optional) != 0 || b.Webhooks != nil ||
 		u.AssignmentID == "" || b.ReleaseID != u.ReleaseID || b.ClientID != u.Launch.ClientID || u.Launch.AppID != r.AppID || u.Launch.ReleaseDigest != r.ManifestDigest || u.Launch.ParentOrigin != s.Current.ParentOrigin ||
 		embedded.VerifyLaunch(u.Launch, u.Signature, s.Current.Key, false) != nil {
 		return fault.Forbidden

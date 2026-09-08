@@ -11,6 +11,17 @@ import (
 const Profile = "shopify-authenticated-2026-09-05"
 const Source = "https://shopify.dev/docs/api/usage/access-scopes"
 
+// Emisell-owned reviewed read permissions, separate from the pinned reference.
+// Existing declarations keep their original profile and therefore their digest.
+const ReviewedReadProfile = "emisell-reviewed-read/v1"
+
+func ReviewedProfile(scopes []string) string {
+	if slices.Contains(scopes, "read_catalogs") || slices.Contains(scopes, "read_collections") {
+		return ReviewedReadProfile
+	}
+	return Profile
+}
+
 type Scope struct {
 	Handle        string   `json:"handle"`
 	Resource      string   `json:"resource"`
@@ -165,6 +176,17 @@ func effective(handles []string, catalog map[string]Scope) map[string]bool {
 
 func (d Declaration) Validate() error {
 	invalid := errors.New("invalid resource access scope declaration")
+	if d.Profile == ReviewedReadProfile {
+		if d.Optional == nil || len(d.Optional) != 0 || len(d.Required) == 0 || len(d.Required) > 7 {
+			return invalid
+		}
+		for i, scope := range d.Required {
+			if !slices.Contains([]string{"read_catalogs", "read_collections", "read_inventory", "read_locations", "read_orders", "read_products", "read_shipping"}, scope) || (i > 0 && d.Required[i-1] >= scope) {
+				return invalid
+			}
+		}
+		return nil
+	}
 	catalog := index()
 	if d.Profile != Profile || d.Required == nil || d.Optional == nil || len(d.Required)+len(d.Optional) > len(catalog) || len(d.Required)+len(d.Optional) == 0 {
 		return invalid

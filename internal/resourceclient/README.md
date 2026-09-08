@@ -1,4 +1,38 @@
-# Private product adapter
+# Private existing-endpoint resource adapters
+
+Inventory uses `/v1/products?view=inventory` and `/v1/products/:id?view=inventory`
+with exactly `read_inventory`. Without that selector, product reads remain
+`read_products`; granting inventory never implicitly grants products. Lists use
+limit/cursor, not product-name search. The projection contains product/variant IDs,
+tracking flags, and active-location `available` balances, preserving negatives and
+avoiding parent/variant double counting. Up to 100 variants and 100 stock levels
+per product are supported; larger results fail instead of returning partial totals.
+Locations use `/v1/settings/location[/:id]`, exactly `read_locations`, with
+limit/cursor/name search on lists. Only name and status flags are returned, including
+inactive records; no address/phone and no read-triggered default creation.
+The private RPC bridge carries the selector in `view`. Neither resource introduces
+a business endpoint namespace, stock mutations or implicit seller consent.
+
+Catalogs/collections use existing `/v1/catalogs[/:id]` and
+`/v1/collections[/:id]` with independent `read_catalogs`/`read_collections`.
+List supports `limit`, `q`, cursor; detail returns at most 100 explicit product
+references, with no expanded product data or catalog pricing. No scope implication.
+Emisell's reviewed declaration profile handles these permissions without altering
+the old reference profile or existing installation digests.
+
+The reviewed local UI path also uses `GET /v1/orders`, `GET /v1/orders/:id`,
+`GET /v1/settings/shipping` and `GET /v1/settings/shipping/profile/:id`.
+`ReadExistingForApp` derives `read_orders` or `read_shipping` from an explicit
+path allowlist, checks current reviewed release/client/installation authority,
+and signs only that operation's scope. Responses are projected to bounded DTOs.
+The existing internal `/internal/resources/products` bridge accepts the selected
+path for backwards compatibility; no new business endpoint is introduced.
+The CLI local bridge is loopback-only. This is not a public production gateway.
+
+Isolated tests cover signed release → seller consent → activation → authorized
+read → revocation/uninstall for each supported permission. Cross-repository
+tests exercise the real Node router and Prisma with synthetic orders and shipping.
+Production rollout and public resource catalog activation remain separate.
 
 Ported the bounded product transport from pre-migration commit `9b3fa98`, not the
 old gateway's OAuth, storage, login or HTTP routing. Current module:

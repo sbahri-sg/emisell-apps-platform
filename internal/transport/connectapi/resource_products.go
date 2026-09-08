@@ -51,6 +51,10 @@ func (s Server) resourceProductsHandler() http.Handler {
 			Limit          int    `json:"limit"`
 			Cursor         string `json:"cursor"`
 			Q              string `json:"q"`
+			Path           string `json:"path"`
+			Status         string `json:"status"`
+			UpdatedAfter   string `json:"updatedAfter"`
+			View           string `json:"view"`
 		}
 		d := json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192))
 		d.DisallowUnknownFields()
@@ -58,14 +62,30 @@ func (s Server) resourceProductsHandler() http.Handler {
 			fail(400, "invalid_argument")
 			return
 		}
-		query := url.Values{"limit": {strconv.Itoa(in.Limit)}}
+		if in.Path == "" {
+			in.Path = "/v1/products"
+		}
+		query := url.Values{}
+		if in.View != "" {
+			query.Set("view", in.View)
+		}
+		_, detailID := resourceclient.ResourceOperation(in.Path, query)
+		if detailID == "" {
+			query.Set("limit", strconv.Itoa(in.Limit))
+		}
 		if in.Cursor != "" {
 			query.Set("cursor", in.Cursor)
 		}
 		if in.Q != "" {
 			query.Set("q", in.Q)
 		}
-		if resourceclient.ValidateQuery(query, false) != nil {
+		if in.Status != "" {
+			query.Set("status", in.Status)
+		}
+		if in.UpdatedAfter != "" {
+			query.Set("updatedAfter", in.UpdatedAfter)
+		}
+		if resourceclient.ValidateResourceQuery(in.Path, query) != nil {
 			fail(400, "invalid_argument")
 			return
 		}
@@ -79,7 +99,7 @@ func (s Server) resourceProductsHandler() http.Handler {
 			fail(403, "permission_denied")
 			return
 		}
-		result, err := s.ResourceProducts.ReadForApp(ctx, s.Lifecycle, p, in.Actor, in.InstallationID, in.AppID, in.ClientID, query, ids.New("resource"))
+		result, err := s.ResourceProducts.ReadExistingForApp(ctx, s.Lifecycle, p, in.Actor, in.InstallationID, in.AppID, in.ClientID, in.Path, query, ids.New("resource"))
 		if err != nil {
 			fail(403, "resource_access_denied")
 			return

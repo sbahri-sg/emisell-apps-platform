@@ -1,3 +1,12 @@
+# 0.4.0 — 2026-09-08
+
+- Add reviewed `read_inventory` / `read_locations` demo pages using existing product URLs with `view=inventory` and existing location URLs. Preserve active-location balances, exclude addresses/phones, and require explicit signed scopes and seller consent. No production activation.
+- Replace the HTML embedded/products generators with a single React Router + TypeScript + Vite app template.
+- Include connection and read-only product pages, search, cursor pagination, hot reload, typecheck and build scripts.
+- Add app build, multi-stage non-root Docker packaging, isolated UI Compose preview, explicit production web runtime, health/readiness and bounded shutdown. Production store access remains fail-closed until a real backend adapter is supplied; no live server is activated.
+- Preserve backend identity/current-access checks, loopback/Origin boundaries and confidential-client handling. No production adapter, seller consent, deployment or npm publication is implied.
+- Remove legacy template choices; existing projects are never deleted or overwritten. Use CLI 0.3.1 explicitly for legacy projects.
+
 # 0.3.1
 
 - Focus public documentation on Emisell features and usage.

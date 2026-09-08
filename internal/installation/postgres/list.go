@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"emisell.app/platform/pkg/uiresource"
 	"slices"
 
 	"emisell.app/platform/internal/installation/domain"
@@ -39,7 +40,7 @@ func (p Repository) ListInstalled(ctx context.Context, merchant, after string, l
 		// currently available endpoint (details/uninstall must remain reachable).
 		resource := release.InstallPolicy == domain.ResourceAppPolicy && release.ExecutionProfile == domain.ResourceAppPolicy && release.ResourceBinding != nil &&
 			release.ResourceBinding.ReleaseID != "" && release.ResourceBinding.ClientID != "" &&
-			slices.Equal(release.Scopes, []string{"read_products"}) && slices.Equal(release.ResourceBinding.AccessScopes.Required, release.Scopes) &&
+			uiresource.ValidScopes(release.Scopes) && slices.Equal(release.ResourceBinding.AccessScopes.Required, release.Scopes) &&
 			len(release.ResourceBinding.AccessScopes.Optional) == 0 && len(release.Capabilities) == 0
 		if v.AppID != release.AppID || v.Version != release.Version || (!resource && !ui && !pilot && release.InstallPolicy != domain.InstallPolicy && release.InstallPolicy != domain.ManagedShippingPolicy && release.InstallPolicy != domain.ProviderAppPolicy) {
 			return nil, fault.Forbidden

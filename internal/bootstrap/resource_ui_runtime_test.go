@@ -33,6 +33,19 @@ import (
 )
 
 func TestResourceUIConsentLaunchReadAndRevocation(t *testing.T) {
+	for _, tc := range []struct{ scope, path, body string }{
+		{"read_products", "/v1/products", `{"data":[],"meta":{"nextCursor":null}}`},
+		{"read_orders", "/v1/orders", `{"data":[],"meta":{"nextCursor":null}}`},
+		{"read_shipping", "/v1/settings/shipping", `{"data":null,"meta":{"nextCursor":null}}`},
+		{"read_catalogs", "/v1/catalogs", `{"data":[],"meta":{"nextCursor":null}}`},
+		{"read_collections", "/v1/collections", `{"data":[],"meta":{"nextCursor":null}}`},
+		{"read_inventory", "/v1/products", `{"data":[],"meta":{"nextCursor":null}}`},
+		{"read_locations", "/v1/settings/location", `{"data":[],"meta":{"nextCursor":null}}`},
+	} {
+		t.Run(tc.scope, func(t *testing.T) { testResourceConsent(t, tc.scope, tc.path, tc.body) })
+	}
+}
+func testResourceConsent(t *testing.T, scope, path, response string) {
 	pub, signer, _ := ed25519.GenerateKey(rand.Reader)
 	f, dev, _, admin := clientFixture(t, &proofVerifier{}, bootstrap.EmbeddedReviewConfig{Key: signer, ParentOrigin: "https://core.example", UIReleaseKey: signer, ResourceReleaseKey: signer})
 	base := f.server.Config.Handler
@@ -40,7 +53,7 @@ func TestResourceUIConsentLaunchReadAndRevocation(t *testing.T) {
 	f.server = httptest.NewServer(bootstrap.AddUIResourceReleaseRoutes(base, f.pool, origin, slog.New(slog.NewTextHandler(io.Discard, nil)), signer))
 	t.Cleanup(f.server.Close)
 	dev.server, admin.server = f.server, f.server
-	release := pexpect(t, dev, "POST", "/api/v1/developer/ui-resource-releases", service.UIResourceReleaseInput{Version: "1.0.0", Name: "Product read", Summary: "Read only", Mode: "embedded", URL: "https://app.example.com/", Reason: "test", RequiredScopes: []string{"read_products"}}, key(), 200)["release"].(map[string]any)
+	release := pexpect(t, dev, "POST", "/api/v1/developer/ui-resource-releases", service.UIResourceReleaseInput{Version: "1.0.0", Name: "Resource read", Summary: "Read only", Mode: "embedded", URL: "https://app.example.com/", Reason: "test", RequiredScopes: []string{scope}}, key(), 200)["release"].(map[string]any)
 	id := release["id"].(string)
 	app := release["manifest"].(map[string]any)["ui"].(map[string]any)["appId"].(string)
 	for i, status := range []string{"approved", "signed"} {
@@ -63,11 +76,18 @@ func TestResourceUIConsentLaunchReadAndRevocation(t *testing.T) {
 		if r.Header.Get("X-Emisell-Merchant-Id") != f.tenant || r.URL.Query().Get("limit") != "5" {
 			t.Error("wrong merchant or bound")
 		}
-		if r.URL.Query().Get("q") == "Blue" && r.URL.Query().Get("cursor") == "page.signature" {
+		if r.URL.Query().Get("cursor") == "page.signature" {
 			searchRead.Store(true)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		io.WriteString(w, `{"data":[],"meta":{"nextCursor":null}}`)
+		w.Header().Set("X-Emisell-App-Access", "resource-v1")
+		if r.URL.Path != path {
+			t.Error("wrong existing endpoint", r.URL.Path)
+		}
+		if scope == "read_inventory" && r.URL.Query().Get("view") != "inventory" {
+			t.Error("inventory projection missing")
+		}
+		io.WriteString(w, response)
 	}))
 	t.Cleanup(upstream.Close)
 	private, _ := rsa.GenerateKey(rand.Reader, 2048)
@@ -105,7 +125,11 @@ func TestResourceUIConsentLaunchReadAndRevocation(t *testing.T) {
 	}
 	install := consumed.Access.Installation.ID
 	read := func(actor, appID, clientID string) error {
-		_, e := products.ReadForApp(ctx, life, principal, actor, install, appID, clientID, url.Values{"limit": {"5"}}, "resource-test-request-12345")
+		query := url.Values{"limit": {"5"}}
+		if scope == "read_inventory" {
+			query.Set("view", "inventory")
+		}
+		_, e := products.ReadExistingForApp(ctx, life, principal, actor, install, appID, clientID, path, query, "resource-test-request-12345")
 		return e
 	}
 	if read("staff", app, client.Client.ID) == nil || reads.Load() != 0 {
@@ -128,7 +152,12 @@ func TestResourceUIConsentLaunchReadAndRevocation(t *testing.T) {
 	if read("other", app, client.Client.ID) == nil || read("staff", "app_other", client.Client.ID) == nil || read("staff", app, "other_client") == nil || reads.Load() != 1 {
 		t.Fatal("identity bypass")
 	}
-	if life.WithResourceAccess(ctx, principal, "staff", install, []string{"read_orders"}, func(domain.Access) error { return nil }) == nil {
+	if scope == "read_inventory" {
+		if _, err := products.ReadExistingForApp(ctx, life, principal, "staff", install, app, client.Client.ID, path, url.Values{"limit": {"5"}}, "resource-test-request-12345"); err == nil || reads.Load() != 1 {
+			t.Fatal("inventory installation gained product access without selector")
+		}
+	}
+	if life.WithResourceAccess(ctx, principal, "staff", install, []string{"write_orders"}, func(domain.Access) error { return nil }) == nil {
 		t.Fatal("unconsented scope")
 	}
 	// Exercise the actual private HTTP boundary, not only the lifecycle adapter.
@@ -136,7 +165,10 @@ func TestResourceUIConsentLaunchReadAndRevocation(t *testing.T) {
 	t.Cleanup(rpc.Close)
 	request := func(patch map[string]any, mutate func(*http.Request), want int) {
 		t.Helper()
-		body := map[string]any{"merchantId": f.tenant, "coreActorId": "staff", "installationId": install, "appId": app, "clientId": client.Client.ID, "clientSecret": clientSecret, "limit": 5}
+		body := map[string]any{"merchantId": f.tenant, "coreActorId": "staff", "installationId": install, "appId": app, "clientId": client.Client.ID, "clientSecret": clientSecret, "limit": 5, "path": path}
+		if scope == "read_inventory" {
+			body["view"] = "inventory"
+		}
 		for k, v := range patch {
 			body[k] = v
 		}
@@ -160,7 +192,11 @@ func TestResourceUIConsentLaunchReadAndRevocation(t *testing.T) {
 		}
 	}
 	request(nil, nil, 200)
-	request(map[string]any{"q": "Blue", "cursor": "page.signature"}, nil, 200)
+	if scope == "read_inventory" {
+		request(map[string]any{"view": ""}, nil, 403)
+		request(map[string]any{"view": "unknown"}, nil, 400)
+	}
+	request(map[string]any{"cursor": "page.signature"}, nil, 200)
 	if !searchRead.Load() {
 		t.Fatal("search and cursor not forwarded to product API")
 	}

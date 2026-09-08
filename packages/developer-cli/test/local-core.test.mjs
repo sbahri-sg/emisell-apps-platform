@@ -4,7 +4,7 @@ import { createServer } from 'node:http';
 import { once } from 'node:events';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
-import { createLocalCoreVerifier } from '../templates/embedded/server/local-core.mjs';
+import { createLocalCoreVerifier } from '../templates/react-router/server/local-core.mjs';
 
 const appId = 'app_' + 'A'.repeat(26), clientId = 'eac_' + 'A'.repeat(26);
 async function serve(t, handler) {

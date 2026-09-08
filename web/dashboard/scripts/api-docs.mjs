@@ -225,6 +225,7 @@ const scopeByService = {
   },
   ConnectionService: {
     Check: 'valid Core credential (own identity only; no resource grant)',
+    EnsureMerchant: 'platform full-access Core key + verified Core merchant and actor (register merchant reference only; no app installation or resource grant)',
   },
   InstallIntentService: {
     Prepare: 'apps.install_intents.write',
@@ -287,7 +288,9 @@ for (const file of descriptor.file) {
                 ? 'Hentikan assignment approved milik toko sesi saat ini. Core memeriksa ulang sesi dan izin kelola Apps. Merchant/actor berasal dari backend Core, bukan body browser. Idempotency key wajib; status akhir revoked, audit dipertahankan. Bukan uninstall, approval atau grant baru. Akses runtime yang bergantung pada assignment akan ditolak; aplikasi terpasang dapat di-uninstall terpisah. Retry tidak mengaktifkan kembali pengujian.'
                 : 'Assignment pengujian untuk merchant terverifikasi. Bukan consent/grant. Release terkelola signed dan assignment approved dapat installable=true hanya pada komposisi engine lokal terisolasi. Integration runtime umum tetap belum tersedia. Maksimum 20 per halaman; cursor bukan identitas. Core memeriksa sesi dan izin apps setiap halaman.'
               : service.name === 'ConnectionService'
-                ? 'Uji autentikasi key Core: key platform mengembalikan platformFullAccess=true tanpa merchant/scopes/expiry. Key legacy tetap mengembalikan binding merchant/scopes/expiry. Tidak membaca data merchant, menjalankan transaksi, atau membuktikan scope resource aktif.'
+                ? method.name === 'EnsureMerchant'
+                  ? 'Daftarkan referensi merchant dan actor yang telah diverifikasi backend Core menggunakan key platform full-access. Pengulangan tidak mengganti status merchant existing. Tidak membuat instalasi, consent, atau grant resource dan bukan registrasi dari input browser langsung.'
+                  : 'Uji autentikasi key Core: key platform mengembalikan platformFullAccess=true tanpa merchant/scopes/expiry. Key legacy tetap mengembalikan binding merchant/scopes/expiry. Tidak membaca data merchant, menjalankan transaksi, atau membuktikan scope resource aktif.'
                 : isIntent
                   ? 'Consent record lokal untuk fixture compatibility dan managed shipping signed/assigned (ADR 0027). Key platform wajib mengirim merchantId yang telah diotorisasi oleh backend Core; key legacy tetap terikat merchant credential (merchantId boleh dihilangkan). TTL 10 menit; terikat merchant, service, actor, versi, dan scope. Managed source serta engine readiness diperiksa terkini. Tidak membuat instalasi, token atau active grant. executionAllowed selalu false.'
                   : service.name === 'InstallationService' &&
@@ -302,7 +305,7 @@ for (const file of descriptor.file) {
           ? `Delegasi server-to-server terverifikasi + current active grant · ${planned.acceptedScopes.join(' atau ')}. AccessContext bukan otorisasi. Trust/issuer masih gate integrasi.`
           : service.name === 'EngineGrantService'
             ? 'Bearer independent engine credential (local operator provisioning). Full Core key, developer key, app token dan browser session DITOLAK.'
-            : ['InstallationService', 'TestDistributionService'].includes(
+            : (service.name === 'ConnectionService' && method.name === 'EnsureMerchant') || ['InstallationService', 'TestDistributionService'].includes(
                   service.name,
                 )
               ? `Bearer ${scope}. Legacy key dan token aplikasi ditolak. Core wajib memverifikasi kewenangan staf; merchantId wajib.`

@@ -4,7 +4,8 @@ import { mkdtemp, rm, readFile, writeFile, symlink, unlink } from 'node:fs/promi
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { get } from 'node:http';
-import { initApp, startDev } from '../src/development.mjs';
+import { initApp } from '../src/development.mjs';
+import { startTestServer as startDev } from './http-fixture.mjs';
 import { run } from '../src/cli.mjs';
 
 test('UI creation uses reviewed UI endpoint, explicit consent and no business scopes', async t => {
@@ -30,7 +31,12 @@ test('UI creation uses reviewed UI endpoint, explicit consent and no business sc
   await run(['resource-ui','create','--file',file,'--request-key','resource-ui-test-001','--yes'],options);
   assert.match(calls.at(-1).url,/\/ui-resource-releases$/);
   assert.deepEqual(JSON.parse(calls.at(-1).body).requiredScopes,['read_products']);
-  await writeFile(file, JSON.stringify({...document,requiredScopes:['read_orders']}));
+  for (const scopes of [['read_catalogs'],['read_collections'],['read_inventory'],['read_locations'],['read_catalogs','read_collections'],['read_catalogs','read_collections','read_inventory','read_locations','read_orders','read_products','read_shipping']]) {
+    await writeFile(file,JSON.stringify({...document,requiredScopes:scopes}));
+    await run(['resource-ui','create','--file',file,'--request-key','resource-ui-groups','--yes'],options);
+    assert.deepEqual(JSON.parse(calls.at(-1).body).requiredScopes,scopes);
+  }
+  await writeFile(file, JSON.stringify({...document,requiredScopes:['write_orders']}));
   await assert.rejects(run(['resource-ui','create','--file',file,'--request-key','resource-ui-test-002','--yes'],options),/read_products/);
   await run(['ui','list'],options);
   await run(['ui','show','release_test'],options);
@@ -68,9 +74,9 @@ test('starter uses pinned source UI/bridge, never overwrites a project', async t
   await initApp(project, 'http://localhost:3000');
   await assert.rejects(initApp(project, 'http://localhost:3000'), /EEXIST/);
   await assert.rejects(initApp(join(base, 'bad'), 'http://remote.example'), /HTTPS/);
-  for (const [asset, source] of [['emisell-ui.css', '../../../pkg/appui/emisell-ui.css'], ['bridge.mjs', '../../../pkg/embedded/bridge.mjs']]) {
+  for (const [asset, source] of [['app/styles/emisell-ui.css', '../../../pkg/appui/emisell-ui.css'], ['app/lib/bridge.mjs', '../../../pkg/embedded/bridge.mjs']]) {
     const canonical = new URL(source, import.meta.url);
-    assert.equal(await readFile(join(project, 'public', asset), 'utf8'), await readFile(canonical, 'utf8'));
+    assert.equal(await readFile(join(project, asset), 'utf8'), await readFile(canonical, 'utf8'));
   }
 });
 test('preview serves only starter assets, no credentials or fake backend success', async t => {
@@ -83,7 +89,7 @@ test('preview serves only starter assets, no credentials or fake backend success
   const res = await fetch(url);
   assert.equal(res.status, 200);
   assert.match(res.headers.get('content-security-policy'), /frame-ancestors http:\/\/localhost:3000;/);
-  assert.match(await res.text(), /eui-page/);
+  assert.match(await res.text(), /Framework fixture/);
   for (const path of ['/emisell.app.json', '/.env', '/README.md', '/%2e%2e/package.json', '/node_modules/x', '/index.html?secret=x']) assert.equal((await fetch(url + path)).status, 404);
   const badHost = await new Promise((resolve, reject) => get(url, { headers: { Host: 'evil.example' } }, res => { res.resume(); resolve(res.statusCode); }).on('error', reject));
   assert.equal(badHost, 403);
@@ -92,9 +98,9 @@ test('preview serves only starter assets, no credentials or fake backend success
   assert.equal(denied.status, 503);
   assert.equal((await denied.json()).error, 'backend_identity_verifier_not_configured');
   assert.deepEqual(await (await fetch(url + '/dev-config.json')).json(), { parentOrigin: 'http://localhost:3000' });
-  await unlink(join(project, 'public', 'app.mjs'));
-  await symlink(join(project, 'emisell.app.json'), join(project, 'public', 'app.mjs'));
-  assert.equal((await fetch(url + '/app.mjs')).status, 404);
+  await unlink(join(project, 'app', 'root.tsx'));
+  await symlink(join(project, 'emisell.app.json'), join(project, 'app', 'root.tsx'));
+  assert.equal((await fetch(url + '/app/root.tsx')).status, 404);
 });
 test('testing command uses existing UI assignment contract and requires consent to request', async () => {
   const calls = [];

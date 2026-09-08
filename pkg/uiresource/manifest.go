@@ -15,6 +15,28 @@ import (
 const Schema = "emisell.ui-resource-release/v1"
 const Policy = "reviewed-ui-resource/v1"
 const ReadProducts = "read_products"
+const ReadOrders = "read_orders"
+const ReadShipping = "read_shipping"
+const ReadCatalogs = "read_catalogs"
+const ReadCollections = "read_collections"
+const ReadInventory = "read_inventory"
+const ReadLocations = "read_locations"
+
+// Signed releases use a non-empty canonical subset, never optional/implicit grants.
+func ValidScopes(scopes []string) bool {
+	if len(scopes) < 1 || len(scopes) > 7 {
+		return false
+	}
+	for i, scope := range scopes {
+		if scope != ReadProducts && scope != ReadOrders && scope != ReadShipping && scope != ReadCatalogs && scope != ReadCollections && scope != ReadInventory && scope != ReadLocations {
+			return false
+		}
+		if i > 0 && scopes[i-1] >= scope {
+			return false
+		}
+	}
+	return true
+}
 
 var ErrInvalid = errors.New("invalid UI resource release")
 
@@ -36,7 +58,7 @@ type Package struct {
 
 func (m Manifest) Validate() error {
 	if m.Schema != Schema || m.Policy != Policy || m.UI.Validate() != nil ||
-		len(m.RequiredScopes) != 1 || m.RequiredScopes[0] != ReadProducts {
+		!ValidScopes(m.RequiredScopes) {
 		return ErrInvalid
 	}
 	return nil

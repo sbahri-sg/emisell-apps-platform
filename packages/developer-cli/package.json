@@ -1,13 +1,13 @@
 {
   "name": "@emisell/cli",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Developer CLI for the Emisell Apps Platform",
   "homepage": "https://emisell.com",
   "type": "module",
   "bin": { "emisell": "bin/emisell.mjs" },
   "engines": { "node": ">=22" },
-  "files": ["bin/", "src/", "templates/", "README.md"],
-  "scripts": { "test": "node --test test/*.test.mjs", "prepublishOnly": "npm test" },
+  "files": ["bin/", "src/", "templates/", "README.md", "CHANGELOG.md"],
+  "scripts": { "test": "node --test test/*.test.mjs", "test:framework": "node test/framework-smoke.mjs", "test:docker": "node test/docker-smoke.mjs", "prepublishOnly": "npm test" },
   "license": "UNLICENSED",
   "publishConfig": { "access": "public" }
 }

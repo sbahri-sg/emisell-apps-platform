@@ -4,8 +4,9 @@ import { generateKeyPairSync, sign } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createIdentityVerifier } from '../templates/embedded/server/identity.mjs';
-import { initApp, startDev } from '../src/development.mjs';
+import { createIdentityVerifier } from '../templates/react-router/server/identity.mjs';
+import { initApp } from '../src/development.mjs';
+import { startTestServer as startDev } from './http-fixture.mjs';
 
 const pair = generateKeyPairSync('ed25519');
 const pem = pair.publicKey.export({ type: 'spki', format: 'pem' });

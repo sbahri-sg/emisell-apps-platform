@@ -28,7 +28,7 @@ export function projectPath(flags) {
 export async function initOptions(flags, { cwd = process.cwd(), interactive = Boolean(process.stdin.isTTY && process.stderr.isTTY && !process.env.CI), prompt = terminalPrompt } = {}) {
   let path = projectPath(flags), name = flags.name, template = flags.template, parentOrigin = flags['parent-origin'];
   if (!interactive && ((!path && !name) || !parentOrigin)) {
-    throw Error('Mode non-interaktif: isi --name atau --path serta --parent-origin. Contoh: emisell app init --name my-app --template embedded --parent-origin http://localhost:3000');
+    throw Error('Mode non-interaktif: isi --name atau --path serta --parent-origin. Contoh: emisell app init --name my-app --parent-origin http://localhost:3000');
   }
   if (name === undefined) name = path ? basename(resolve(cwd, path)) : await prompt({ message: 'Nama aplikasi', defaultValue: 'my-emisell-app' });
   name = appName(name);
@@ -37,11 +37,8 @@ export async function initOptions(flags, { cwd = process.cwd(), interactive = Bo
     path = interactive ? await prompt({ message: 'Folder project baru', defaultValue: folder }) : folder;
   }
   if (typeof path !== 'string' || !path.trim() || /\p{C}/u.test(path)) throw Error('Folder project tidak valid.');
-  if (template === undefined && interactive) template = await prompt({ message: 'Pilih template (nomor atau nama)', defaultValue: 'embedded', choices: ['embedded — UI tanpa akses data bawaan', 'products — pembaca produk lokal (read_products)'] });
-  if (template === '1') template = 'embedded';
-  if (template === '2') template = 'products';
-  template ??= 'embedded';
-  if (!templates.includes(template)) throw Error('Template harus embedded atau products.');
+  template ??= 'react-router';
+  if (!templates.includes(template)) throw Error('Template harus react-router. Template embedded/products sudah dihapus.');
   if (!parentOrigin) parentOrigin = await prompt({ message: 'Origin Dashboard seller yang dipercaya', defaultValue: 'http://localhost:3000' });
   parentOrigin = origin(parentOrigin);
   // All input is validated before initApp can write anything.

@@ -8,11 +8,13 @@ import (
 	"crypto/x509"
 	"emisell.app/platform/internal/identity"
 	"emisell.app/platform/internal/installation/service"
+	"encoding/json"
 	"encoding/pem"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -54,6 +56,49 @@ func TestProductsNodeContract(t *testing.T) {
 	// Private transport test: no OAuth or production grant claim. Public entry
 	// remains gated by Lifecycle.WithResourceAccess, tested separately below.
 	access := delegation{MerchantID: "merchant-a", InstallationID: "installation-a", AppID: "app-test", Environment: "sandbox"}
+	for _, path := range []string{"/v1/orders", "/v1/orders/order-merchant-a-1", "/v1/settings/shipping", "/v1/settings/shipping/profile/profile-merchant-a-1", "/v1/catalogs", "/v1/catalogs/catalog-merchant-a-1", "/v1/collections", "/v1/collections/collection-merchant-a-1", "/v1/settings/location", "/v1/settings/location/location-merchant-a"} {
+		t.Run(path, func(t *testing.T) {
+			scope, id := ResourceOperation(path)
+			result, err := client.readExisting(ctx, access, path, scope, id, nil, "resource-request-123456")
+			if err != nil {
+				t.Fatal(err)
+			}
+			body, err := json.Marshal(result)
+			if err != nil || !strings.Contains(string(body), "merchant-a") {
+				t.Fatalf("missing seeded response: %s (%v)", body, err)
+			}
+			foreign := access
+			foreign.MerchantID = "merchant-b"
+			if id != "" {
+				if _, err := client.readExisting(ctx, foreign, path, scope, id, nil, "resource-request-123456"); err == nil {
+					t.Fatal("foreign detail exposed")
+				}
+			}
+			foreign.MerchantID = "merchant-inactive"
+			if _, err := client.readExisting(ctx, foreign, path, scope, id, nil, "resource-request-123456"); err == nil {
+				t.Fatal("inactive merchant accepted")
+			}
+		})
+	}
+	for _, path := range []string{"/v1/products", "/v1/products/product-a1"} {
+		query := url.Values{"view": {"inventory"}}
+		scope, id := ResourceOperation(path, query)
+		result, err := client.readExisting(ctx, access, path, scope, id, query, "resource-request-123456")
+		if err != nil {
+			t.Fatal(err)
+		}
+		body, _ := json.Marshal(result)
+		if !strings.Contains(string(body), "location-merchant-a") {
+			t.Fatal("missing inventory levels", string(body))
+		}
+		foreign := access
+		foreign.MerchantID = "merchant-b"
+		if id != "" {
+			if _, err := client.readExisting(ctx, foreign, path, scope, id, query, "resource-request-123456"); err == nil {
+				t.Fatal("foreign inventory exposed")
+			}
+		}
+	}
 	result, err := client.read(ctx, access, "", url.Values{"limit": {"1"}}, "resource-request-123456")
 	if err != nil {
 		t.Fatal(err)

@@ -1,24 +1,32 @@
 export const commandHelp = {
-  'app init': `emisell app init [--name NAME] [--path NEW_DIRECTORY] [--template embedded|products] [--parent-origin ORIGIN]
+  'app init': `emisell app init [--name NAME] [--path NEW_DIRECTORY] [--template react-router] [--parent-origin ORIGIN]
 
 Membuat project lokal baru melalui panduan interaktif. Tidak membuat aplikasi di server.
-Non-interaktif: isi --name atau --path dan --parent-origin; template default embedded.
+Non-interaktif: isi --name atau --path dan --parent-origin; template React Router + TypeScript + Vite.
+Jalankan npm install di hasil generate. Template HTML lama sudah dihapus.
 --dir tetap didukung sebagai alias --path. Folder yang sudah ada tidak ditimpa.
-Contoh: emisell app init --name my-app --template products --parent-origin http://localhost:3000`,
+Contoh: emisell app init --name my-app --parent-origin http://localhost:3000`,
   'app dev': `emisell app dev [--path DIRECTORY] [--port PORT] [--backend MODULE]
 
 Menjalankan preview dari folder project saat ini atau subfoldernya. Port default 4330.
 --dir tetap didukung. --backend mengeksekusi modul Node tepercaya secara eksplisit.
 Path backend relatif terhadap terminal saat perintah dijalankan (kompatibel dengan 0.2.0).
-Tanpa backend, UI dapat dibuka tetapi akses identitas/data ditolak. Refresh manual setelah edit.
+Vite hot reload aktif. Memerlukan Node 22.12+ dan npm install di project.
+Menjalankan source/config project tepercaya. Backend bawaan membaca .env privat.
+Tanpa konfigurasi backend, UI dapat dibuka tetapi akses identitas/data ditolak.
 Tidak membuat tunnel, mengubah server, atau menginstal aplikasi ke toko.`,
   'app info': `emisell app info [--path DIRECTORY] [--json]
 
 Menampilkan metadata project lokal yang aman. Tidak membaca sesi login, .env atau secret.
 Scope template adalah kebutuhan fitur, bukan bukti izin seller. --dir tetap didukung.`,
+  'app build': `emisell app build [--path DIRECTORY]
+
+Menjalankan npm run build dari project tepercaya. Memerlukan npm install.
+Tidak mengunggah image, men-deploy server, membuat release atau mengubah izin toko.
+Lihat DEPLOYMENT.md pada project untuk Docker dan hosting. --dir tetap didukung.`,
   'app doctor': `emisell app doctor [--path DIRECTORY] [--json]
 
-Memeriksa konfigurasi dan aset preview tanpa mengeksekusi backend atau menghubungi server.
+Memeriksa konfigurasi, source, Node dan dependency tanpa memuat .env, mengeksekusi backend atau menghubungi server.
 Exit 1 jika ada kesalahan lokal; peringatan kesiapan server tidak berarti preview gagal.
 Hasil lulus bukan verifikasi DNS/TLS, consent atau akses data toko. --dir tetap didukung.`,
   'auth login': `emisell auth login --url PORTAL_ORIGIN --email EMAIL [--password-stdin]
@@ -35,6 +43,7 @@ export const help = `Emisell Developer CLI
 Development lokal
   emisell app init                 Buat project dengan panduan interaktif
   emisell app dev                  Jalankan preview dari folder project
+  emisell app build                Build project tanpa deploy
   emisell app info [--json]        Lihat konfigurasi lokal
   emisell app doctor [--json]      Periksa kesiapan preview
   emisell app COMMAND --help      Bantuan per perintah
