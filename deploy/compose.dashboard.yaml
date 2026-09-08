@@ -5,6 +5,7 @@ x-api: &api
   build: {context: .., dockerfile: Dockerfile}
   environment:
     EMISELL_ENV: production
+    EMISELL_CORE_HTTP_ENABLED: ${EMISELL_CORE_HTTP_ENABLED:-false}
     EMISELL_DASHBOARD_ORIGIN: https://${DASHBOARD_DOMAIN:?Set DASHBOARD_DOMAIN}
     EMISELL_STORE_DISABLED: 'true'
     EMISELL_DATABASE_URL: postgres://emisell:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/emisell?sslmode=disable

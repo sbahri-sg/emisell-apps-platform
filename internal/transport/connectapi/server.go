@@ -126,6 +126,9 @@ func (s Server) Handler() http.Handler {
 			if e != nil {
 				return nil, mapError(e)
 			}
+			if public, _ := ctx.Value(coreHTTPKey{}).(bool); public && !principal.PlatformFull {
+				return nil, mapError(fault.Forbidden)
+			}
 			ctx = context.WithValue(ctx, callerKey{}, caller{principal, requestID})
 			if merchantid.Normalize(req.Any()) != nil {
 				return nil, mapError(fault.Invalid)

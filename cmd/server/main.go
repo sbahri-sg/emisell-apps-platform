@@ -13,6 +13,7 @@ import (
 	"emisell.app/platform/internal/providergrant"
 	"emisell.app/platform/internal/resourceclient"
 	"emisell.app/platform/internal/review"
+	"emisell.app/platform/internal/transport/connectapi"
 	"emisell.app/platform/migrations"
 	"errors"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -210,6 +211,10 @@ func run() error {
 		httpHandler = bootstrap.AddUIResourceReleaseRoutes(httpHandler, pool, cfg.Origin, logger, resourceKey)
 	}
 	internalHandler, err = providergrant.Attach(internalHandler, os.Getenv("EMISELL_PROVIDER_GRANT_FILE"), providergrant.Postgres{Pool: pool})
+	if err != nil {
+		return err
+	}
+	httpHandler, err = connectapi.ExposeCore(httpHandler, internalHandler, cfg.Origin, os.Getenv("EMISELL_CORE_HTTP_ENABLED"))
 	if err != nil {
 		return err
 	}

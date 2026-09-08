@@ -2,6 +2,9 @@
  email {$ACME_EMAIL}
 }
 {$DASHBOARD_DOMAIN} {
+ handle /api/v1/core/rpc/* {
+  reverse_proxy api:8087
+ }
  handle /api/v1/portal/* {
   reverse_proxy api:8087
  }
