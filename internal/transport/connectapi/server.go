@@ -148,7 +148,7 @@ func (s Server) Handler() http.Handler {
 		p, h := engineconnect.NewEngineGrantServiceHandler(engineServer{s}, opts...)
 		mux.Handle(p, h)
 	}
-	connectionPath, connectionHandler := integrationconnect.NewConnectionServiceHandler(connectionServer{}, opts...)
+	connectionPath, connectionHandler := integrationconnect.NewConnectionServiceHandler(connectionServer{Accounts: s.Accounts}, opts...)
 	mux.Handle(connectionPath, connectionHandler)
 	path, h := payconnect.NewPaymentServiceHandler(paymentServer{s}, opts...)
 	mux.Handle(path, h)
@@ -209,7 +209,19 @@ func (s Server) invoke(ctx context.Context, tenant, key, capabilityID, scope str
 type paymentServer struct{ Server }
 type shippingServer struct{ Server }
 
-type connectionServer struct{}
+type connectionServer struct{ Accounts identity.ServiceAccounts }
+
+func (s connectionServer) EnsureMerchant(ctx context.Context, r *connect.Request[integration.EnsureMerchantRequest]) (*connect.Response[integration.EnsureMerchantResponse], error) {
+	c, ok := ctx.Value(callerKey{}).(caller)
+	if !ok {
+		return nil, mapError(fault.Unauthenticated)
+	}
+	created, err := s.Accounts.EnsureMerchant(ctx, c.ServicePrincipal, r.Msg.MerchantId, r.Msg.CoreActorId)
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return connect.NewResponse(&integration.EnsureMerchantResponse{MerchantId: r.Msg.MerchantId, Registered: true, Created: created}), nil
+}
 
 func (connectionServer) Check(ctx context.Context, _ *connect.Request[integration.CheckRequest]) (*connect.Response[integration.CheckResponse], error) {
 	c, ok := ctx.Value(callerKey{}).(caller)

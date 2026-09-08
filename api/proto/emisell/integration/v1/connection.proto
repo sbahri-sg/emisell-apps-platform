@@ -6,10 +6,25 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "emisell.app/platform/pkg/sdk/gen/emisell/integration/v1;integrationv1";
 
-// Authenticated first-party Core key check. No tenant resources are read or
-// mutated. Success proves this credential is accepted, NOT a resource grant.
+// Authenticated first-party Core integration, not third-party app authority.
 service ConnectionService {
+  // Read-only credential check; does not register a merchant.
   rpc Check(CheckRequest) returns (CheckResponse);
+  // Register a verified Emisell merchant reference idempotently. No grants,
+  // memberships, installations or approvals are created by this operation.
+  rpc EnsureMerchant(EnsureMerchantRequest) returns (EnsureMerchantResponse);
+}
+
+message EnsureMerchantRequest {
+  // Asserted only by first-party Core after checking its primary database.
+  string merchant_id = 1;
+  string core_actor_id = 2;
+}
+
+message EnsureMerchantResponse {
+  string merchant_id = 1;
+  bool registered = 2;
+  bool created = 3;
 }
 
 message CheckRequest {}

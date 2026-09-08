@@ -22,6 +22,7 @@ type coreHTTPKey struct{}
 // included operation retains its existing authorization and seller consent.
 var coreProcedures = map[string]bool{
 	"/emisell.integration.v1.ConnectionService/Check":                true,
+	"/emisell.integration.v1.ConnectionService/EnsureMerchant":       true,
 	"/emisell.testing.v1.TestDistributionService/ListAssignments":    true,
 	"/emisell.testing.v1.TestDistributionService/StopAssignment":     true,
 	"/emisell.installation.v1.InstallIntentService/Prepare":          true,

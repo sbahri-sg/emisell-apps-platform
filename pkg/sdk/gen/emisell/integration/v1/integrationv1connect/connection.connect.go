@@ -35,11 +35,18 @@ const (
 const (
 	// ConnectionServiceCheckProcedure is the fully-qualified name of the ConnectionService's Check RPC.
 	ConnectionServiceCheckProcedure = "/emisell.integration.v1.ConnectionService/Check"
+	// ConnectionServiceEnsureMerchantProcedure is the fully-qualified name of the ConnectionService's
+	// EnsureMerchant RPC.
+	ConnectionServiceEnsureMerchantProcedure = "/emisell.integration.v1.ConnectionService/EnsureMerchant"
 )
 
 // ConnectionServiceClient is a client for the emisell.integration.v1.ConnectionService service.
 type ConnectionServiceClient interface {
+	// Read-only credential check; does not register a merchant.
 	Check(context.Context, *connect.Request[v1.CheckRequest]) (*connect.Response[v1.CheckResponse], error)
+	// Register a verified Emisell merchant reference idempotently. No grants,
+	// memberships, installations or approvals are created by this operation.
+	EnsureMerchant(context.Context, *connect.Request[v1.EnsureMerchantRequest]) (*connect.Response[v1.EnsureMerchantResponse], error)
 }
 
 // NewConnectionServiceClient constructs a client for the emisell.integration.v1.ConnectionService
@@ -59,12 +66,19 @@ func NewConnectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(connectionServiceMethods.ByName("Check")),
 			connect.WithClientOptions(opts...),
 		),
+		ensureMerchant: connect.NewClient[v1.EnsureMerchantRequest, v1.EnsureMerchantResponse](
+			httpClient,
+			baseURL+ConnectionServiceEnsureMerchantProcedure,
+			connect.WithSchema(connectionServiceMethods.ByName("EnsureMerchant")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // connectionServiceClient implements ConnectionServiceClient.
 type connectionServiceClient struct {
-	check *connect.Client[v1.CheckRequest, v1.CheckResponse]
+	check          *connect.Client[v1.CheckRequest, v1.CheckResponse]
+	ensureMerchant *connect.Client[v1.EnsureMerchantRequest, v1.EnsureMerchantResponse]
 }
 
 // Check calls emisell.integration.v1.ConnectionService.Check.
@@ -72,10 +86,19 @@ func (c *connectionServiceClient) Check(ctx context.Context, req *connect.Reques
 	return c.check.CallUnary(ctx, req)
 }
 
+// EnsureMerchant calls emisell.integration.v1.ConnectionService.EnsureMerchant.
+func (c *connectionServiceClient) EnsureMerchant(ctx context.Context, req *connect.Request[v1.EnsureMerchantRequest]) (*connect.Response[v1.EnsureMerchantResponse], error) {
+	return c.ensureMerchant.CallUnary(ctx, req)
+}
+
 // ConnectionServiceHandler is an implementation of the emisell.integration.v1.ConnectionService
 // service.
 type ConnectionServiceHandler interface {
+	// Read-only credential check; does not register a merchant.
 	Check(context.Context, *connect.Request[v1.CheckRequest]) (*connect.Response[v1.CheckResponse], error)
+	// Register a verified Emisell merchant reference idempotently. No grants,
+	// memberships, installations or approvals are created by this operation.
+	EnsureMerchant(context.Context, *connect.Request[v1.EnsureMerchantRequest]) (*connect.Response[v1.EnsureMerchantResponse], error)
 }
 
 // NewConnectionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -91,10 +114,18 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 		connect.WithSchema(connectionServiceMethods.ByName("Check")),
 		connect.WithHandlerOptions(opts...),
 	)
+	connectionServiceEnsureMerchantHandler := connect.NewUnaryHandler(
+		ConnectionServiceEnsureMerchantProcedure,
+		svc.EnsureMerchant,
+		connect.WithSchema(connectionServiceMethods.ByName("EnsureMerchant")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/emisell.integration.v1.ConnectionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ConnectionServiceCheckProcedure:
 			connectionServiceCheckHandler.ServeHTTP(w, r)
+		case ConnectionServiceEnsureMerchantProcedure:
+			connectionServiceEnsureMerchantHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -106,4 +137,8 @@ type UnimplementedConnectionServiceHandler struct{}
 
 func (UnimplementedConnectionServiceHandler) Check(context.Context, *connect.Request[v1.CheckRequest]) (*connect.Response[v1.CheckResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("emisell.integration.v1.ConnectionService.Check is not implemented"))
+}
+
+func (UnimplementedConnectionServiceHandler) EnsureMerchant(context.Context, *connect.Request[v1.EnsureMerchantRequest]) (*connect.Response[v1.EnsureMerchantResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("emisell.integration.v1.ConnectionService.EnsureMerchant is not implemented"))
 }
