@@ -1,52 +1,19 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { createInterface } from 'node:readline/promises';
 import { Client, SessionStore, documentFile } from './client.mjs';
-import { initApp, startDev } from './development.mjs';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { runLocal } from './local.mjs';
+import { help, commandHelp } from './help.mjs';
 
-export const help = `Emisell Developer CLI
-
-emisell login --url https://apps-platform.example.com --email developer@example.com
-emisell login --url URL --email EMAIL --password-stdin
-emisell logout
-emisell logout --local
-emisell whoami
-emisell apps list
-emisell apps show APP_ID
-emisell apps init --file app.json
-emisell apps create --file app.json --request-key UNIQUE_KEY
-emisell apps update APP_ID --file app.json --revision NUMBER --request-key UNIQUE_KEY
-emisell reviews list
-emisell reviews show REVIEW_ID
-emisell reviews submit APP_ID --revision NUMBER --request-key UNIQUE_KEY --yes
-emisell scopes
-emisell ui list
-emisell ui show RELEASE_ID
-emisell ui create --file ui.json --request-key UNIQUE_KEY --yes
-emisell resource-ui list
-emisell resource-ui show RELEASE_ID
-emisell resource-ui create --file resource-ui.json --request-key UNIQUE_KEY --yes
-emisell app init --dir my-app --parent-origin http://localhost:3000 [--template embedded|products]
-emisell app dev --dir my-app --port 4330 [--backend ./my-app/backend.mjs]
-emisell testing list [--after-id CURSOR]
-emisell testing show ASSIGNMENT_ID
-emisell testing request --release-id RELEASE_ID [--release-kind ui|ui_resource] --merchant-id MERCHANT_ID --reason TEXT --request-key UNIQUE_KEY --yes
-emisell --version
-
-Output API berupa JSON. Tidak ada auto-retry mutasi.
-Request-key: 8–128 karakter huruf/angka/_/-. Gunakan key baru untuk operasi baru.
-Review bukan publish. CLI tidak memberi akses seller atau menandatangani rilis.
-`;
+export { help } from './help.mjs';
 
 function parse(args) {
   const words = [], flags = {};
   for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
+    const arg = ({ '-h': '--help', '-n': '--name', '-p': '--path', '-j': '--json' })[args[i]] || args[i];
     if (!arg.startsWith('--')) { words.push(arg); continue; }
     const name = arg.slice(2);
     if (Object.hasOwn(flags, name)) throw new Error(`Opsi ganda: --${name}`);
-    if (['password-stdin', 'yes', 'local'].includes(name)) flags[name] = true;
+    if (['password-stdin', 'yes', 'local', 'help', 'json'].includes(name)) flags[name] = true;
     else {
       if (!args[i + 1] || args[i + 1].startsWith('--')) throw new Error(`Nilai --${name} belum diisi.`);
       flags[name] = args[++i];
@@ -100,39 +67,22 @@ async function passwordFromInput(fromStdin) {
   } finally { rl.close(); process.stderr.write('\n'); }
 }
 
-export async function run(args, { store = new SessionStore(), fetcher = fetch, output = text => console.log(text), password = passwordFromInput } = {}) {
-  if (args.length === 0 || (args.length === 1 && ['--help', 'help'].includes(args[0]))) { output(help); return; }
+export async function run(args, { store = new SessionStore(), fetcher = fetch, output = text => console.log(text), password = passwordFromInput, ...localOptions } = {}) {
+  if (args.length === 0 || (args.length === 1 && ['--help', '-h', 'help', 'app', 'auth'].includes(args[0]))) { output(help); return; }
   if (args.length === 1 && args[0] === '--version') {
     output(JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version); return;
   }
   const { words: w, flags: f } = parse(args);
-  const command = w.slice(0, 2).join(' ');
-  if (command === 'app init' && w.length === 2) {
-    allowed(f, ['dir', 'parent-origin', 'template']);
-    const target = await initApp(required(f, 'dir'), required(f, 'parent-origin'), f.template || 'embedded');
-    output(`Starter dibuat: ${target}. Jalankan emisell app dev --dir "${target}". Belum terhubung ke toko.`); return;
+  if (f.help && Object.hasOwn(commandHelp, w.join(' '))) {
+    allowed(f, ['help']); output(commandHelp[w.join(' ')]); return;
   }
-  if (command === 'app dev' && w.length === 2) {
-    allowed(f, ['dir', 'port', 'backend']);
-    const port = f.port || '4330';
-    if (!/^[0-9]+$/.test(port) || Number(port) < 1024 || Number(port) > 65535) throw Error('Port harus 1024–65535.');
-    const directory = required(f, 'dir');
-    let verifySession, readProducts;
-    if (f.backend) {
-      // Explicit opt-in: this executes developer-owned backend code, never remote URLs.
-      const module = await import(pathToFileURL(resolve(f.backend)));
-      if (typeof module.verifySession !== 'function') throw Error('Backend harus mengekspor verifySession.');
-      verifySession = module.verifySession;
-      if (module.readProducts !== undefined && typeof module.readProducts !== 'function') throw Error('readProducts harus berupa fungsi.');
-      readProducts = module.readProducts;
-    }
-    const server = await startDev(directory, Number(port), { verifySession, readProducts });
-    output(`Preview: http://127.0.0.1:${server.address().port}. Refresh setelah edit. Ctrl+C untuk berhenti. Ini bukan server produksi atau instalasi seller.`);
-    await new Promise(resolve => {
-      const stop = () => { server.closeAllConnections(); server.close(resolve); };
-      process.once('SIGINT', stop); process.once('SIGTERM', stop);
-      server.once('close', () => { process.removeListener('SIGINT', stop); process.removeListener('SIGTERM', stop); resolve(); });
-    }); return;
+  if (w.length === 2 && w[0] === 'auth' && ['login', 'logout'].includes(w[1])) w.shift();
+  const command = w.slice(0, 2).join(' ');
+  if (w[0] === 'app' && ['init', 'dev', 'info', 'doctor'].includes(w[1]) && w.length === 2) {
+    return runLocal(w[1], f, { ...localOptions, output });
+  }
+  if (['app deploy', 'app release', 'app config'].includes(command)) {
+    throw Error('Perintah ini belum tersedia: sambungan server dan rilis produksi belum diaktifkan. Gunakan app info / app doctor untuk pemeriksaan lokal; ui create atau resource-ui create hanya mengajukan review.');
   }
   if (w.length === 1 && w[0] === 'logout' && f.local) {
     allowed(f, ['local']);

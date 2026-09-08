@@ -1,19 +1,72 @@
 # Emisell Developer CLI
 
-**0.2.0 — kandidat rilis lokal, belum dipublikasikan.** Versi npm yang diverifikasi saat pengerjaan ini masih 0.1.1; `@latest` belum memuat template produk di bawah. Kandidat memakai Node.js 22+, tanpa dependency runtime.
+Developer CLI untuk Emisell Apps Platform. **Versi 0.3.1** menyediakan wizard
+project, preview lokal, informasi project, serta pemeriksaan konfigurasi.
+Memerlukan Node.js **22+**, tanpa dependency runtime atau telemetry.
+
+> Preview lokal tidak memerlukan login. Akses data toko tetap memerlukan backend,
+> rilis yang disetujui, assignment, instalasi, dan persetujuan seller. Sambungan
+> backend produksi, login browser/OAuth, tunnel, dan `app deploy` belum tersedia.
+
+## Mulai cepat
+
+```sh
+npm install -g @emisell/cli@latest
+emisell --version
+emisell app init
+```
+
+Wizard meminta nama aplikasi, folder baru, template, dan origin Dashboard seller.
+Masuk ke folder yang dipilih (contoh berikut memakai folder default):
+
+```sh
+cd my-emisell-app
+emisell app info
+emisell app doctor
+emisell app dev
+```
+
+`app init` hanya membuat project lokal. Tidak perlu login untuk membuat project
+atau membuka preview. Tidak ada instalasi dependency, tunnel, auto-refresh,
+registrasi app di server, ataupun persetujuan seller otomatis.
+
+- `app dev`, `app info`, dan `app doctor` menemukan `emisell.app.json` dari folder saat ini atau subfoldernya. `--path` memilih folder project secara eksplisit.
+- `app info --json` menampilkan metadata aman; kebutuhan scope template bukan bukti izin toko.
+- `app doctor --json` memeriksa konfigurasi dan aset lokal, tanpa jaringan, menjalankan backend, membaca `.env`, atau membaca secret. Exit `1` berarti ada kesalahan lokal; lulus hanya berarti preview siap, bukan akses toko sudah aktif.
+- `emisell app init --help`, `app dev --help`, `app info --help`, dan `app doctor --help` menjelaskan masing-masing perintah.
+- `emisell auth login` / `auth logout` adalah alias login/logout lama, masih memakai sesi portal. Login lewat browser/OAuth belum tersedia.
+
+Contoh untuk otomasi tanpa prompt:
+
+```sh
+emisell app init --name product-reader --path ./product-reader --template products --parent-origin https://seller.emisell.test
+emisell app doctor --path ./product-reader --json
+```
+
+`--name`/`-n`, `--path`/`-p`, dan `--json`/`-j` tersedia pada perintah yang
+mendukungnya. Opsi lama `--dir` tetap didukung; jangan gabungkan dengan `--path`.
+Folder existing tidak ditimpa. Ctrl+C atau EOF saat wizard membatalkan sebelum
+project dibuat. Di pipeline/CI, isi `--name` atau `--path` serta `--parent-origin`;
+template default `embedded`. Origin seller adalah pilihan trust eksplisit.
+
+`--backend` tetap opt-in dan path-nya relatif terhadap terminal saat perintah
+dijalankan, seperti 0.2.0. Modul itu adalah kode Node tepercaya milik developer;
+CLI tidak memuatnya otomatis dari konfigurasi. Tanpa backend, permintaan data
+ditolak. `app deploy`, rilis produksi, pengaitan toko, login browser dan tunnel
+belum tersedia. Semua tetap memerlukan backend/otorisasi yang sesuai.
 
 ## Mulai aplikasi pembaca produk
 
-Dengan CLI kandidat dari checkout atau tarball lokal:
+Buat project dengan template produk secara eksplisit:
 
 ```sh
-emisell app init --dir product-reader --template products --parent-origin https://seller.emisell.test
+emisell app init --name product-reader --path ./product-reader --template products --parent-origin https://seller.emisell.test
 ```
 
 Hasilnya UI produk dengan pencarian nama/SKU, pagination cursor, serta `local-products-backend.mjs`. Panduan lengkap create → review → app-client/launch → assignment → seller consent/install → read ada di **README.md yang dihasilkan**. Ikuti panduan konfigurasi backend tersebut sebelum menjalankan:
 
 ```sh
-emisell app dev --dir product-reader --backend ./product-reader/local-products-backend.mjs
+emisell app dev --path ./product-reader --backend ./product-reader/local-products-backend.mjs
 ```
 
 Simpan client secret hanya di file privat di luar `public/` (izin 600), lalu set path melalui `EMISELL_LOCAL_CLIENT_SECRET_FILE`. Secret tidak pernah masuk browser. Template hanya memakai `read_products`; identitas, assignment, instalasi dan izin terkini tetap diperiksa backend. Preview lokal **bukan adapter OAuth atau server produksi**.
@@ -29,7 +82,8 @@ Use `resource-ui list` and `resource-ui show RELEASE_ID` to inspect it.
 These commands submit metadata only. On the locally configured resource runtime,
 seller consent, installation and product reads follow review, client/launch and
 assignment approval. Order and write scopes are rejected. These routes are
-opt-in; this CLI candidate is not yet published.
+opt-in and require a compatible, operator-configured backend. Installing this
+CLI does not enable these routes on a deployed server.
 
 Create a JSON file with `name`, `summary`, `version`, `mode` (`embedded` or
 `external`), `url` (HTTPS), and `reason`. Then run:
@@ -42,7 +96,8 @@ emisell ui show RELEASE_ID
 
 This submits a UI release for review; it does not sign, publish, assign, or
 install the app. UI metadata does not request shipping or order scopes.
-These commands are in the local development CLI, not the published 0.1.1 release.
+These commands are available starting in CLI 0.2.0 and require compatible
+server routes; CLI installation alone does not deploy or upgrade the server.
 
 ## Local HTTPS preview
 
@@ -80,16 +135,20 @@ Anda tidak memerlukan akun npm untuk memasang paket publik ini. Untuk mengelola 
 Gunakan akun **developer** yang dibuat administrator dan URL dashboard terpadu, bukan URL Dashboard seller/API-Kurir. Pastikan domain benar sebelum memasukkan password.
 
 ```sh
-emisell login --url https://apps-platform.emisell.com --email developer@example.com
+emisell auth login --url https://portal.example.com --email developer@example.com
 emisell whoami
 ```
+
+Ganti `https://portal.example.com` dengan origin portal Emisell yang diberikan
+administrator. Domain contoh tersebut bukan layanan login yang disediakan CLI.
+`emisell login` tetap didukung sebagai alias lama.
 
 Password diminta tanpa ditampilkan. Tidak ada opsi `--password` agar password tidak masuk riwayat shell/process list. Untuk otomasi tersedia `--password-stdin`; kirim lewat secret manager, jangan menulis password literal dalam command atau file repository.
 
 Development lokal:
 
 ```sh
-emisell login --url http://localhost:4317 --email developer@example.com
+emisell auth login --url http://localhost:4317 --email developer@example.com
 ```
 
 HTTP hanya diizinkan untuk loopback. Semua URL harus origin saja, tanpa `/api/v1`, path, query atau credential. CLI memakai Origin yang sama dengan URL login; backend harus sudah dikonfigurasi untuk origin tersebut. Redirect tidak diikuti, termasuk saat login. Tidak ada opsi mematikan verifikasi TLS.
@@ -150,20 +209,20 @@ emisell reviews list
 ## Sesi dan logout
 
 ```sh
-emisell logout
+emisell auth logout
 # Jika server tidak tersedia atau sesi telah habis:
-emisell logout --local
+emisell auth logout --local
 ```
 
 Sesi disimpan sebagai token sensitif di `~/.emisell-cli/session.json`, bukan di folder aplikasi. Password tidak disimpan. Pada macOS/Linux direktori harus 0700 dan file 0600; symlink file sesi ditolak. File sesi **bukan terenkripsi/keychain**: jangan dibagikan, di-commit atau disertakan dalam backup publik. Pada Windows perlindungan bergantung pada ACL direktori profil pengguna.
 
 Satu profil login lokal pada versi ini. Sesi mengikuti batas server, maksimal delapan jam; tidak ada token permanen atau refresh loop. `logout` mencabut sesi server sebelum menghapus salinan lokal. `logout --local` hanya menghapus salinan lokal, **bukan mencabut sesi server**. Error 401 memerlukan login kembali; 403 periksa akun/domain; 409 periksa revision/request-key; 429 tunggu lalu coba lagi.
 
-## Starter embedded dan preview lokal (0.2.0)
+## Starter embedded dan preview lokal
 
 ```sh
-emisell app init --dir my-app --parent-origin http://localhost:3000
-emisell app dev --dir my-app --port 4330
+emisell app init --name my-app --template embedded --parent-origin http://localhost:3000
+emisell app dev --path ./my-app --port 4330
 ```
 
 `app init` (singular) membuat project baru dengan UI Kit Emisell 0.1.0 dan Bridge yang dibundel, tanpa memasang dependency atau mengubah aplikasi di server. Berbeda dengan `apps init --file`, yang hanya membuat dokumen draft shipping. Direktori tujuan harus belum ada. `--parent-origin` adalah origin Dashboard seller yang dipercaya, bukan origin portal developer; jangan mengambilnya dari query/Referrer saat runtime.
@@ -195,9 +254,22 @@ Perintah request memakai **releaseKind: ui** secara default. Untuk rilis `resour
 
 Starter localhost belum otomatis layak untuk Testing seller. Alur rilis UI umum memerlukan hosting HTTPS, metadata/rilis yang direview dan konfigurasi app-client/launch yang cocok. Pengecualian localhost demo lama tidak diwariskan ke project baru. CLI tidak membuat trust key, menyetujui rilis, mengaktifkan scope Plan atau mengakses Core/DB langsung.
 
-## Batas versi 0.2
+## Batas versi 0.3.1
 
 Belum ada device/browser OAuth login khusus CLI, perintah pengelolaan app-client secret, tunnel/hosting HTTPS, publish/sign release, adapter otorisasi backend produksi atau worker webhook universal. CLI memakai sesi portal, bukan OAuth token data merchant. Template produk sudah mendukung Open app → verified identity → akses `read_products` di runtime lokal yang dikonfigurasi operator. Akses order, write dan webhook belum termasuk template ini. Review, approval assignment, consent dan instalasi tidak dilewati CLI.
+
+## Perubahan 0.3.1
+
+- Dokumentasi publik difokuskan pada fitur dan penggunaan Emisell.
+- Tidak ada perubahan perintah, perilaku runtime, atau izin akses toko.
+
+## Perubahan 0.3.0
+
+- Wizard `app init` dengan nama, folder, template, dan origin seller.
+- `app dev` menemukan project dari folder saat ini/subfolder; `--path` dan `--dir` didukung.
+- `app info` dan `app doctor`, termasuk output JSON dan exit code untuk otomasi.
+- Bantuan perintah, opsi singkat, serta alias `auth login/logout`.
+- Perintah lama tetap didukung. Tidak mengubah izin seller atau menyambungkan server produksi.
 
 ## Perubahan 0.2.0
 

@@ -1,4 +1,18 @@
-# 0.2.0 — release candidate (not published)
+# 0.3.1
+
+- Focus public documentation on Emisell features and usage.
+- No command, runtime behavior, or merchant permission changes.
+
+# 0.3.0
+
+- Interactive `app init` for name, new directory, bundled template and trusted seller origin; explicit flags for CI.
+- `app dev` discovers the local project from cwd/subdirectories; `--path` and legacy `--dir` are supported.
+- `app info` projects safe local metadata; `app doctor` validates config/assets without network, secrets or backend execution. Neither claims merchant access.
+- Command-specific help, `--name`/`-n`, `--path`/`-p`, `--json`/`-j`, and `auth login/logout` aliases.
+- Existing commands and backend paths remain compatible; occupied ports are reported without stopping another process.
+- No browser OAuth, tunnel, server registration, production release or automatic seller consent.
+
+# 0.2.0
 
 - Embedded starter with pinned UI Kit and bridge.
 - Explicit local HTTPS origin and endpoint ownership challenge support.
@@ -13,7 +27,8 @@
 The local resource runtime supports consent/install/read_products after the
 required approvals. CLI commands cannot sign, approve or consent for a seller.
 No production OAuth resource adapter, order/write access or webhook worker is
-included. Published npm version remains 0.1.1; publishing requires approval.
+included. Server deployment is separate; installing this package does not enable
+resource routes or production access.
 
 Validation: CLI tests, local Core contract test and npm pack dry run. No .local
 credentials, tests, or deployment configuration are included in the package.

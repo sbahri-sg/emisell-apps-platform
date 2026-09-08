@@ -8,7 +8,9 @@ Repository ini berisi backend Go, satu dashboard dengan fungsi Admin/Developer, 
 
 ## Komponen
 
-CLI developer tersedia di [`packages/developer-cli`](packages/developer-cli/README.md): login developer, draft aplikasi, katalog scope dan pengajuan review melalui API portal. Paket npm `@emisell/cli` telah dipublikasikan pada versi 0.1.1; kandidat lokal 0.2.0 menambah template produk, pencarian, pagination dan Testing. Ini berbeda dari CLI operasional Go di `cmd/cli`.
+CLI developer tersedia di [`packages/developer-cli`](packages/developer-cli/README.md): login developer, draft aplikasi, katalog scope dan pengajuan review melalui API portal. Paket npm `@emisell/cli@0.3.1` telah dipublikasikan dengan template produk, pencarian, pagination dan Testing untuk backend lokal yang dikonfigurasi operator. Sambungan backend produksi dan deployment server tetap terpisah serta belum diaktifkan oleh publikasi CLI. Ini berbeda dari CLI operasional Go di `cmd/cli`.
+
+CLI `0.3.0` menambah wizard `app init`, penemuan project pada `app dev`, serta pemeriksaan lokal `app info`/`app doctor`. Perintah lama tetap didukung; hasil pemeriksaan lokal bukan izin akses toko.
 
 | Komponen | Lokasi | Alamat lokal |
 | --- | --- | --- |

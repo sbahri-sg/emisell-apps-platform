@@ -1,14 +1,16 @@
 import { mkdir, readFile, writeFile, lstat } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
+import { basename, resolve, join } from 'node:path';
 import { createServer } from 'node:http';
 import { origin } from './client.mjs';
 import { productQuery, productPage } from '../templates/products/server/product-query.mjs';
+import { appName, publicAssets, readProject, starterAssets } from './project.mjs';
 
-const files = ['index.html', 'app.mjs', 'bridge.mjs', 'emisell-ui.css'];
+const files = starterAssets;
 const types = { '.html': 'text/html', '.mjs': 'text/javascript', '.css': 'text/css' };
-export async function initApp(directory, parentOrigin, template = 'embedded') {
+export async function initApp(directory, parentOrigin, template = 'embedded', name = basename(resolve(directory))) {
   if (!['embedded', 'products'].includes(template)) throw Error('Template harus embedded atau products.');
   parentOrigin = origin(parentOrigin);
+  name = appName(name);
   const target = resolve(directory);
   // Never merge into or overwrite an existing project, even an empty directory.
   await mkdir(target, { mode: 0o700 });
@@ -28,25 +30,24 @@ export async function initApp(directory, parentOrigin, template = 'embedded') {
     }
   }
   await writeFile(join(target, '.gitignore'), '.env\n.env.*\n.local/\n*.secret\n', { flag: 'wx' });
-  await writeFile(join(target, 'emisell.app.json'), JSON.stringify({ schema: 'emisell.local-app/v1', template, parentOrigin, uiKitVersion: '0.1.0' }, null, 2) + '\n', { flag: 'wx' });
+  await writeFile(join(target, 'emisell.app.json'), JSON.stringify({ schema: 'emisell.local-app/v1', name, template, parentOrigin, uiKitVersion: '0.1.0' }, null, 2) + '\n', { flag: 'wx' });
   await writeFile(join(target, 'README.md'), `# Embedded Starter\n\nRun: emisell app dev --dir .\n\nEdit public/index.html and public/app.mjs, then refresh the browser.\nUI Kit 0.1.0 and Bridge are bundled snapshots; no npm dependencies.\n\nThis is a loopback-only preview, not a production server. /api/session defaults to 503. Use --backend ./my-app/backend.mjs only after configuring trusted adapters; see server/README.md.\nImplement server-side identity verification and current authorization before using seller data.\nDo not put secrets in public/. Only four starter assets are served by the preview.\n\nFor seller Testing, host on HTTPS, obtain a valid reviewed UI release and request an assignment\nwith emisell testing request. This does not install the app or grant merchant access.\n`, { flag: 'wx' });
   if (template === 'products') await writeFile(join(target, 'README.md'), await readFile(new URL('../templates/products/README.md', import.meta.url)));
+  const guide = await readFile(join(target, 'README.md'), 'utf8');
+  await writeFile(join(target, 'README.md'), `## Mulai dari folder project (CLI 0.3+)\n\n\`\`\`sh\nemisell app info\nemisell app doctor\nemisell app dev\n\`\`\`\n\nCLI menemukan emisell.app.json dari folder ini atau subfoldernya. --path memilih project secara eksplisit; --dir tetap didukung. Doctor hanya memeriksa konfigurasi/aset lokal, bukan izin toko. Akses data tetap membutuhkan --backend dan konfigurasi privat yang dijelaskan di bawah.\n\n${guide}`);
   return target;
 }
 
 export async function startDev(directory, port = 4330, { verifySession, readProducts } = {}) {
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw Error('Port tidak valid.');
   const root = resolve(directory);
-  const config = JSON.parse(await readFile(join(root, 'emisell.app.json'), 'utf8'));
-  if (config.schema !== 'emisell.local-app/v1') throw Error('Bukan project starter Emisell.');
-  const parent = origin(config.parentOrigin);
+  const config = await readProject(root);
+  const parent = config.parentOrigin;
   // Explicit local operator configuration; never trust forwarded request headers.
-  const appOrigin = config.appOrigin === undefined ? null : origin(config.appOrigin);
-  if (appOrigin && (!/^https:\/\/[a-z0-9.-]+\.test$/.test(appOrigin) || appOrigin === parent)) throw Error('App origin harus domain HTTPS .test terpisah.');
+  const appOrigin = config.appOrigin;
   const proof = config.endpointProof;
-  if (proof && (!/^proof_[A-Z2-7]{26}$/.test(proof.id) || !proof.document || Object.keys(proof.document).sort().join(',') !== 'challenge,clientId,releaseSha256,schema' || !Object.values(proof.document).every(v => typeof v === 'string') || Buffer.byteLength(JSON.stringify(proof.document)) > 4096)) throw Error('Endpoint proof tidak valid.');
   const publicDir = join(root, 'public');
-  const servedFiles = config.template === 'products' ? [...files, 'products.css'] : files;
+  const servedFiles = publicAssets(config);
   if (!(await lstat(publicDir)).isDirectory() || (await lstat(publicDir)).isSymbolicLink()) throw Error('Direktori public tidak valid.');
   const server = createServer(async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
@@ -108,8 +109,11 @@ export async function startDev(directory, port = 4330, { verifySession, readProd
   });
   server.requestTimeout = 10000; server.headersTimeout = 10000;
   await new Promise((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(port, '127.0.0.1', resolve);
+    const failed = error => reject(Error(error.code === 'EADDRINUSE'
+      ? `Port ${port} sedang digunakan. Pilih --port lain; CLI tidak menghentikan proses yang sedang berjalan.`
+      : 'Preview gagal dijalankan. Periksa port dan izin jaringan lokal.'));
+    server.once('error', failed);
+    server.listen(port, '127.0.0.1', () => { server.removeListener('error', failed); resolve(); });
   });
   return server;
 }

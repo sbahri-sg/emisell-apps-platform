@@ -1,6 +1,6 @@
 {
   "name": "@emisell/cli",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "description": "Developer CLI for the Emisell Apps Platform",
   "homepage": "https://emisell.com",
   "type": "module",
