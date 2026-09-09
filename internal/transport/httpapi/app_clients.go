@@ -5,6 +5,7 @@ import (
 	"emisell.app/platform/internal/platform/fault"
 	"github.com/go-chi/chi/v5"
 	"net/http"
+	"strings"
 )
 
 const clientCheckPath = "/api/v1/app/client-check"
@@ -56,7 +57,7 @@ func (s Server) appClientRoutes(r chi.Router, surface string) {
 	})
 }
 func (s Server) appClientCheck(r chi.Router) {
-	if s.AppClients.Repo == nil {
+	if s.AppClients.Repo == nil && s.AppIdentities.Box == nil {
 		return
 	}
 	r.Post(clientCheckPath, func(w http.ResponseWriter, r *http.Request) {
@@ -72,6 +73,19 @@ func (s Server) appClientCheck(r chi.Router) {
 		var in struct{}
 		if err := decode(w, r, &in); err != nil {
 			s.fail(w, r, err)
+			return
+		}
+		if strings.HasPrefix(id, "eai_") {
+			c, err := s.AppIdentities.Authenticate(r.Context(), id, secret)
+			if err != nil {
+				s.fail(w, r, err)
+				return
+			}
+			write(w, 200, map[string]any{"clientId": c.ClientID, "appId": c.AppID, "identityType": "application", "oauthEnabled": false, "installable": false, "resourceGatewayAllowed": false})
+			return
+		}
+		if s.AppClients.Repo == nil {
+			s.fail(w, r, fault.Unauthenticated)
 			return
 		}
 		b, err := s.AppClients.Authenticate(r.Context(), id, secret)

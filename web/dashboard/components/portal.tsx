@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import {
@@ -23,6 +24,12 @@ import {
   EyeOff,
   Users,
   Puzzle,
+  Activity,
+  ScrollText,
+  Settings2,
+  Tag,
+  Store,
+  Database,
 } from 'lucide-react';
 import AdminOverview from '@/components/admin-overview';
 import { adminNavigationGroups } from '@/lib/admin-navigation';
@@ -46,9 +53,30 @@ import {
   EmptyDescription,
 } from '@/components/ui/empty';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useDeveloperIdleSession } from '@/lib/use-developer-idle-session';
+import { logoutPortal } from '@/lib/portal-account';
 import { portalView, portalDocsGroup } from '@/lib/surfaces';
 import AccessScopes from '@/components/access-scopes';
-import DeveloperApps from '@/components/developer-apps';
+import DeveloperWorkspace from '@/components/developer-workspace';
+import DeveloperStores from '@/components/developer-stores';
+import DeveloperCatalogs from '@/components/developer-catalogs';
+import DeveloperReviews from '@/components/developer-reviews';
+import {
+  developerLocation,
+  developerSearch,
+  developerAppMenu,
+  developerMainMenu,
+  developerMenuView,
+} from '@/lib/developer-navigation';
+import {
+  DeveloperVersions,
+  DeveloperMonitoring,
+  DeveloperLogs,
+} from '@/components/developer-app-sections';
+import DeveloperSettings from '@/components/developer-settings';
+import DeveloperAccount, {
+  MerchantLoginButton,
+} from '@/components/developer-account';
 import { ScopeSummary } from '@/components/scope-summary';
 import {
   publicDistributionAllowed,
@@ -106,12 +134,12 @@ function Status({ value }: { value: string }) {
     <span className={`status status-${value}`}>{statuses[value] ?? value}</span>
   );
 }
-function Brand() {
+function Brand({ developer = false }: { developer?: boolean }) {
   return (
     <div className="portal-brand">
       <span>e</span>emisell
       <span className="brand-divider" />
-      apps
+      {developer ? <small>dev dashboard</small> : 'apps'}
     </div>
   );
 }
@@ -122,6 +150,8 @@ function Navigation({
   session,
   logout,
   busy,
+  selectedApp,
+  backToApps,
 }: {
   developer: boolean;
   view: string;
@@ -129,6 +159,8 @@ function Navigation({
   session: Session;
   logout: () => void;
   busy: boolean;
+  selectedApp?: Draft | null;
+  backToApps?: () => void;
 }) {
   const { setOpenMobile } = useSidebar();
   const [technicalOpen, setTechnicalOpen] = useState(false);
@@ -143,14 +175,20 @@ function Navigation({
   }, [view]);
   const items = developer
     ? [
-        { id: 'apps', label: 'Aplikasi saya', icon: FileCode2 },
-        { id: 'testing', label: 'Testing', icon: FlaskConical },
-        { id: 'app-clients', label: 'App clients', icon: KeyRound },
+        {
+          id: 'apps',
+          label: selectedApp ? 'Ringkasan' : 'Apps',
+          icon: FileCode2,
+        },
+        { id: 'stores', label: 'Stores', icon: Store },
+        { id: 'catalogs', label: 'Catalogs', icon: Database },
+        { id: 'testing', label: 'Toko pengujian', icon: FlaskConical },
+        { id: 'app-clients', label: 'Credential', icon: KeyRound },
         { id: 'integration-releases', label: 'Rilis integrasi', icon: Code2 },
         { id: 'ui-releases', label: 'Aplikasi dengan UI', icon: FileCode2 },
         { id: 'reviews', label: 'Pengajuan review', icon: Inbox },
-        { id: 'catalog', label: 'Rilis & publikasi', icon: CheckCircle2 },
-        { id: 'tooling', label: 'Developer tools', icon: Code2 },
+        { id: 'catalog', label: 'Katalog', icon: CheckCircle2 },
+        { id: 'tooling', label: 'Dokumentasi & CLI', icon: BookOpen },
         { id: 'scopes', label: 'Katalog scope', icon: ShieldCheck },
       ]
     : [
@@ -169,13 +207,21 @@ function Navigation({
         { id: 'api-keys', label: 'API key', icon: KeyRound },
         { id: 'scopes', label: 'Katalog scope', icon: ShieldCheck },
       ];
+  const activeView = developer && selectedApp ? developerMenuView(view) : view;
+  const appIcons = {
+    apps: LayoutDashboard,
+    monitoring: Activity,
+    logs: ScrollText,
+    versions: Tag,
+    'app-settings': Settings2,
+  };
   const renderItems = (groupItems: typeof items) => (
     <SidebarMenu>
       {groupItems.map((item) => (
         <SidebarMenuItem key={item.id}>
           <SidebarMenuButton
-            isActive={view === item.id}
-            aria-current={view === item.id ? 'page' : undefined}
+            isActive={activeView === item.id}
+            aria-current={activeView === item.id ? 'page' : undefined}
             disabled={busy}
             onClick={() => {
               navigate(item.id);
@@ -192,51 +238,84 @@ function Navigation({
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader>
-        <Brand />
+        <Brand developer={developer} />
         <div className="surface-label">
           {developer ? 'DEVELOPER PORTAL' : 'ADMIN PLATFORM'}
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {developer
-          ? renderItems(items)
-          : adminNavigationGroups.map((group) => {
-              const groupItems = group.ids.flatMap((id) =>
-                items.filter((item) => item.id === id),
-              );
-              return (
-                <SidebarGroup key={group.label}>
-                  {group.collapsible ? (
-                    <>
-                      <button
-                        type="button"
-                        className="flex min-h-9 items-center justify-between rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2"
-                        aria-expanded={technicalOpen}
-                        aria-controls="admin-technical-navigation"
-                        onClick={() => setTechnicalOpen((open) => !open)}
-                      >
-                        {group.label}
-                        <ChevronDown
-                          aria-hidden="true"
-                          className={`size-3.5 transition-transform ${technicalOpen ? '' : '-rotate-90'}`}
-                        />
-                      </button>
-                      <div
-                        id="admin-technical-navigation"
-                        hidden={!technicalOpen}
-                      >
-                        {renderItems(groupItems)}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+        {developer ? (
+          <>
+            {selectedApp && (
+              <div className="dev-sidebar-app">
+                <Button variant="ghost" onClick={backToApps} disabled={busy}>
+                  <ArrowLeft />
+                  Semua aplikasi
+                </Button>
+                <strong>
+                  <FileCode2 />
+                  {selectedApp.document.name}
+                </strong>
+              </div>
+            )}
+            <SidebarGroup>
+              {renderItems(
+                selectedApp
+                  ? developerAppMenu.map((item) => ({
+                      ...item,
+                      icon: appIcons[item.id as keyof typeof appIcons],
+                    }))
+                  : developerMainMenu
+                      .map((entry) => entry.id)
+                      .flatMap((id) => items.filter((item) => item.id === id)),
+              )}
+            </SidebarGroup>
+            <SidebarGroup className="dev-sidebar-bottom">
+              <Link className="dev-documentation-link" href="/">
+                <BookOpen />
+                Dokumentasi
+              </Link>
+            </SidebarGroup>
+          </>
+        ) : (
+          adminNavigationGroups.map((group) => {
+            const groupItems = group.ids.flatMap((id) =>
+              items.filter((item) => item.id === id),
+            );
+            return (
+              <SidebarGroup key={group.label}>
+                {group.collapsible ? (
+                  <>
+                    <button
+                      type="button"
+                      className="flex min-h-9 items-center justify-between rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2"
+                      aria-expanded={technicalOpen}
+                      aria-controls="admin-technical-navigation"
+                      onClick={() => setTechnicalOpen((open) => !open)}
+                    >
+                      {group.label}
+                      <ChevronDown
+                        aria-hidden="true"
+                        className={`size-3.5 transition-transform ${technicalOpen ? '' : '-rotate-90'}`}
+                      />
+                    </button>
+                    <div
+                      id="admin-technical-navigation"
+                      hidden={!technicalOpen}
+                    >
                       {renderItems(groupItems)}
-                    </>
-                  )}
-                </SidebarGroup>
-              );
-            })}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+                    {renderItems(groupItems)}
+                  </>
+                )}
+              </SidebarGroup>
+            );
+          })
+        )}
         <div className="sidebar-note">
           <span className="local-dot" />
           Emisell Apps<p>Platform aplikasi dan integrasi.</p>
@@ -244,7 +323,11 @@ function Navigation({
       </SidebarContent>
       <SidebarFooter>
         <div className="portal-account">
-          <strong>{session.organization?.name ?? 'Tim Emisell'}</strong>
+          <strong>
+            {session.user.surface === 'developer'
+              ? 'Akun developer'
+              : (session.organization?.name ?? 'Tim Emisell')}
+          </strong>
           <span>{session.user.email}</span>
           <small>{session.user.role}</small>
         </div>
@@ -260,15 +343,18 @@ export default function Portal({
   surface,
   unifiedLogin,
   onSignedOut,
+  knownSignedOut = false,
 }: {
   surface: Surface;
   unifiedLogin?: (email: string, password: string) => Promise<void>;
   onSignedOut?: () => void;
+  knownSignedOut?: boolean;
 }) {
   const developer = surface === 'developer';
   const [api] = useState(() => new PortalAPI(surface));
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  useDeveloperIdleSession(developer && !!session);
+  const [loading, setLoading] = useState(!knownSignedOut);
   const [dataReady, setDataReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -278,6 +364,11 @@ export default function Portal({
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [releases, setReleases] = useState<CatalogRelease[]>([]);
   const [editor, setEditor] = useState<Draft | 'new' | null>(null);
+  const [developerCreating, setDeveloperCreating] = useState(false);
+  const [developerAppId, setDeveloperAppId] = useState('');
+  const developerApp = developer
+    ? (drafts.find((app) => app.id === developerAppId) ?? null)
+    : null;
   const [detail, setDetail] = useState<{
     submission: Submission;
     history: Audit[];
@@ -298,12 +389,20 @@ export default function Portal({
       setScopeSelection((params.get('scope') ?? '').slice(0, 128));
       setDocsGroup(portalDocsGroup(window.location.search));
       setEditor(null);
+      setDeveloperCreating(false);
+      setDeveloperAppId(
+        developer ? developerLocation(window.location.search).appId : '',
+      );
       setDetail(null);
+      setSearch('');
+      setFilter('all');
+      setNotice('');
+      setError('');
     };
     restore();
     window.addEventListener('popstate', restore);
     return () => window.removeEventListener('popstate', restore);
-  }, [surface]);
+  }, [surface, developer]);
   const refresh = useCallback(async () => {
     const [reviews, apps, catalog] = await Promise.all([
       api.request<{ submissions: Submission[] }>('/submissions'),
@@ -318,6 +417,9 @@ export default function Portal({
     setDataReady(true);
   }, [api, developer]);
   useEffect(() => {
+    // The unified entrypoint already checked the session. Wait for its login
+    // instead of probing a different audience while the browser is signed out.
+    if (knownSignedOut) return;
     let alive = true;
     api
       .request<Session>('/session')
@@ -336,7 +438,7 @@ export default function Portal({
     return () => {
       alive = false;
     };
-  }, [api, refresh]);
+  }, [api, refresh, knownSignedOut]);
   const perform = async (action: () => Promise<void>, message = '') => {
     if (busy) return;
     setBusy(true);
@@ -355,16 +457,48 @@ export default function Portal({
         setReleases([]);
         setEditor(null);
         setDetail(null);
+        setDeveloperAppId('');
+        setDeveloperCreating(false);
       }
     } finally {
       setBusy(false);
     }
   };
-  const navigate = (next: string) => {
+  const logout = () =>
+    void perform(() =>
+      logoutPortal(surface, {
+        leaveDeveloper: () => window.location.replace('/'),
+        showLogin: () => {
+          onSignedOut?.();
+          setSession(null);
+          setDataReady(false);
+          setDrafts([]);
+          setSubmissions([]);
+          setReleases([]);
+          setEditor(null);
+          setDetail(null);
+          setDeveloperAppId('');
+          setDeveloperCreating(false);
+        },
+      }),
+    );
+  const navigate = (next: string, appId = developerAppId) => {
+    if (developer && next === 'tooling') {
+      window.location.assign('/docs/cli');
+      return;
+    }
     const url = new URL(window.location.href);
-    url.searchParams.set('view', next);
+    if (developer) {
+      url.search = developerSearch(url.search, next, appId);
+      const location = developerLocation(url.search);
+      setDeveloperAppId(location.appId);
+      next = location.view;
+    } else {
+      url.searchParams.set('view', next);
+    }
     window.history.pushState(null, '', url);
     setEditor(null);
+    setDeveloperCreating(false);
     setDetail(null);
     setView(next);
     setSearch('');
@@ -378,6 +512,7 @@ export default function Portal({
         submission: Submission;
         history: Audit[];
       }>(`/submissions/${id}`);
+      if (developer) navigate('reviews', value.submission.appId);
       setDetail(value);
       setEditor(null);
       setView('reviews');
@@ -385,6 +520,7 @@ export default function Portal({
   const openDraft = (id: string) =>
     perform(async () => {
       const value = await api.request<{ app: Draft }>(`/apps/${id}`);
+      if (developer) navigate('versions', value.app.id);
       setEditor(value.app);
       setDetail(null);
     });
@@ -408,9 +544,11 @@ export default function Portal({
     );
   if (!session)
     return (
-      <main className={`portal-login ${developer ? '' : 'admin-login'}`}>
+      <main
+        className={`portal-login ${developer ? 'developer-redesign' : 'admin-login'}`}
+      >
         <div className="login-intro">
-          <Brand />
+          <Brand developer={developer} />
           <div className="login-icon" hidden={!developer}>
             {developer ? <Code2 /> : <ShieldCheck />}
           </div>
@@ -465,82 +603,93 @@ export default function Portal({
               {unifiedLogin ? 'EMISELL APPS' : 'ADMIN PLATFORM'}
             </p>
           )}
-          <h2>
-            {developer ? 'Masuk sebagai developer' : 'Masuk ke dashboard'}
-          </h2>
+          {developer ? (
+            <h1>Masuk sebagai developer</h1>
+          ) : (
+            <h2>Masuk ke dashboard</h2>
+          )}
           <p>
-            {unifiedLogin
-              ? 'Masuk dengan akun Admin, staf, atau Developer Anda.'
-              : `Gunakan akun khusus ${developer ? 'developer' : 'administrasi'} platform.`}
+            {developer
+              ? 'Gunakan akun merchant Emisell Anda untuk mengelola aplikasi.'
+              : 'Gunakan akun administrasi platform.'}
           </p>
           {banners}
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void perform(async () => {
-                if (unifiedLogin) {
-                  await unifiedLogin(email, password);
+          {developer && <MerchantLoginButton />}
+          {!developer && (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void perform(async () => {
+                  if (unifiedLogin) {
+                    await unifiedLogin(email, password);
+                    setPassword('');
+                    return;
+                  }
+                  await api.request('/login', 'POST', { email, password });
                   setPassword('');
-                  return;
-                }
-                await api.request('/login', 'POST', { email, password });
-                setPassword('');
-                setShowPassword(false);
-                setSession(await api.request<Session>('/session'));
-                await refresh();
-              });
-            }}
-          >
-            <label htmlFor="login-email">
-              Email
-              <Input
-                id="login-email"
-                required
-                type="email"
-                autoComplete="username"
-                placeholder="nama@emisell.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={busy}
-              />
-            </label>
-            <label htmlFor="login-password">
-              Kata sandi
-              <span className="login-password-field">
+                  setShowPassword(false);
+                  setSession(await api.request<Session>('/session'));
+                  await refresh();
+                });
+              }}
+            >
+              <label htmlFor="login-email">
+                Email
                 <Input
-                  id="login-password"
+                  id="login-email"
                   required
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type="email"
+                  autoComplete="username"
+                  placeholder="nama@emisell.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={busy}
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  disabled={busy}
-                  aria-label={
-                    showPassword
-                      ? 'Sembunyikan kata sandi'
-                      : 'Tampilkan kata sandi'
-                  }
-                  aria-pressed={showPassword}
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff /> : <Eye />}
-                </Button>
-              </span>
-            </label>
-            <Button type="submit" disabled={busy}>
-              {busy ? 'Memeriksa…' : 'Masuk'}
-              {developer && <ArrowUpRight />}
-            </Button>
-          </form>
+              </label>
+              <label htmlFor="login-password">
+                Kata sandi
+                <span className="login-password-field">
+                  <Input
+                    id="login-password"
+                    required
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={busy}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={busy}
+                    aria-label={
+                      showPassword
+                        ? 'Sembunyikan kata sandi'
+                        : 'Tampilkan kata sandi'
+                    }
+                    aria-pressed={showPassword}
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff /> : <Eye />}
+                  </Button>
+                </span>
+              </label>
+              <Button type="submit" disabled={busy}>
+                {busy ? 'Memeriksa…' : 'Masuk'}
+                {developer && <ArrowUpRight />}
+              </Button>
+            </form>
+          )}
           <p className="login-help">
-            Akun disediakan oleh pengelola platform. Akun toko Emisell tidak
-            memiliki akses ke portal ini.
+            {developer
+              ? 'Profil developer dibuat otomatis dari akun Emisell. Sesi portal berakhir setelah satu jam tanpa aktivitas.'
+              : 'Akun administrasi disediakan oleh pengelola platform.'}
           </p>
+          {unifiedLogin && (
+            <Link className="dev-documentation-link" href="/">
+              Kembali ke dokumentasi <ArrowUpRight />
+            </Link>
+          )}
         </section>
       </main>
     );
@@ -558,33 +707,27 @@ export default function Portal({
   );
   const latest = (id: string) => submissions.find((s) => s.appId === id);
   return (
-    <SidebarProvider className={`portal ${developer ? '' : 'admin-redesign'}`}>
+    <SidebarProvider
+      className={`portal ${developer ? 'developer-redesign' : 'admin-redesign'}`}
+    >
       <Navigation
         developer={developer}
         view={view}
         navigate={navigate}
         session={session}
         busy={busy}
-        logout={() =>
-          void perform(async () => {
-            await api.request('/logout', 'POST', {});
-            onSignedOut?.();
-            setSession(null);
-            setDataReady(false);
-            setDrafts([]);
-            setSubmissions([]);
-            setReleases([]);
-            setEditor(null);
-            setDetail(null);
-          })
-        }
+        selectedApp={developerApp}
+        backToApps={() => navigate('apps', '')}
+        logout={logout}
       />
       <div className="portal-body">
         <header className="portal-topbar">
           <SidebarTrigger aria-label="Buka navigasi" />
           <span>
             {developer
-              ? 'Portal Developer'
+              ? developerApp
+                ? `Aplikasi / ${developerApp.document.name}`
+                : 'Portal Developer'
               : view === 'staff'
                 ? 'Platform / Pengaturan / Staf'
                 : view === 'activity'
@@ -614,10 +757,20 @@ export default function Portal({
               />
             </form>
           )}
-          <span className="topbar-environment">
-            <span className="local-dot" />
-            Lokal
-          </span>
+          {developer ? (
+            <DeveloperAccount
+              api={api}
+              session={session}
+              busy={busy}
+              logout={logout}
+              navigate={() => navigate('apps', '')}
+            />
+          ) : (
+            <span className="topbar-environment">
+              <span className="local-dot" />
+              Lokal
+            </span>
+          )}
         </header>
         <main className="portal-main">
           {banners}
@@ -652,8 +805,7 @@ export default function Portal({
                       { revision: editor.revision },
                       true,
                     );
-                    setEditor(null);
-                    setView('reviews');
+                    navigate('reviews', editor.id);
                     setDetail(
                       await api.request(`/submissions/${value.submission.id}`),
                     );
@@ -720,6 +872,10 @@ export default function Portal({
                 initialOperation={docsOperation}
               />
             </Suspense>
+          ) : developer && view === 'stores' ? (
+            <DeveloperStores api={api} />
+          ) : developer && view === 'catalogs' ? (
+            <DeveloperCatalogs />
           ) : !dataReady ? (
             <section className="portal-panel">
               <h1>Data belum berhasil dimuat</h1>
@@ -729,6 +885,94 @@ export default function Portal({
                 Muat ulang
               </Button>
             </section>
+          ) : developer && developerAppId && !developerApp ? (
+            <section className="portal-panel">
+              <h1>Aplikasi tidak tersedia</h1>
+              <p>
+                Aplikasi pada tautan ini tidak ada dalam daftar aplikasi
+                organisasi yang berhasil dimuat. Kembali ke daftar untuk memilih
+                aplikasi yang tersedia.
+              </p>
+              <Button onClick={() => navigate('apps', '')}>
+                Semua aplikasi
+              </Button>
+            </section>
+          ) : developer &&
+            developerApp &&
+            ['app-settings', 'app-clients'].includes(view) ? (
+            <DeveloperSettings
+              key={developerApp.id}
+              app={developerApp}
+              api={api}
+              session={session}
+              busy={busy}
+              perform={perform}
+              edit={() => void openDraft(developerApp.id)}
+              navigate={navigate}
+            />
+          ) : developer &&
+            ['versions', 'app-settings', 'monitoring', 'logs'].includes(
+              view,
+            ) ? (
+            developerApp ? (
+              (() => {
+                const Section =
+                  view === 'versions'
+                    ? DeveloperVersions
+                    : view === 'monitoring'
+                      ? DeveloperMonitoring
+                      : DeveloperLogs;
+                return (
+                  <Section
+                    key={`${developerApp.id}:${view}`}
+                    app={developerApp}
+                    submissions={submissions}
+                    busy={busy}
+                    navigate={navigate}
+                    edit={() => void openDraft(developerApp.id)}
+                    openReview={(id) => void openSubmission(id)}
+                    refresh={() => void perform(refresh)}
+                  />
+                );
+              })()
+            ) : (
+              <section className="portal-panel">
+                <h1>Pilih aplikasi terlebih dahulu</h1>
+                <p>Menu ini menampilkan data untuk satu aplikasi.</p>
+                <Button onClick={() => navigate('apps', '')}>
+                  Lihat aplikasi
+                </Button>
+              </section>
+            )
+          ) : view === 'apps' && developer ? (
+            <DeveloperWorkspace
+              api={api}
+              drafts={drafts}
+              submissions={submissions}
+              busy={busy}
+              search={search}
+              setSearch={setSearch}
+              creating={developerCreating}
+              setCreating={setDeveloperCreating}
+              selected={developerApp}
+              select={(app) => navigate('apps', app?.id ?? '')}
+              edit={(id) => void openDraft(id)}
+              openReview={(id) => void openSubmission(id)}
+              navigate={navigate}
+              refresh={() => void perform(refresh)}
+              create={(name) =>
+                void perform(async () => {
+                  const value = await api.request<{ app: Draft }>(
+                    '/apps',
+                    'POST',
+                    { revision: 0, document: { ...blankDocument(), name } },
+                    true,
+                  );
+                  navigate('apps', value.app.id);
+                  await refresh();
+                }, 'Aplikasi dan credential dibuat. Buka Versions untuk melengkapi konfigurasi; akses data toko memerlukan instalasi dan persetujuan merchant.')
+              }
+            />
           ) : view === 'staff' && !developer ? (
             <AdminStaff api={api} session={session} />
           ) : view === 'activity' && !developer ? (
@@ -770,13 +1014,49 @@ export default function Portal({
                 perform={perform}
               />
             </Suspense>
+          ) : view === 'app-clients' && developer ? (
+            <section className="dev-settings-card">
+              <div className="dev-settings-card-heading">
+                <h1>Credential aplikasi</h1>
+              </div>
+              <p className="dev-settings-help">
+                Pilih aplikasi untuk melihat Client ID dan mengelola Secret.
+              </p>
+              <ul className="dev-credential-app-list">
+                {drafts
+                  .filter((app) =>
+                    `${app.document.name} ${app.id}`
+                      .toLowerCase()
+                      .includes(search.toLowerCase()),
+                  )
+                  .map((app) => (
+                    <li key={app.id}>
+                      <Button
+                        variant="ghost"
+                        disabled={busy}
+                        onClick={() => navigate('app-settings', app.id)}
+                      >
+                        {app.document.name}
+                        <ArrowUpRight />
+                      </Button>
+                    </li>
+                  ))}
+              </ul>
+              {drafts.length === 0 && (
+                <Button disabled={busy} onClick={() => navigate('apps', '')}>
+                  Buat aplikasi
+                </Button>
+              )}
+            </section>
           ) : view === 'app-clients' ? (
             <Suspense fallback={<Skeleton className="h-40 w-full" />}>
               <AppClients
+                key={developerApp?.id ?? 'all'}
                 api={api}
                 session={session}
                 busy={busy}
                 perform={perform}
+                app={developerApp ?? undefined}
               />
             </Suspense>
           ) : view === 'ui-releases' ? (
@@ -802,6 +1082,19 @@ export default function Portal({
               busy={busy}
               perform={perform}
               refresh={refresh}
+            />
+          ) : view === 'reviews' && developer ? (
+            <DeveloperReviews
+              submissions={submissions}
+              app={developerApp}
+              busy={busy}
+              search={search}
+              setSearch={setSearch}
+              filter={filter}
+              setFilter={setFilter}
+              open={(id) => void openSubmission(id)}
+              refresh={() => void perform(refresh)}
+              back={() => navigate('apps')}
             />
           ) : view === 'reviews' && !developer ? (
             <AdminReviews
@@ -925,38 +1218,30 @@ export default function Portal({
                 </Empty>
               ) : (
                 <div className={view === 'apps' ? undefined : 'app-list'}>
-                  {view === 'apps' ? (
-                    <DeveloperApps
-                      key={session.user.id}
-                      api={api}
-                      drafts={visibleDrafts}
-                      busy={busy}
-                      openDraft={(id) => void openDraft(id)}
-                    />
-                  ) : (
-                    visibleReviews.map((s) => (
-                      <button
-                        className="app-row"
-                        key={s.id}
-                        disabled={busy}
-                        onClick={() => void openSubmission(s.id)}
-                      >
-                        <span className="app-glyph">
-                          <FileCode2 />
-                        </span>
-                        <span className="app-row-main">
-                          <strong>{s.snapshot.name}</strong>
-                          <span>{date(s.createdAt)}</span>
-                        </span>
-                        <span className="row-version">
-                          v{s.version}
-                          <small>Draft r{s.draftRevision}</small>
-                        </span>
-                        <Status value={s.status} />
-                        <ArrowUpRight className="row-arrow" />
-                      </button>
-                    ))
-                  )}
+                  {view === 'apps'
+                    ? null
+                    : visibleReviews.map((s) => (
+                        <button
+                          className="app-row"
+                          key={s.id}
+                          disabled={busy}
+                          onClick={() => void openSubmission(s.id)}
+                        >
+                          <span className="app-glyph">
+                            <FileCode2 />
+                          </span>
+                          <span className="app-row-main">
+                            <strong>{s.snapshot.name}</strong>
+                            <span>{date(s.createdAt)}</span>
+                          </span>
+                          <span className="row-version">
+                            v{s.version}
+                            <small>Draft r{s.draftRevision}</small>
+                          </span>
+                          <Status value={s.status} />
+                          <ArrowUpRight className="row-arrow" />
+                        </button>
+                      ))}
                 </div>
               )}
             </>
@@ -988,8 +1273,11 @@ function DraftEditor({
     draft === 'new' ? blankDocument() : draft.document,
   );
   const [scopeValid, setScopeValid] = useState(true);
+  const privateProducts = document.capability === 'private-products/v1';
   const reserved =
-    draft !== 'new' && !publicDistributionAllowed(draft.document.capability);
+    draft !== 'new' &&
+    !privateProducts &&
+    !publicDistributionAllowed(draft.document.capability);
   const dirty =
     draft === 'new' ||
     JSON.stringify(document) !== JSON.stringify(draft.document);
@@ -1083,6 +1371,7 @@ function DraftEditor({
                 <NativeSelect
                   id="app-capability"
                   value={document.capability}
+                  disabled={privateProducts || draft !== 'new'}
                   onChange={(e) =>
                     setDocument((previous) => ({
                       ...previous,
@@ -1096,50 +1385,69 @@ function DraftEditor({
                       {document.capability} · historis, hanya-baca
                     </NativeSelectOption>
                   )}
+                  {privateProducts && (
+                    <NativeSelectOption value="private-products/v1">
+                      Private app · Read products
+                    </NativeSelectOption>
+                  )}
                   <NativeSelectOption value="shipping/v1">
                     shipping/v1
                   </NativeSelectOption>
                 </NativeSelect>
               </label>
             </div>
-            <label htmlFor="app-endpoint">
-              Endpoint Aplikasi Integrasi
-              <Input
-                id="app-endpoint"
-                type="url"
-                pattern="https://.*"
-                placeholder="https://app.example.com/emisell/v1"
-                value={document.endpoint}
-                onChange={(e) => field('endpoint', e.target.value)}
-                maxLength={2048}
+            {!privateProducts && (
+              <>
+                <label htmlFor="app-endpoint">
+                  Endpoint Aplikasi Integrasi
+                  <Input
+                    id="app-endpoint"
+                    type="url"
+                    pattern="https://.*"
+                    placeholder="https://app.example.com/emisell/v1"
+                    value={document.endpoint}
+                    onChange={(e) => field('endpoint', e.target.value)}
+                    maxLength={2048}
+                  />
+                  <small>
+                    HTTPS. Disimpan sebagai konfigurasi review; belum dipanggil
+                    oleh runtime.
+                  </small>
+                </label>
+                <p className="field-help">
+                  Scope fixture capability (terpisah dari akses data)
+                </p>
+                <div className="scope-list">
+                  {document.scopes.map((scope) => (
+                    <code key={scope}>{scope}</code>
+                  ))}
+                </div>
+                <p className="field-help">
+                  Reference shipping adalah kontrak layanan, bukan provider
+                  kurir tertentu. Scope capability ini terpisah dari izin akses
+                  resource toko dan tidak diterjemahkan otomatis.
+                </p>
+              </>
+            )}
+            {privateProducts ? (
+              <p className="field-help">
+                Aplikasi pribadi ini hanya meminta <code>read_products</code>.
+                Tidak memerlukan URL karena belum memiliki antarmuka. Tidak
+                meminta akses staf, pengiriman, edit produk atau custom data.
+                Konfigurasi Active tetap tersimpan sampai rilis berikutnya
+                tersedia.
+              </p>
+            ) : (
+              <AccessScopes
+                api={api}
+                value={document.accessScopes}
+                disabled={busy}
+                onValidity={setScopeValid}
+                onChange={(accessScopes) =>
+                  setDocument((previous) => ({ ...previous, accessScopes }))
+                }
               />
-              <small>
-                HTTPS. Disimpan sebagai konfigurasi review; belum dipanggil oleh
-                runtime.
-              </small>
-            </label>
-            <p className="field-help">
-              Scope fixture capability (terpisah dari akses data)
-            </p>
-            <div className="scope-list">
-              {document.scopes.map((scope) => (
-                <code key={scope}>{scope}</code>
-              ))}
-            </div>
-            <p className="field-help">
-              Reference shipping adalah kontrak layanan, bukan provider kurir
-              tertentu. Scope ini bukan scope resource Shopify dan tidak
-              diterjemahkan otomatis.
-            </p>
-            <AccessScopes
-              api={api}
-              value={document.accessScopes}
-              disabled={busy}
-              onValidity={setScopeValid}
-              onChange={(accessScopes) =>
-                setDocument((previous) => ({ ...previous, accessScopes }))
-              }
-            />
+            )}
           </fieldset>
           <Button
             type="submit"
@@ -1148,60 +1456,66 @@ function DraftEditor({
             {busy ? 'Memproses…' : 'Simpan draft'}
           </Button>
         </form>
-        <aside className="portal-panel review-guide">
-          <p className="eyebrow">LANGKAH BERIKUTNYA</p>
-          <h2>Siap untuk review?</h2>
-          <p>
-            Lengkapi ringkasan, deskripsi, versi, dan endpoint. Simpan perubahan
-            sebelum mengajukan.
-          </p>
-          <ul>
-            <li>
-              <CheckCircle2 />
-              Snapshot versi tidak dapat diubah.
-            </li>
-            <li>
-              <CheckCircle2 />
-              Feedback tersimpan per pengajuan.
-            </li>
-            <li>
-              <CheckCircle2 />
-              Tidak langsung tampil di App Store.
-            </li>
-          </ul>
-          {latest && (
-            <div className="latest-review">
-              <Status value={latest.status} />
-              <p>{latest.feedback || 'Reviewer belum memberikan keputusan.'}</p>
-            </div>
-          )}
-          <Button
-            disabled={
-              busy ||
-              dirty ||
-              !complete ||
-              reserved ||
-              !scopeValid ||
-              sameRevision ||
-              latest?.status === 'submitted' ||
-              Boolean(blockedVersion)
-            }
-            onClick={submit}
-          >
-            <Send />
-            Ajukan review
-          </Button>
-          {dirty && <small>Simpan draft terlebih dahulu.</small>}
-          {sameRevision && (
-            <small>
-              Revisi ini sudah pernah diajukan. Simpan perbaikan untuk membuat
-              revisi baru.
-            </small>
-          )}
-          {blockedVersion && (
-            <small>Versi ini telah diputuskan. Gunakan nomor versi baru.</small>
-          )}
-        </aside>
+        {!privateProducts && (
+          <aside className="portal-panel review-guide">
+            <p className="eyebrow">LANGKAH BERIKUTNYA</p>
+            <h2>Siap untuk review?</h2>
+            <p>
+              Lengkapi ringkasan, deskripsi, versi, dan endpoint. Simpan
+              perubahan sebelum mengajukan.
+            </p>
+            <ul>
+              <li>
+                <CheckCircle2 />
+                Snapshot versi tidak dapat diubah.
+              </li>
+              <li>
+                <CheckCircle2 />
+                Feedback tersimpan per pengajuan.
+              </li>
+              <li>
+                <CheckCircle2 />
+                Tidak langsung tampil di App Store.
+              </li>
+            </ul>
+            {latest && (
+              <div className="latest-review">
+                <Status value={latest.status} />
+                <p>
+                  {latest.feedback || 'Reviewer belum memberikan keputusan.'}
+                </p>
+              </div>
+            )}
+            <Button
+              disabled={
+                busy ||
+                dirty ||
+                !complete ||
+                reserved ||
+                !scopeValid ||
+                sameRevision ||
+                latest?.status === 'submitted' ||
+                Boolean(blockedVersion)
+              }
+              onClick={submit}
+            >
+              <Send />
+              Ajukan review
+            </Button>
+            {dirty && <small>Simpan draft terlebih dahulu.</small>}
+            {sameRevision && (
+              <small>
+                Revisi ini sudah pernah diajukan. Simpan perbaikan untuk membuat
+                revisi baru.
+              </small>
+            )}
+            {blockedVersion && (
+              <small>
+                Versi ini telah diputuskan. Gunakan nomor versi baru.
+              </small>
+            )}
+          </aside>
+        )}
       </div>
     </>
   );

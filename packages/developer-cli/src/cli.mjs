@@ -1,8 +1,9 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { createInterface } from 'node:readline/promises';
 import { Client, SessionStore, documentFile } from './client.mjs';
 import { runLocal } from './local.mjs';
 import { help, commandHelp } from './help.mjs';
+import { browserLogin } from './browser-auth.mjs';
+import { installSelection } from './install.mjs';
 
 export { help } from './help.mjs';
 
@@ -13,7 +14,7 @@ function parse(args) {
     if (!arg.startsWith('--')) { words.push(arg); continue; }
     const name = arg.slice(2);
     if (Object.hasOwn(flags, name)) throw new Error(`Opsi ganda: --${name}`);
-    if (['password-stdin', 'yes', 'local', 'help', 'json'].includes(name)) flags[name] = true;
+    if (['password-stdin', 'yes', 'local', 'help', 'json', 'no-open', 'connect', 'reset'].includes(name)) flags[name] = true;
     else {
       if (!args[i + 1] || args[i + 1].startsWith('--')) throw new Error(`Nilai --${name} belum diisi.`);
       flags[name] = args[++i];
@@ -43,31 +44,7 @@ function revision(flags) {
   return Number(value);
 }
 
-async function passwordFromInput(fromStdin) {
-  if (fromStdin) {
-    if (process.stdin.isTTY) throw new Error('--password-stdin memerlukan pipe, bukan terminal interaktif.');
-    let result = '';
-    for await (const chunk of process.stdin) {
-      result += chunk;
-      if (Buffer.byteLength(result) > 1024) throw new Error('Input password terlalu panjang.');
-    }
-    return result.replace(/\r?\n$/, '');
-  }
-  if (!process.stdin.isTTY) throw new Error('Gunakan --password-stdin untuk non-interaktif.');
-  // Suppress terminal echo; never put a password into argv, environment or logs.
-  const { Writable } = await import('node:stream');
-  const silent = new Writable({ write(_chunk, _encoding, callback) { callback(); } });
-  const rl = createInterface({ input: process.stdin, output: silent, terminal: true });
-  process.stderr.write('Password: ');
-  try {
-    return await new Promise((resolve, reject) => {
-      rl.once('SIGINT', () => reject(new Error('Login dibatalkan.')));
-      rl.question('').then(resolve, reject);
-    });
-  } finally { rl.close(); process.stderr.write('\n'); }
-}
-
-export async function run(args, { store = new SessionStore(), fetcher = fetch, output = text => console.log(text), password = passwordFromInput, ...localOptions } = {}) {
+export async function run(args, { store = new SessionStore(), fetcher = fetch, output = text => console.log(text), ...localOptions } = {}) {
   if (args.length === 0 || (args.length === 1 && ['--help', '-h', 'help', 'app', 'auth'].includes(args[0]))) { output(help); return; }
   if (args.length === 1 && args[0] === '--version') {
     output(JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version); return;
@@ -77,11 +54,14 @@ export async function run(args, { store = new SessionStore(), fetcher = fetch, o
     allowed(f, ['help']); output(commandHelp[w.join(' ')]); return;
   }
   if (w.length === 2 && w[0] === 'auth' && ['login', 'logout'].includes(w[1])) w.shift();
+  if (w.join(' ') === 'auth status') w.splice(0, 2, 'whoami');
   const command = w.slice(0, 2).join(' ');
-  if (w[0] === 'app' && ['init', 'dev', 'build', 'info', 'doctor'].includes(w[1]) && w.length === 2) {
+  const connectedDev = command === 'app dev' && (f.connect || f.app || f.store);
+  const link = w.join(' ') === 'app config link';
+  if (w[0] === 'app' && ['init', 'dev', 'build', 'info', 'doctor'].includes(w[1]) && w.length === 2 && !connectedDev) {
     return runLocal(w[1], f, { ...localOptions, output });
   }
-  if (['app deploy', 'app release', 'app config'].includes(command)) {
+  if (['app deploy', 'app release', 'app config'].includes(command) && !link) {
     throw Error('Perintah ini belum tersedia: sambungan server dan rilis produksi belum diaktifkan. Gunakan app info / app doctor untuk pemeriksaan lokal; ui create atau resource-ui create hanya mengajukan review.');
   }
   if (w.length === 1 && w[0] === 'logout' && f.local) {
@@ -90,21 +70,30 @@ export async function run(args, { store = new SessionStore(), fetcher = fetch, o
     output('Sesi lokal dihapus. Sesi server tidak dicabut; akan berakhir sesuai masa berlakunya.'); return;
   }
   if (w[0] === 'login' && w.length === 1) {
-    allowed(f, ['url', 'email', 'password-stdin']);
+    if (f.email || f['password-stdin']) throw Error('Login email/password developer sudah dihapus. Gunakan emisell auth login --url URL melalui browser merchant.');
+    allowed(f, ['url', 'no-open']);
     const client = new Client(required(f, 'url'), '', fetcher);
-    const email = required(f, 'email');
-    const secret = await password(Boolean(f['password-stdin']));
-    if (!secret) throw new Error('Password kosong.');
-    const session = await client.login(email, secret);
+    const session = await browserLogin(client, { ...localOptions, output, noOpen: f['no-open'] });
     await store.save(session);
-    output('Login developer berhasil. Sesi disimpan lokal; password tidak disimpan.'); return;
+    output('Login merchant berhasil. Sesi CLI privat; tidak membaca cookie browser. Sesi berakhir setelah 1 jam tanpa aktivitas.'); return;
   }
   if (command === 'apps init' && w.length === 2) {
     allowed(f, ['file']);
-    const template = { name: 'My shipping app', summary: '', description: '', version: '0.1.0', capability: 'shipping/v1', scopes: ['orders.read', 'shipping.read', 'shipping.write'], endpoint: '' };
+    const template = { name: 'My product app', summary: '', description: '', version: '1.0.0', capability: 'private-products/v1', scopes: [], endpoint: '', accessScopes: { profile: 'shopify-authenticated-2026-09-05', required: ['read_products'], optional: [] } };
     const file = required(f, 'file');
     await writeFile(file, JSON.stringify(template, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
-    output('Template draft shipping dibuat. Isi metadata dan endpoint HTTPS sebelum review.'); return;
+    output('Dokumen aplikasi pribadi read_products dibuat. apps create membuat konfigurasi Active, bukan instalasi toko atau halaman aplikasi.'); return;
+  }
+  if (command === 'app install' || link || connectedDev) {
+    if (!link && w.length !== 2) throw Error('Argumen tidak dikenal. Lihat --help.');
+    allowed(f, ['app','store','path','dir','no-open','reset', ...(connectedDev ? ['connect','port','backend'] : [])]);
+    const { client, session } = await authenticated(store, fetcher);
+    await installSelection(client, session, store, f, { ...localOptions, output, linkOnly: link });
+    if (connectedDev) {
+      const flags = Object.fromEntries(Object.entries(f).filter(([k]) => ['path','dir','port','backend'].includes(k)));
+      return runLocal('dev', flags, { ...localOptions, output });
+    }
+    return;
   }
   let path, method = 'GET', body, key;
   const uiPath = w[0] === 'resource-ui' ? '/ui-resource-releases' : '/ui-releases';
@@ -138,7 +127,8 @@ export async function run(args, { store = new SessionStore(), fetcher = fetch, o
     const releaseKind = f['release-kind'] || 'ui';
     if (!['ui', 'ui_resource'].includes(releaseKind)) throw Error('Release kind harus ui atau ui_resource.');
     body = { releaseKind, releaseId: id(required(f, 'release-id')), merchantId: id(required(f, 'merchant-id')), reason };
-  } else if (w.length === 1 && w[0] === 'whoami') { allowed(f, []); path = '/session'; }
+  } else if (command === 'stores list' && w.length === 2) { allowed(f, []); path = '/account'; }
+  else if (w.length === 1 && w[0] === 'whoami') { allowed(f, []); path = '/session'; }
   else if (w.length === 1 && w[0] === 'scopes') { allowed(f, []); path = '/access-scopes'; }
   else if (w.length === 1 && w[0] === 'logout') { allowed(f, []); path = '/logout'; method = 'POST'; body = {}; }
   else if (w.length === 2 && ['apps list', 'reviews list'].includes(command)) {
@@ -156,11 +146,7 @@ export async function run(args, { store = new SessionStore(), fetcher = fetch, o
     if (!f.yes) throw new Error('Pengajuan dikirim ke reviewer. Tambahkan --yes untuk mengonfirmasi.');
     key = mutation(f); path = `/apps/${id(w[2])}/submissions`; method = 'POST'; body = { revision: revision(f) };
   } else throw new Error('Perintah tidak dikenal. Jalankan emisell --help.');
-  const session = await store.load();
-  const client = new Client(session.origin, session.cookie, fetcher);
-  // Validate identity for every authenticated command, not a role supplied by local config.
-  const identity = await client.request('/api/v1/developer/session');
-  if (identity.data.user?.surface !== 'developer') throw new Error('Sesi bukan akun developer.');
+  const { client, identity } = await authenticated(store, fetcher, w[0] !== 'logout');
   if (w[0] === 'whoami') { output(JSON.stringify(identity.data, null, 2)); return; }
   if (w[0] === 'logout') {
     await client.request('/api/v1/developer/logout', { method, body });
@@ -168,4 +154,22 @@ export async function run(args, { store = new SessionStore(), fetcher = fetch, o
   }
   const result = await client.request('/api/v1/developer' + path, { method, body, key });
   output(JSON.stringify(result.data, null, 2));
+}
+
+async function authenticated(store, fetcher, activity = true) {
+  const session = await store.load();
+  const client = new Client(session.origin, session.cookie, fetcher);
+  let identity;
+  try { identity = await client.request('/api/v1/developer/session'); }
+  catch (error) { if (error.status === 401) await store.clear(); throw error; }
+  if (identity.data.user?.surface !== 'developer') throw Error('Sesi bukan akun developer.');
+  if (session.accountId && session.accountId !== identity.data.user.id) throw Error('Identitas akun berubah. Login ulang.');
+  if (activity) {
+    const result = await client.request('/api/v1/developer/activity', { method: 'POST', body: {} });
+    const expiry = Date.parse(result.data.expiresAt);
+    if (!Number.isFinite(expiry) || expiry <= Date.now() || expiry > Date.now()+3605000) throw Error('Masa berlaku sesi tidak valid.');
+    session.expiresAt = expiry;
+    await store.save(session);
+  }
+  return { client, session, identity };
 }

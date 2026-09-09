@@ -63,7 +63,7 @@ func (s Lifecycle) WithResourceAccess(ctx context.Context, p identity.ServicePri
 	if a.Release.InstallPolicy != domain.ResourceAppPolicy {
 		return fault.Forbidden
 	}
-	return s.Intents.withManaged(ctx, owner.TenantID, a.Release.AppID, a.Release.Version, func(ctx context.Context) error {
+	return s.Intents.withManaged(ctx, owner, a.Release.AppID, a.Release.Version, func(ctx context.Context) error {
 		return repo.WithCoreAccess(ctx, owner, id, func(current domain.Access) error {
 			if err := s.resourceEligible(ctx, current.Release); err != nil {
 				return err

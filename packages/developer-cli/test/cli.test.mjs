@@ -41,42 +41,46 @@ test('session store private, outside project, expiration and symlink protection'
   await assert.rejects(store.load(), /kedaluwarsa/);
   await store.clear();
 });
-test('login, identity, list, logout through real HTTP with matching Origin and cookie', async t => {
+test('browser login, identity, list, logout through real HTTP without password or browser cookie', async t => {
   const { store } = await fixture(t);
-  let revoked = false, receivedPassword;
+  let revoked = false, approved = false;
   const server = createServer(async (req, res) => {
     assert.equal(req.headers.origin, `http://${req.headers.host}`);
     res.setHeader('Content-Type', 'application/json');
-    if (req.url === '/api/v1/portal/login') {
+    if (req.url === '/api/v1/developer-login/cli/start') {
+      assert.equal(req.headers.cookie, undefined);
+      res.end(JSON.stringify({request:token,verifier:'B'.repeat(52),authorizeUrl:`http://${req.headers.host}/auth/developer?request=${token}`,expiresIn:300,interval:3})); return;
+    }
+    if (req.url === '/api/v1/developer-login/cli/poll') {
       let raw = ''; for await (const chunk of req) raw += chunk;
-      receivedPassword = JSON.parse(raw).password;
-      res.setHeader('Set-Cookie', `emisell_portal_session=${token}; Path=/api/v1; HttpOnly; Max-Age=28800`);
-      res.end(JSON.stringify({ user: { surface: 'developer' } })); return;
+      assert.equal(JSON.parse(raw).verifier,'B'.repeat(52)); assert.ok(approved);
+      res.setHeader('Set-Cookie', `emisell_portal_session=${token}; Path=/api/v1; HttpOnly; Max-Age=3600`);
+      res.end(JSON.stringify({ status:'authorized' })); return;
     }
     assert.equal(req.headers.cookie, `emisell_portal_session=${token}`);
-    if (req.url === '/api/v1/developer/session') res.end(JSON.stringify({ user: { surface: 'developer' }, organization: { id: 'org1' } }));
+    if (req.url === '/api/v1/developer/session') res.end(JSON.stringify({ user: { id:'owner', surface: 'developer', role:'developer' }, organization: { id: 'org1' } }));
+    else if (req.url === '/api/v1/developer/activity') res.end(JSON.stringify({expiresAt:new Date(Date.now()+3600000).toISOString()}));
     else if (req.url === '/api/v1/developer/logout') { revoked = true; res.end('{}'); }
     else res.end(JSON.stringify({ apps: [{ id: 'app1' }], limit: 200 }));
   });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
   t.after(() => { server.closeAllConnections(); server.close(); });
-  const output = [], options = { store, output: text => output.push(text), password: async () => 'synthetic-password' };
-  await run(['login', '--url', `http://127.0.0.1:${server.address().port}`, '--email', 'dev@example.invalid'], options);
-  assert.equal(receivedPassword, 'synthetic-password');
-  assert.ok(!(await readFile(join(store.directory, 'session.json'), 'utf8')).includes('synthetic-password'));
+  const output = [], options = { store, output: text => output.push(text), open:async()=>{approved=true;},wait:async()=>{} };
+  await run(['login', '--url', `http://127.0.0.1:${server.address().port}`], options);
   await run(['whoami'], options);
   await run(['apps', 'list'], options);
   assert.equal(JSON.parse(output.at(-1)).apps[0].id, 'app1');
   await run(['logout'], options);
   assert.ok(revoked);
   await assert.rejects(store.load(), /Belum login/);
-  assert.ok(!output.join('').includes(token));
+  assert.ok(!output.join('').includes(`emisell_portal_session=${token}`));
+  assert.ok(!output.join('').includes('B'.repeat(52)));
 });
-test('non-developer login never persisted', async t => {
+test('legacy password login rejected before reading password or contacting backend', async t => {
   const { store } = await fixture(t);
   await assert.rejects(run(['login', '--url', 'https://apps.example.com', '--email', 'a@example.invalid'], {
-    store, password: async () => 'secret', fetcher: async () => json({ user: { surface: 'admin' } }, { 'set-cookie': `emisell_portal_session=${token}; Max-Age=100` }),
-  }), /akun developer/);
+    store, password: async () => assert.fail('password read'), fetcher: async () => assert.fail('backend called'),
+  }), /sudah dihapus/);
   await assert.rejects(store.load(), /Belum login/);
 });
 test('mutations preserve revision and request key; submit requires explicit confirmation', async t => {
@@ -87,7 +91,7 @@ test('mutations preserve revision and request key; submit requires explicit conf
   await store.save({ origin: 'https://apps.example.com', cookie: `emisell_portal_session=${token}`, expiresAt: Date.now() + 10000 });
   const opts = { store, output() {}, fetcher: async (url, init) => {
     calls.push({ url, ...init });
-    return json(url.endsWith('/session') ? { user: { surface: 'developer' } } : { app: { id: 'a1' } });
+    return json(url.endsWith('/session') ? { user: { surface: 'developer' } } : url.endsWith('/activity') ? {expiresAt:new Date(Date.now()+3600000).toISOString()} : { app: { id: 'a1' } });
   } };
   await run(['apps', 'create', '--file', file, '--request-key', 'create-001'], opts);
   assert.equal(JSON.parse(calls.at(-1).body).revision, 0);

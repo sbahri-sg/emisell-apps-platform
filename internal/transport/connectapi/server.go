@@ -45,16 +45,17 @@ type caller struct {
 }
 type callerKey struct{}
 type Server struct {
-	ResourceProducts *resourceclient.Products
-	ResourceClients  appclient.Service
-	EngineKey        string
-	EngineCheck      func(context.Context, string, string, string) (domain.Access, error)
-	Testing          appservice.Testing
-	Accounts         identity.ServiceAccounts
-	Capabilities     capability.Service
-	Intents          installservice.Intents
-	Lifecycle        installservice.Lifecycle
-	Logger           *slog.Logger
+	ResourceProducts    *resourceclient.Products
+	ResourceClients     appclient.Service
+	PrivateResourceAuth func(context.Context, string, string) (string, error)
+	EngineKey           string
+	EngineCheck         func(context.Context, string, string, string) (domain.Access, error)
+	Testing             appservice.Testing
+	Accounts            identity.ServiceAccounts
+	Capabilities        capability.Service
+	Intents             installservice.Intents
+	Lifecycle           installservice.Lifecycle
+	Logger              *slog.Logger
 }
 
 func mapError(err error) error {

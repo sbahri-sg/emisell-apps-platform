@@ -37,15 +37,15 @@ npm ci
 npm run dev:local
 ```
 
-Buka `http://localhost:4317/`. Query lama seperti `?view=store&workspace=local-store` tidak memilih workspace atau menghidupkan UI merchant. Admin hanya mengonsumsi `/api/v1/admin/*`. Tidak ada login owner workspace yang dijadikan admin secara otomatis.
+Buka `http://localhost:4317/` untuk dokumentasi publik, `/development` untuk dashboard developer, dan `/admin` untuk administrasi. Tombol **Login** memeriksa sesi merchant Emisell; profil developer dibuat otomatis tanpa undangan atau password terpisah. Password portal hanya untuk admin. Sesi developer kedaluwarsa setelah satu jam tanpa aktivitas, tanpa mengakhiri sesi merchant. Konfigurasi integrasi ada di `docs/developer-merchant-login.md`. Query seperti `?view=store&workspace=local-store` tidak memilih workspace atau menghidupkan UI merchant. Tidak ada login owner workspace yang dijadikan admin secara otomatis.
 
-Proxy `/api/v1` yang sudah ada dipertahankan untuk compatibility. Portal Developer hanya mem-proxy `/api/v1/developer/*`. Jangan publish build lokal ke Sites.
+Proxy `/api/v1` yang sudah ada dipertahankan. Frontend developer dedicated pada 4319 tetap hanya mem-proxy `/api/v1/developer/*` untuk kompatibilitas lokal; portal utama berada pada `/development` di 4317. Jangan publish build lokal ke Sites.
 
 ## Akun portal dan alur draft–review
 
 ### Dokumentasi API pada Admin
 
-Buka `http://localhost:4317/?view=api-docs` atau menu **Dokumentasi API** setelah login Admin. Referensi read-only mencakup Admin, Developer, App Store publik, dan Core RPC. Endpoint merchant/workspace legacy tidak termasuk daftar, pencarian, contoh, atau unduhan. Pencarian, parameter/header, auth, schema request/response, contoh struktur dan unduhan sumber tersedia tanpa mengirim request bisnis. Halaman tetap dapat dibuka jika sesi valid tetapi daftar review/katalog gagal dimuat.
+Buka `http://localhost:4317/admin?view=api-docs` atau menu **Dokumentasi API** setelah login Admin. Referensi read-only mencakup Admin, Developer, App Store publik, dan Core RPC. Endpoint merchant/workspace legacy tidak termasuk daftar, pencarian, contoh, atau unduhan. Pencarian, parameter/header, auth, schema request/response, contoh struktur dan unduhan sumber tersedia tanpa mengirim request bisnis. Halaman tetap dapat dibuka jika sesi valid tetapi daftar review/katalog gagal dimuat.
 
 Kontrak sumber berada di `api/openapi` dan `api/proto`. Dari `web/dashboard`, jalankan `npm run docs:generate` setelah mengubah kontrak, lalu `npm test` (termasuk `docs:check`). Generator memakai Buf lokal untuk descriptor Protobuf dan komentar field, bukan parsing field manual; contoh tetap placeholder, tanpa credential/data pengguna. Unduhan Protobuf memakai import standar `google/protobuf/timestamp.proto`. Simpan kontrak OpenAPI bersama untuk resolve schema references. Daftar saat ini 74 operasi dari 18 sumber, termasuk tujuh endpoint rilis konfigurasi integrasi, delapan operasi app-client (termasuk self-check), enam lifecycle RPC, enam endpoint Testing portal, satu RPC distribusi pengujian, satu self-check token instalasi, dan dua gateway planned.
 
@@ -57,13 +57,13 @@ Menu **Rilis integrasi** tersedia pada Admin dan Developer (`?view=integration-r
 
 ### Registrasi app-client dan verifikasi origin
 
-Menu **App clients** tersedia pada Admin (`http://localhost:4317/?view=app-clients`) dan Developer (`http://localhost:4319/?view=app-clients`). Setelah konfigurasi signed, developer mendaftarkan client, memasang challenge JSON pada origin HTTPS miliknya, meminta verifikasi, lalu menerbitkan client secret sekali tampil. Administrator dapat memeriksa/revoke; operator/reviewer hanya membaca. Backup privat dan apply migration 0014 sebelum restart backend; signing key integrasi existing dipertahankan, tidak ada auto-provision client/secret.
+Menu **App clients** tersedia pada Admin (`http://localhost:4317/admin?view=app-clients`) dan Developer (`http://localhost:4319/?view=app-clients`). Setelah konfigurasi signed, developer mendaftarkan client, memasang challenge JSON pada origin HTTPS miliknya, meminta verifikasi, lalu menerbitkan client secret sekali tampil. Administrator dapat memeriksa/revoke; operator/reviewer hanya membaca. Backup privat dan apply migration 0014 sebelum restart backend; signing key integrasi existing dipertahankan, tidak ada auto-provision client/secret.
 
 Baca `docs/app-clients.md` dan ADR 0018 untuk TTL, renewal, SSRF policy dan self-check server-to-server. Browser tidak melakukan probe endpoint developer. Verifier v1 tidak mendukung localhost/private IP/IPv6-only; pengujian network menggunakan fixture TLS terkontrol, bukan pengecualian security pada server live. `clientReady` bukan izin install, token OAuth atau grant resource; seluruh 108 scope resource tetap Plan. Tidak ada deployment cloud atau merchant workspace.
 
 ### API key integrasi Core dan status scope
 
-Admin `http://localhost:4317/?view=api-keys`: hanya administrator. Form **hanya nama koneksi**. Key baru full access untuk backend Emisell → layanan internal App Platform, lintas tenant, tanpa tanggal kedaluwarsa; berlaku sampai dicabut. Endpoint management baru `/api/v1/admin/platform-keys` tidak menerima tenantId, validDays atau scopes. Key tidak membuat tenant/workspace, sesi portal, atau app grant. Secret `epk_…` hanya tampil sekali; setelah tersimpan pada secret manager backend, tutup tampilannya. Jika response pertama hilang, retry menampilkan metadata tanpa secret: cabut lalu buat pengganti. Daftar hanya 200 key platform terbaru. Key scoped Admin lama tetap dikelola melalui `/api/v1/admin/api-keys` dan tidak otomatis ditingkatkan; key CLI tidak disentuh. Revoke idempotent; rotasi dengan generate baru, pindahkan consumer, revoke lama. Lihat ADR 0014.
+Admin `http://localhost:4317/admin?view=api-keys`: hanya administrator. Form **hanya nama koneksi**. Key baru full access untuk backend Emisell → layanan internal App Platform, lintas tenant, tanpa tanggal kedaluwarsa; berlaku sampai dicabut. Endpoint management baru `/api/v1/admin/platform-keys` tidak menerima tenantId, validDays atau scopes. Key tidak membuat tenant/workspace, sesi portal, atau app grant. Secret `epk_…` hanya tampil sekali; setelah tersimpan pada secret manager backend, tutup tampilannya. Jika response pertama hilang, retry menampilkan metadata tanpa secret: cabut lalu buat pengganti. Daftar hanya 200 key platform terbaru. Key scoped Admin lama tetap dikelola melalui `/api/v1/admin/api-keys` dan tidak otomatis ditingkatkan; key CLI tidak disentuh. Revoke idempotent; rotasi dengan generate baru, pindahkan consumer, revoke lama. Lihat ADR 0014.
 
 Uji koneksi dari backend dengan generated `emisell.integration.v1.ConnectionService/Check` atau SDK `client.Connection.Check` di listener `8088`, Authorization Bearer, tanpa Origin/cookie. Pada Connect JSON gunakan POST, `Content-Type: application/json`, `Connect-Protocol-Version: 1`, body `{}`. Key platform menghasilkan service ID dan `platformFullAccess:true`; tenant/scopes/expiry absent. Key legacy tetap mengembalikan binding sebelumnya. Payment/shipping dan intent dengan key platform wajib `merchantId` per request setelah Core memeriksa otoritas tenant/actor. Koneksi berhasil tidak mengaktifkan resource Plan atau melewati installation/grant. Jangan memakai key ini di browser atau third-party app.
 
@@ -71,7 +71,7 @@ Katalog Scope adalah pusat status Plan/Active/Belum terverifikasi, filter, detai
 
 ### Handoff tim backend Emisell
 
-Buka `http://localhost:4317/?view=api-docs&api_group=gateway` setelah login Admin, atau klik endpoint pada tabel Katalog Scope. Tidak ada matriks 108 scope kedua di dokumentasi; halaman hanya menampilkan endpoint, scope yang diterima beserta tautan kembali ke katalog, request/response, checklist dan unduhan `emisell-gateway-handoff.md`, `product.proto`, serta `gateway-coverage.v1.generated.json`. Parameter `api_operation` memilih procedure exact; parameter `scope` pada katalog mengisi pencarian. Keduanya bukan authorization.
+Buka `http://localhost:4317/admin?view=api-docs&api_group=gateway` setelah login Admin, atau klik endpoint pada tabel Katalog Scope. Tidak ada matriks 108 scope kedua di dokumentasi; halaman hanya menampilkan endpoint, scope yang diterima beserta tautan kembali ke katalog, request/response, checklist dan unduhan `emisell-gateway-handoff.md`, `product.proto`, serta `gateway-coverage.v1.generated.json`. Parameter `api_operation` memilih procedure exact; parameter `scope` pada katalog mengisi pencarian. Keduanya bukan authorization.
 
 Untuk implementasi awal, ikuti kontrak List/Get produk dasar, generated Connect interfaces dan validator `pkg/gatewaycontract`. Tim Core dapat memakai `pkg/gatewaycontract/conformance.Run` dengan server/credential/fixture test-nya sendiri; jangan memakai data live. Reference tests repository ini tidak membuktikan gateway Core sungguhan sudah tersedia. Tidak ada perubahan server aktif, credential, grant atau instalasi untuk menampilkan handoff.
 
@@ -79,7 +79,7 @@ Snapshot kontrak dihasilkan dari `go run ./cmd/cli gateway-contract`, digabung d
 
 ### Katalog scope dan rencana akses data
 
-- Admin: `http://localhost:4317/?view=scopes`; Developer: `http://localhost:4319/?view=scopes`. Katalog 108 handle authenticated mengacu snapshot Shopify 2026-09-05, tidak menyatakan seluruh API Shopify sudah tersedia.
+- Admin: `http://localhost:4317/admin?view=scopes`; Developer: `http://localhost:4319/?view=scopes`. Katalog 108 handle authenticated mengacu snapshot Shopify 2026-09-05, tidak menyatakan seluruh API Shopify sudah tersedia.
 - Buka aplikasi pada Portal Developer → cari scope pada **Akses data aplikasi** → pilih Wajib/Opsional → simpan draft → ajukan review. Pilihan persisten masuk snapshot immutable; perubahan draft berikutnya tidak mengubah pengajuan lama. Implikasi/dependensi dan konflik ditampilkan, lalu divalidasi ulang server-side.
 - Admin memeriksa rencana pada detail pengajuan. Tooling/export dan signing menghasilkan katalog v2 bila ada deklarasi resource. Listing publik menampilkan required/optional beserta peringatan belum aktif. Draft lama tanpa deklarasi tetap katalog v1.
 - Semua scope baru belum grantable, termasuk setelah review/sign/publish. Token akses resource, API resource gateway dan consume resource intent belum diimplementasikan. Lifecycle fixture ADR 0016 memakai namespace scope terpisah dan tidak mengaktifkan resource Plan.

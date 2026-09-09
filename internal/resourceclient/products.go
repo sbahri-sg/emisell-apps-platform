@@ -67,7 +67,10 @@ type Options struct {
 	Environment   string // Server configuration, never supplied by a browser request.
 	PrivateKeyPEM []byte
 	AllowHTTP     bool
-	Timeout       time.Duration
+	// Explicit operator-owned production network, with private-address pinning.
+	// Unlike AllowHTTP (local tests), this never permits public-network HTTP.
+	PrivateNetworkHTTP bool
+	Timeout            time.Duration
 }
 
 type Products struct {
@@ -142,10 +145,16 @@ func NewProducts(options Options) (*Products, error) {
 	if options.Environment == "production" && options.AllowHTTP {
 		return nil, errors.New("production requires HTTPS")
 	}
+	if options.PrivateNetworkHTTP && (options.Environment != "production" || options.AllowHTTP) {
+		return nil, errors.New("private network transport requires production configuration")
+	}
 	u, err := url.Parse(options.Origin)
 	if err != nil || u.Hostname() == "" || u.User != nil || u.Path != "" || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" ||
-		(u.Scheme != "https" && !(options.AllowHTTP && u.Scheme == "http" && (u.Hostname() == "localhost" || net.ParseIP(u.Hostname()).IsLoopback()))) || !Identifier.MatchString(options.KeyID) {
+		(u.Scheme != "https" && !(u.Scheme == "http" && (options.PrivateNetworkHTTP || (options.AllowHTTP && (u.Hostname() == "localhost" || net.ParseIP(u.Hostname()).IsLoopback()))))) || !Identifier.MatchString(options.KeyID) {
 		return nil, errors.New("invalid Emisell resource origin or signing key ID")
+	}
+	if options.PrivateNetworkHTTP && (u.Scheme != "http" || (net.ParseIP(u.Hostname()) != nil && !privateResourceIP(net.ParseIP(u.Hostname())))) {
+		return nil, errors.New("private network resource origin must use internal HTTP")
 	}
 	block, rest := pem.Decode(options.PrivateKeyPEM)
 	if block == nil || len(strings.TrimSpace(string(rest))) != 0 {
@@ -170,6 +179,9 @@ func NewProducts(options Options) (*Products, error) {
 	}
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.Proxy = nil
+	if options.PrivateNetworkHTTP {
+		transport.DialContext = privateResourceDialer(u.Hostname())
+	}
 	transport.ResponseHeaderTimeout = options.Timeout
 	return &Products{origin: options.Origin, keyID: options.KeyID, environment: options.Environment, key: key, client: &http.Client{
 		Transport: transport, Timeout: options.Timeout,

@@ -1,0 +1,3426 @@
+[
+  {
+    "id": "getting-started",
+    "title": "Buat aplikasi pertama",
+    "summary": "Siapkan project, jalankan secara lokal, lalu daftarkan aplikasi ke Emisell.",
+    "category": "Mulai membangun",
+    "nodes": [
+      {
+        "type": "heading",
+        "id": "sebelum-mulai",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Sebelum mulai"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Gunakan "
+          },
+          {
+            "type": "strong",
+            "children": [
+              {
+                "type": "text",
+                "text": "Node.js 22.12 atau lebih baru"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " untuk project hasil generate. Template menggunakan React Router, TypeScript, dan Vite. Klik "
+          },
+          {
+            "type": "strong",
+            "children": [
+              {
+                "type": "text",
+                "text": "Login"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": ", lalu gunakan akun merchant Emisell yang memiliki izin mengelola aplikasi. Profil developer dibuat otomatis dari identitas akun Emisell; tidak perlu undangan, organisasi, atau kata sandi developer terpisah."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Jika sesi merchant masih aktif, portal masuk otomatis. Sesi developer berakhir setelah satu jam tanpa aktivitas, tanpa mengeluarkan akun merchant. Buka kembali "
+          },
+          {
+            "type": "link",
+            "href": "/development",
+            "children": [
+              {
+                "type": "text",
+                "text": "dashboard developer"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " untuk masuk kembali melalui sesi merchant."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Membuat project lokal, mendaftarkan aplikasi, dan memasang aplikasi pada toko adalah langkah yang berbeda."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "buat-project-lokal",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Buat project lokal"
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "npm install -g @emisell/cli@latest\nemisell app init",
+        "language": "sh"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Wizard meminta nama aplikasi, folder baru, dan origin Dashboard seller yang dipercaya. Folder yang sudah ada tidak ditimpa. "
+          },
+          {
+            "type": "codespan",
+            "text": "app init"
+          },
+          {
+            "type": "text",
+            "text": " tidak mendaftarkan aplikasi ke server dan tidak memberikan izin toko."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "jalankan-aplikasi",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Jalankan aplikasi"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Masuk ke folder yang dipilih pada wizard, lalu jalankan:"
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "npm install\nemisell app doctor\nemisell app dev",
+        "language": "sh"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Buka alamat lokal yang ditampilkan CLI. Edit halaman di "
+          },
+          {
+            "type": "codespan",
+            "text": "app/routes/"
+          },
+          {
+            "type": "text",
+            "text": " untuk melihat perubahan melalui hot reload. Gunakan "
+          },
+          {
+            "type": "link",
+            "href": "/docs/template",
+            "children": [
+              {
+                "type": "text",
+                "text": "panduan struktur template"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " untuk menemukan frontend dan backend."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "daftarkan-aplikasi",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Daftarkan aplikasi"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Buka "
+          },
+          {
+            "type": "link",
+            "href": "/development",
+            "children": [
+              {
+                "type": "text",
+                "text": "dashboard developer"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": ", buat aplikasi, lalu lengkapi metadata versi dan izin yang diperlukan. Simpan draft sebelum mengajukannya untuk review. Credential dikonfigurasi untuk aplikasi/rilis yang sesuai, bukan dibuat dengan mengarang ID lokal."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "uji-dengan-seller",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Uji dengan seller"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Ikuti "
+          },
+          {
+            "type": "link",
+            "href": "/docs/submissions",
+            "children": [
+              {
+                "type": "text",
+                "text": "review dan pengujian"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " untuk konfigurasi rilis, client, penugasan toko, persetujuan seller, dan instalasi. Mulai dengan izin paling kecil, misalnya "
+          },
+          {
+            "type": "codespan",
+            "text": "read_products"
+          },
+          {
+            "type": "text",
+            "text": " untuk demo produk."
+          }
+        ]
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": "UI yang berhasil dibuka bukan bukti akses toko sudah aktif. Backend harus memverifikasi identitas dan izin pada setiap permintaan data."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "id": "sebelum-mulai",
+        "title": "Sebelum mulai",
+        "depth": 2
+      },
+      {
+        "id": "buat-project-lokal",
+        "title": "Buat project lokal",
+        "depth": 2
+      },
+      {
+        "id": "jalankan-aplikasi",
+        "title": "Jalankan aplikasi",
+        "depth": 2
+      },
+      {
+        "id": "daftarkan-aplikasi",
+        "title": "Daftarkan aplikasi",
+        "depth": 2
+      },
+      {
+        "id": "uji-dengan-seller",
+        "title": "Uji dengan seller",
+        "depth": 2
+      }
+    ],
+    "searchText": "Sebelum mulai Gunakan Node.js 22.12 atau lebih baru untuk project hasil generate. Template menggunakan React Router, TypeScript, dan Vite. Klik Login , lalu gunakan akun merchant Emisell yang memiliki izin mengelola aplikasi. Profil developer dibuat otomatis dari identitas akun Emisell; tidak perlu undangan, organisasi, atau kata sandi developer terpisah. Jika sesi merchant masih aktif, portal masuk otomatis. Sesi developer berakhir setelah satu jam tanpa aktivitas, tanpa mengeluarkan akun merchant. Buka kembali [dashboard developer](/development) untuk masuk kembali melalui sesi merchant. Membuat project lokal, mendaftarkan aplikasi, dan memasang aplikasi pada toko adalah langkah yang berbeda. Buat project lokal sh npm install -g @emisell/cli@latest emisell app init Wizard meminta nama aplikasi, folder baru, dan origin Dashboard seller yang dipercaya. Folder yang sudah ada tidak ditimpa. app init tidak mendaftarkan aplikasi ke server dan tidak memberikan izin toko. Jalankan aplikasi Masuk ke folder yang dipilih pada wizard, lalu jalankan: sh npm install emisell app doctor emisell app dev Buka alamat lokal yang ditampilkan CLI. Edit halaman di app/routes/ untuk melihat perubahan melalui hot reload. Gunakan [panduan struktur template](/docs/template) untuk menemukan frontend dan backend. Daftarkan aplikasi Buka [dashboard developer](/development), buat aplikasi, lalu lengkapi metadata versi dan izin yang diperlukan. Simpan draft sebelum mengajukannya untuk review. Credential dikonfigurasi untuk aplikasi/rilis yang sesuai, bukan dibuat dengan mengarang ID lokal. Uji dengan seller Ikuti [review dan pengujian](/docs/submissions) untuk konfigurasi rilis, client, penugasan toko, persetujuan seller, dan instalasi. Mulai dengan izin paling kecil, misalnya read_products untuk demo produk. UI yang berhasil dibuka bukan bukti akses toko sudah aktif. Backend harus memverifikasi identitas dan izin pada setiap permintaan data.",
+    "minutes": 2
+  },
+  {
+    "id": "cli",
+    "title": "Emisell CLI",
+    "summary": "Perintah development untuk membuat, menjalankan, dan memeriksa project aplikasi.",
+    "category": "Mulai membangun",
+    "nodes": [
+      {
+        "type": "heading",
+        "id": "instalasi-cli",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Instalasi CLI"
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "npm install -g @emisell/cli@latest\nemisell --version",
+        "language": "sh"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "CLI membutuhkan Node.js 22+. Untuk project template, gunakan Node.js 22.12+. Jalankan perintah project dari folder aplikasi atau gunakan "
+          },
+          {
+            "type": "codespan",
+            "text": "--path"
+          },
+          {
+            "type": "text",
+            "text": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "login-merchant-dan-instalasi",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Login merchant dan instalasi"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "CLI 0.5.0 menggunakan login browser merchant, bukan email/password developer. Backend harus mendukung alur CLI merchant SSO."
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "emisell auth login --url http://localhost:4317\nemisell auth status\nemisell stores list\nemisell app config link\nemisell app install\nemisell app dev --connect",
+        "language": "sh"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Konfirmasi login CLI di browser. Sesi privat berakhir setelah satu jam tanpa aktivitas; tidak membaca cookie Dashboard. Untuk non-interaktif, "
+          },
+          {
+            "type": "codespan",
+            "text": "app install --app APP_ID --store STORE_ID --no-open"
+          },
+          {
+            "type": "text",
+            "text": " mencetak tautan Dashboard. Pilihan diingat per akun/origin/project, dan "
+          },
+          {
+            "type": "codespan",
+            "text": "--reset"
+          },
+          {
+            "type": "text",
+            "text": " memilih ulang. Login ulang untuk memperbarui daftar toko."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Dashboard memeriksa sesi dan izin saat Anda mengonfirmasi toko, lalu menampilkan consent. CLI tidak memasang otomatis atau mengklaim instalasi berhasil. "
+          },
+          {
+            "type": "codespan",
+            "text": "app dev --connect"
+          },
+          {
+            "type": "text",
+            "text": " belum membuat tunnel atau App URL; sesi CLI bukan token akses data aplikasi. "
+          },
+          {
+            "type": "codespan",
+            "text": "apps init --file app.json"
+          },
+          {
+            "type": "text",
+            "text": " membuat dokumen aplikasi pribadi baca produk tanpa halaman UI; "
+          },
+          {
+            "type": "codespan",
+            "text": "app init"
+          },
+          {
+            "type": "text",
+            "text": " membuat source project UI, bukan registrasi server."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "perintah-development",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Perintah development"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "header": [
+          [
+            {
+              "type": "text",
+              "text": "Perintah"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Kegunaan"
+            }
+          ]
+        ],
+        "rows": [
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "emisell app init"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Membuat project melalui wizard"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "emisell app dev"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Menjalankan frontend dan backend lokal"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "emisell app build"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Build project aplikasi"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "emisell app info"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Membaca metadata aman tanpa credential"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "emisell app doctor"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Memeriksa metadata, file, Node.js, dan dependency"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "codespan",
+            "text": "app dev"
+          },
+          {
+            "type": "text",
+            "text": " menemukan project dari folder saat ini atau subfoldernya. "
+          },
+          {
+            "type": "codespan",
+            "text": "--dir"
+          },
+          {
+            "type": "text",
+            "text": " tetap menjadi alias "
+          },
+          {
+            "type": "codespan",
+            "text": "--path"
+          },
+          {
+            "type": "text",
+            "text": ". Gunakan "
+          },
+          {
+            "type": "codespan",
+            "text": "--json"
+          },
+          {
+            "type": "text",
+            "text": " untuk keluaran terstruktur pada perintah yang mendukungnya."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "buat-tanpa-prompt",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Buat tanpa prompt"
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "emisell app init --name my-app --path ./my-app --parent-origin https://seller.example.com\ncd my-app\nnpm install\nemisell app dev",
+        "language": "sh"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Ganti origin contoh dengan Dashboard seller yang dipercaya. Dependency project dipasang terpisah; CLI tidak menimpa folder existing."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "periksa-masalah-lokal",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Periksa masalah lokal"
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "emisell app info --json\nemisell app doctor --json\nemisell app init --help",
+        "language": "sh"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Doctor tidak menjalankan source/backend, membaca secret, atau menghubungi server. Hasil lulus tidak membuktikan persetujuan seller atau koneksi produksi."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "build-dan-berhenti",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Build dan berhenti"
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "emisell app build",
+        "language": "sh"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Tekan Ctrl+C untuk menghentikan development server. Gunakan "
+          },
+          {
+            "type": "codespan",
+            "text": "--port 4331"
+          },
+          {
+            "type": "text",
+            "text": " jika port default terpakai. CLI tidak menghentikan proses lain dan tidak membuat tunnel, DNS, atau deployment otomatis."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Baca "
+          },
+          {
+            "type": "link",
+            "href": "/docs/deployment",
+            "children": [
+              {
+                "type": "text",
+                "text": "build dan deployment"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " untuk container dan runtime produksi."
+          }
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "id": "instalasi-cli",
+        "title": "Instalasi CLI",
+        "depth": 2
+      },
+      {
+        "id": "login-merchant-dan-instalasi",
+        "title": "Login merchant dan instalasi",
+        "depth": 2
+      },
+      {
+        "id": "perintah-development",
+        "title": "Perintah development",
+        "depth": 2
+      },
+      {
+        "id": "buat-tanpa-prompt",
+        "title": "Buat tanpa prompt",
+        "depth": 2
+      },
+      {
+        "id": "periksa-masalah-lokal",
+        "title": "Periksa masalah lokal",
+        "depth": 2
+      },
+      {
+        "id": "build-dan-berhenti",
+        "title": "Build dan berhenti",
+        "depth": 2
+      }
+    ],
+    "searchText": "Instalasi CLI sh npm install -g @emisell/cli@latest emisell --version CLI membutuhkan Node.js 22+. Untuk project template, gunakan Node.js 22.12+. Jalankan perintah project dari folder aplikasi atau gunakan --path . Login merchant dan instalasi CLI 0.5.0 menggunakan login browser merchant, bukan email/password developer. Backend harus mendukung alur CLI merchant SSO. sh emisell auth login --url http://localhost:4317 emisell auth status emisell stores list emisell app config link emisell app install emisell app dev --connect Konfirmasi login CLI di browser. Sesi privat berakhir setelah satu jam tanpa aktivitas; tidak membaca cookie Dashboard. Untuk non-interaktif, app install --app APP_ID --store STORE_ID --no-open mencetak tautan Dashboard. Pilihan diingat per akun/origin/project, dan --reset memilih ulang. Login ulang untuk memperbarui daftar toko. Dashboard memeriksa sesi dan izin saat Anda mengonfirmasi toko, lalu menampilkan consent. CLI tidak memasang otomatis atau mengklaim instalasi berhasil. app dev --connect belum membuat tunnel atau App URL; sesi CLI bukan token akses data aplikasi. apps init --file app.json membuat dokumen aplikasi pribadi baca produk tanpa halaman UI; app init membuat source project UI, bukan registrasi server. Perintah development Perintah Kegunaan --- --- emisell app init Membuat project melalui wizard emisell app dev Menjalankan frontend dan backend lokal emisell app build Build project aplikasi emisell app info Membaca metadata aman tanpa credential emisell app doctor Memeriksa metadata, file, Node.js, dan dependency app dev menemukan project dari folder saat ini atau subfoldernya. --dir tetap menjadi alias --path . Gunakan --json untuk keluaran terstruktur pada perintah yang mendukungnya. Buat tanpa prompt sh emisell app init --name my-app --path ./my-app --parent-origin https://seller.example.com cd my-app npm install emisell app dev Ganti origin contoh dengan Dashboard seller yang dipercaya. Dependency project dipasang terpisah; CLI tidak menimpa folder existing. Periksa masalah lokal sh emisell app info --json emisell app doctor --json emisell app init --help Doctor tidak menjalankan source/backend, membaca secret, atau menghubungi server. Hasil lulus tidak membuktikan persetujuan seller atau koneksi produksi. Build dan berhenti sh emisell app build Tekan Ctrl+C untuk menghentikan development server. Gunakan --port 4331 jika port default terpakai. CLI tidak menghentikan proses lain dan tidak membuat tunnel, DNS, atau deployment otomatis. Baca [build dan deployment](/docs/deployment) untuk container dan runtime produksi.",
+    "minutes": 3
+  },
+  {
+    "id": "template",
+    "title": "Struktur template",
+    "summary": "Kenali React Router, halaman aplikasi, dan backend dalam satu project.",
+    "category": "Mulai membangun",
+    "nodes": [
+      {
+        "type": "heading",
+        "id": "framework-yang-digunakan",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Framework yang digunakan"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Template menggunakan React Router + TypeScript + Vite dengan backend Node. Developer dapat memakai pola route dan komponen React yang familiar tanpa menduplikasi navigasi utama Dashboard seller."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "struktur-project",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Struktur project"
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "app/\n  routes/          Halaman koneksi dan pembaca resource\n  lib/             Helper request dan bridge embedded\n  root.tsx         Layout aplikasi\nserver/\n  backend.mjs      Konfigurasi adapter lokal\n  http.mjs         Validasi request HTTP\n  identity.mjs     Verifier identitas\n  production-backend.mjs\nemisell.app.json   Metadata publik project\n.env.example      Contoh konfigurasi privat\nDockerfile\nTESTING.md\nDEPLOYMENT.md",
+        "language": "text"
+      },
+      {
+        "type": "heading",
+        "id": "frontend-dan-backend",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Frontend dan backend"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Frontend meminta data melalui backend aplikasi. Jangan memindahkan secret atau pemeriksaan izin ke komponen React. Backend memverifikasi identitas, binding toko/aplikasi/instalasi, dan grant terkini sebelum mengembalikan data."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Template menyediakan contoh produk, pesanan, pengiriman, katalog, koleksi, stok, dan lokasi. Menu yang tampil bukan pemberian scope; akses yang belum dikonfigurasi harus ditolak."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "konfigurasi-project",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Konfigurasi project"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "codespan",
+            "text": "emisell.app.json"
+          },
+          {
+            "type": "text",
+            "text": " menyimpan metadata publik seperti nama project dan origin, bukan tempat secret. File "
+          },
+          {
+            "type": "codespan",
+            "text": ".env.example"
+          },
+          {
+            "type": "text",
+            "text": " menjelaskan konfigurasi backend lokal. Simpan nilai rahasia di luar source frontend dan jangan commit "
+          },
+          {
+            "type": "codespan",
+            "text": ".env"
+          },
+          {
+            "type": "text",
+            "text": " berisi credential."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Ikuti "
+          },
+          {
+            "type": "link",
+            "href": "/docs/credentials",
+            "children": [
+              {
+                "type": "text",
+                "text": "credential aplikasi"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " dan "
+          },
+          {
+            "type": "link",
+            "href": "/docs/embedded-apps",
+            "children": [
+              {
+                "type": "text",
+                "text": "aplikasi embedded"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " sebelum menyambungkan data toko."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "pemeriksaan-sebelum-perubahan-dikirim",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Pemeriksaan sebelum perubahan dikirim"
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "npm run typecheck\nnpm run build",
+        "language": "sh"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Simpan lockfile dependency project. Perubahan template tidak menimpa aplikasi existing; bandingkan perubahan dan migrasikan project dengan pengujian yang sesuai."
+          }
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "id": "framework-yang-digunakan",
+        "title": "Framework yang digunakan",
+        "depth": 2
+      },
+      {
+        "id": "struktur-project",
+        "title": "Struktur project",
+        "depth": 2
+      },
+      {
+        "id": "frontend-dan-backend",
+        "title": "Frontend dan backend",
+        "depth": 2
+      },
+      {
+        "id": "konfigurasi-project",
+        "title": "Konfigurasi project",
+        "depth": 2
+      },
+      {
+        "id": "pemeriksaan-sebelum-perubahan-dikirim",
+        "title": "Pemeriksaan sebelum perubahan dikirim",
+        "depth": 2
+      }
+    ],
+    "searchText": "Framework yang digunakan Template menggunakan React Router + TypeScript + Vite dengan backend Node. Developer dapat memakai pola route dan komponen React yang familiar tanpa menduplikasi navigasi utama Dashboard seller. Struktur project text app/ routes/ Halaman koneksi dan pembaca resource lib/ Helper request dan bridge embedded root.tsx Layout aplikasi server/ backend.mjs Konfigurasi adapter lokal http.mjs Validasi request HTTP identity.mjs Verifier identitas production-backend.mjs emisell.app.json Metadata publik project .env.example Contoh konfigurasi privat Dockerfile TESTING.md DEPLOYMENT.md Frontend dan backend Frontend meminta data melalui backend aplikasi. Jangan memindahkan secret atau pemeriksaan izin ke komponen React. Backend memverifikasi identitas, binding toko/aplikasi/instalasi, dan grant terkini sebelum mengembalikan data. Template menyediakan contoh produk, pesanan, pengiriman, katalog, koleksi, stok, dan lokasi. Menu yang tampil bukan pemberian scope; akses yang belum dikonfigurasi harus ditolak. Konfigurasi project emisell.app.json menyimpan metadata publik seperti nama project dan origin, bukan tempat secret. File .env.example menjelaskan konfigurasi backend lokal. Simpan nilai rahasia di luar source frontend dan jangan commit .env berisi credential. Ikuti [credential aplikasi](/docs/credentials) dan [aplikasi embedded](/docs/embedded-apps) sebelum menyambungkan data toko. Pemeriksaan sebelum perubahan dikirim sh npm run typecheck npm run build Simpan lockfile dependency project. Perubahan template tidak menimpa aplikasi existing; bandingkan perubahan dan migrasikan project dengan pengujian yang sesuai.",
+    "minutes": 2
+  },
+  {
+    "id": "authentication",
+    "title": "Autentikasi & otorisasi",
+    "summary": "Pahami identitas aplikasi, verifikasi sesi, dan persetujuan akses data toko.",
+    "category": "Bangun integrasi",
+    "nodes": [
+      {
+        "type": "heading",
+        "id": "apa-yang-perlu-diverifikasi",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Apa yang perlu diverifikasi"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "strong",
+            "children": [
+              {
+                "type": "text",
+                "text": "Autentikasi"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " membuktikan identitas pemanggil. "
+          },
+          {
+            "type": "strong",
+            "children": [
+              {
+                "type": "text",
+                "text": "Otorisasi"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " menentukan data dan tindakan yang diizinkan. Keduanya diperlukan: identitas yang valid belum tentu memiliki izin membaca produk atau pesanan."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Untuk aplikasi embedded, backend harus memastikan identitas terikat pada aplikasi, client, toko, instalasi, dan staf yang benar. Jangan mempercayai merchant ID dari query browser sebagai bukti kepemilikan toko."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "cara-kerja",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Cara kerja"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "start": 1,
+        "items": [
+          [
+            {
+              "type": "text",
+              "text": "Seller memasang aplikasi setelah meninjau izin yang diminta."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Aplikasi embedded meminta identitas melalui bridge dari Dashboard seller yang diizinkan."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Backend aplikasi memverifikasi identitas dan binding yang diterima."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Setiap permintaan resource diperiksa terhadap scope dan akses instalasi terkini."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Data dikembalikan hanya jika semua pemeriksaan berhasil."
+            }
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Grant dapat berubah setelah identitas diterbitkan. Permintaan berikutnya harus ditolak bila akses dicabut atau instalasi tidak lagi berlaku."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "istilah-utama",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Istilah utama"
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "app-id-dan-client-id",
+        "depth": 3,
+        "children": [
+          {
+            "type": "text",
+            "text": "App ID dan client ID"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "App ID mengidentifikasi aplikasi terdaftar. Client ID mengidentifikasi client yang dikonfigurasi untuk aplikasi. Keduanya bukan pengganti secret maupun persetujuan seller."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "client-secret",
+        "depth": 3,
+        "children": [
+          {
+            "type": "text",
+            "text": "Client secret"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Secret membuktikan identitas confidential client pada backend. Simpan privat, bukan pada source React, URL, browser storage, atau log. Lihat "
+          },
+          {
+            "type": "link",
+            "href": "/docs/credentials",
+            "children": [
+              {
+                "type": "text",
+                "text": "pengelolaan credential"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "identitas-embedded",
+        "depth": 3,
+        "children": [
+          {
+            "type": "text",
+            "text": "Identitas embedded"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Identitas dari Dashboard harus diverifikasi sebelum dipakai. Verifikasi mencakup signature, issuer, audience/client, waktu berlaku, dan binding aplikasi/instalasi/toko/staf sesuai kontrak backend. Token tidak boleh menentukan sendiri endpoint verifikasi yang dipercaya."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "scope-dan-grant",
+        "depth": 3,
+        "children": [
+          {
+            "type": "text",
+            "text": "Scope dan grant"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Scope menyatakan jenis akses, seperti "
+          },
+          {
+            "type": "codespan",
+            "text": "read_products"
+          },
+          {
+            "type": "text",
+            "text": ". Grant adalah akses yang berlaku untuk instalasi dan toko tersebut. Deklarasi scope di metadata tidak otomatis menciptakan grant."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "pilih-jalur-implementasi",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Pilih jalur implementasi"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "header": [
+          [
+            {
+              "type": "text",
+              "text": "Kebutuhan"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Jalur yang tersedia"
+            }
+          ]
+        ],
+        "rows": [
+          [
+            [
+              {
+                "type": "text",
+                "text": "Pengujian embedded lokal"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Template CLI, adapter Core lokal, serta alur review dan seller install"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "text",
+                "text": "Hosting aplikasi"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Runtime produksi dan adapter backend nyata yang dikonfigurasi operator"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "text",
+                "text": "Mengakses resource lain"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Deklarasi scope yang didukung, review versi, dan persetujuan seller"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": "Jangan menganggap Emisell memakai alur OAuth, token exchange, atau header platform lain. Ikuti kontrak dan adapter Emisell yang benar-benar diaktifkan di lingkungan Anda."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "saat-akses-ditolak",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Saat akses ditolak"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Bedakan kegagalan identitas, penolakan izin, dan dependency backend yang tidak tersedia. Jangan mengatasi penolakan dengan menonaktifkan pemeriksaan atau meneruskan cookie seller ke aplikasi. Gunakan "
+          },
+          {
+            "type": "link",
+            "href": "/docs/troubleshooting",
+            "children": [
+              {
+                "type": "text",
+                "text": "troubleshooting"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " untuk urutan pemeriksaan."
+          }
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "id": "apa-yang-perlu-diverifikasi",
+        "title": "Apa yang perlu diverifikasi",
+        "depth": 2
+      },
+      {
+        "id": "cara-kerja",
+        "title": "Cara kerja",
+        "depth": 2
+      },
+      {
+        "id": "istilah-utama",
+        "title": "Istilah utama",
+        "depth": 2
+      },
+      {
+        "id": "app-id-dan-client-id",
+        "title": "App ID dan client ID",
+        "depth": 3
+      },
+      {
+        "id": "client-secret",
+        "title": "Client secret",
+        "depth": 3
+      },
+      {
+        "id": "identitas-embedded",
+        "title": "Identitas embedded",
+        "depth": 3
+      },
+      {
+        "id": "scope-dan-grant",
+        "title": "Scope dan grant",
+        "depth": 3
+      },
+      {
+        "id": "pilih-jalur-implementasi",
+        "title": "Pilih jalur implementasi",
+        "depth": 2
+      },
+      {
+        "id": "saat-akses-ditolak",
+        "title": "Saat akses ditolak",
+        "depth": 2
+      }
+    ],
+    "searchText": "Apa yang perlu diverifikasi Autentikasi membuktikan identitas pemanggil. Otorisasi menentukan data dan tindakan yang diizinkan. Keduanya diperlukan: identitas yang valid belum tentu memiliki izin membaca produk atau pesanan. Untuk aplikasi embedded, backend harus memastikan identitas terikat pada aplikasi, client, toko, instalasi, dan staf yang benar. Jangan mempercayai merchant ID dari query browser sebagai bukti kepemilikan toko. Cara kerja 1. Seller memasang aplikasi setelah meninjau izin yang diminta. 2. Aplikasi embedded meminta identitas melalui bridge dari Dashboard seller yang diizinkan. 3. Backend aplikasi memverifikasi identitas dan binding yang diterima. 4. Setiap permintaan resource diperiksa terhadap scope dan akses instalasi terkini. 5. Data dikembalikan hanya jika semua pemeriksaan berhasil. Grant dapat berubah setelah identitas diterbitkan. Permintaan berikutnya harus ditolak bila akses dicabut atau instalasi tidak lagi berlaku. Istilah utama App ID dan client ID App ID mengidentifikasi aplikasi terdaftar. Client ID mengidentifikasi client yang dikonfigurasi untuk aplikasi. Keduanya bukan pengganti secret maupun persetujuan seller. Client secret Secret membuktikan identitas confidential client pada backend. Simpan privat, bukan pada source React, URL, browser storage, atau log. Lihat [pengelolaan credential](/docs/credentials). Identitas embedded Identitas dari Dashboard harus diverifikasi sebelum dipakai. Verifikasi mencakup signature, issuer, audience/client, waktu berlaku, dan binding aplikasi/instalasi/toko/staf sesuai kontrak backend. Token tidak boleh menentukan sendiri endpoint verifikasi yang dipercaya. Scope dan grant Scope menyatakan jenis akses, seperti read_products . Grant adalah akses yang berlaku untuk instalasi dan toko tersebut. Deklarasi scope di metadata tidak otomatis menciptakan grant. Pilih jalur implementasi Kebutuhan Jalur yang tersedia --- --- Pengujian embedded lokal Template CLI, adapter Core lokal, serta alur review dan seller install Hosting aplikasi Runtime produksi dan adapter backend nyata yang dikonfigurasi operator Mengakses resource lain Deklarasi scope yang didukung, review versi, dan persetujuan seller Jangan menganggap Emisell memakai alur OAuth, token exchange, atau header platform lain. Ikuti kontrak dan adapter Emisell yang benar-benar diaktifkan di lingkungan Anda. Saat akses ditolak Bedakan kegagalan identitas, penolakan izin, dan dependency backend yang tidak tersedia. Jangan mengatasi penolakan dengan menonaktifkan pemeriksaan atau meneruskan cookie seller ke aplikasi. Gunakan [troubleshooting](/docs/troubleshooting) untuk urutan pemeriksaan.",
+    "minutes": 2
+  },
+  {
+    "id": "credentials",
+    "title": "Credential aplikasi",
+    "summary": "Kelola App ID, client ID, dan secret di backend aplikasi.",
+    "category": "Bangun integrasi",
+    "nodes": [
+      {
+        "type": "heading",
+        "id": "kelola-melalui-dashboard",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Kelola melalui dashboard"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Buka "
+          },
+          {
+            "type": "link",
+            "href": "/development",
+            "children": [
+              {
+                "type": "text",
+                "text": "dashboard developer"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": ", pilih aplikasi, lalu "
+          },
+          {
+            "type": "strong",
+            "children": [
+              {
+                "type": "text",
+                "text": "App settings"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": ". Client ID dan Secret dibuat bersama aplikasi, tanpa menunggu rilis ditandatangani atau endpoint diverifikasi. Client ID tetap sama ketika versi, nama, atau endpoint aplikasi berubah."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Secret disembunyikan secara default. Gunakan tombol mata untuk menampilkan, tombol salin untuk menyalin, atau "
+          },
+          {
+            "type": "strong",
+            "children": [
+              {
+                "type": "text",
+                "text": "Rotate"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " untuk mengganti Secret. Tampilan Secret ditutup setelah satu menit, ketika tab disembunyikan, atau ketika meninggalkan halaman. Secret hanya boleh disimpan pada backend aplikasi, bukan kode browser atau Git."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Credential mengenali aplikasi, bukan memberikan akses toko. Instalasi, persetujuan seller, scope, dan pemeriksaan rilis tetap diperlukan. Pemeriksaan identitas backend tersedia melalui "
+          },
+          {
+            "type": "codespan",
+            "text": "POST /api/v1/app/client-check"
+          },
+          {
+            "type": "text",
+            "text": " dengan HTTP Basic menggunakan Client ID dan Secret; ini bukan endpoint penerbit token OAuth."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "kompatibilitas-integrasi-lama",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Kompatibilitas integrasi lama"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Client "
+          },
+          {
+            "type": "codespan",
+            "text": "eac_"
+          },
+          {
+            "type": "text",
+            "text": " yang terikat rilis tetap tersedia pada bagian "
+          },
+          {
+            "type": "strong",
+            "children": [
+              {
+                "type": "text",
+                "text": "Kompatibilitas client rilis lama"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": ". Client utama "
+          },
+          {
+            "type": "codespan",
+            "text": "eai_"
+          },
+          {
+            "type": "text",
+            "text": " tidak menggantikan client rilis pada adapter pengujian lama secara otomatis. Jika adapter masih meminta proof atau client rilis, gunakan credential rilis yang sudah dikonfigurasi sampai adapter tersebut dimigrasikan."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "identitas-dan-rahasia",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Identitas dan rahasia"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "header": [
+          [
+            {
+              "type": "text",
+              "text": "Nilai"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Penggunaan"
+            }
+          ]
+        ],
+        "rows": [
+          [
+            [
+              {
+                "type": "text",
+                "text": "App ID"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Identitas aplikasi terdaftar"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "text",
+                "text": "Client ID"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Identitas client aplikasi"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "text",
+                "text": "Client secret"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Rahasia untuk backend confidential client"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Client secret aplikasi bukan Core key, key API kurir, atau cookie akun seller. API key internal platform tidak boleh dikirim ke aplikasi embedded."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "konfigurasi-pengujian-lokal",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Konfigurasi pengujian lokal"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Berikut placeholder untuk adapter lokal bawaan template, bukan konfigurasi produksi:"
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "EMISELL_LOCAL_CORE_ORIGIN=http://127.0.0.1:8000\nEMISELL_LOCAL_APP_ID=APP_ID\nEMISELL_LOCAL_CLIENT_ID=CLIENT_ID\nEMISELL_LOCAL_CLIENT_SECRET_FILE=/absolute/private/path/client.secret",
+        "language": "dotenv"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Gunakan ID sebenarnya milik aplikasi. File secret harus berada di luar source/aset browser, berupa file biasa, bukan symlink. Pada macOS/Linux, batasi izin ke pemilik dengan mode "
+          },
+          {
+            "type": "codespan",
+            "text": "600"
+          },
+          {
+            "type": "text",
+            "text": ". Jangan commit nilainya ke Git."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Ikuti "
+          },
+          {
+            "type": "codespan",
+            "text": ".env.example"
+          },
+          {
+            "type": "text",
+            "text": " dan "
+          },
+          {
+            "type": "codespan",
+            "text": "TESTING.md"
+          },
+          {
+            "type": "text",
+            "text": " dari project Anda; restart development server setelah perubahan konfigurasi bila diperlukan."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "rotasi-dan-pencabutan",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Rotasi dan pencabutan"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Jika Secret terpapar, pilih "
+          },
+          {
+            "type": "strong",
+            "children": [
+              {
+                "type": "text",
+                "text": "Rotate"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " dan konfirmasi. Secret lama langsung tidak berlaku, sedangkan Client ID tetap sama. Tampilkan atau salin Secret baru, perbarui backend aplikasi, dan uji kembali. Rotasi dicatat pada audit; jangan menyalin Secret ke tiket dukungan atau log diagnosis."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Credential baru tidak menambah scope instalasi. Penambahan izin tetap mengikuti "
+          },
+          {
+            "type": "link",
+            "href": "/docs/submissions",
+            "children": [
+              {
+                "type": "text",
+                "text": "review dan persetujuan seller"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "."
+          }
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "id": "kelola-melalui-dashboard",
+        "title": "Kelola melalui dashboard",
+        "depth": 2
+      },
+      {
+        "id": "kompatibilitas-integrasi-lama",
+        "title": "Kompatibilitas integrasi lama",
+        "depth": 2
+      },
+      {
+        "id": "identitas-dan-rahasia",
+        "title": "Identitas dan rahasia",
+        "depth": 2
+      },
+      {
+        "id": "konfigurasi-pengujian-lokal",
+        "title": "Konfigurasi pengujian lokal",
+        "depth": 2
+      },
+      {
+        "id": "rotasi-dan-pencabutan",
+        "title": "Rotasi dan pencabutan",
+        "depth": 2
+      }
+    ],
+    "searchText": "Kelola melalui dashboard Buka [dashboard developer](/development), pilih aplikasi, lalu App settings . Client ID dan Secret dibuat bersama aplikasi, tanpa menunggu rilis ditandatangani atau endpoint diverifikasi. Client ID tetap sama ketika versi, nama, atau endpoint aplikasi berubah. Secret disembunyikan secara default. Gunakan tombol mata untuk menampilkan, tombol salin untuk menyalin, atau Rotate untuk mengganti Secret. Tampilan Secret ditutup setelah satu menit, ketika tab disembunyikan, atau ketika meninggalkan halaman. Secret hanya boleh disimpan pada backend aplikasi, bukan kode browser atau Git. Credential mengenali aplikasi, bukan memberikan akses toko. Instalasi, persetujuan seller, scope, dan pemeriksaan rilis tetap diperlukan. Pemeriksaan identitas backend tersedia melalui POST /api/v1/app/client-check dengan HTTP Basic menggunakan Client ID dan Secret; ini bukan endpoint penerbit token OAuth. Kompatibilitas integrasi lama Client eac_ yang terikat rilis tetap tersedia pada bagian Kompatibilitas client rilis lama . Client utama eai_ tidak menggantikan client rilis pada adapter pengujian lama secara otomatis. Jika adapter masih meminta proof atau client rilis, gunakan credential rilis yang sudah dikonfigurasi sampai adapter tersebut dimigrasikan. Identitas dan rahasia Nilai Penggunaan --- --- App ID Identitas aplikasi terdaftar Client ID Identitas client aplikasi Client secret Rahasia untuk backend confidential client Client secret aplikasi bukan Core key, key API kurir, atau cookie akun seller. API key internal platform tidak boleh dikirim ke aplikasi embedded. Konfigurasi pengujian lokal Berikut placeholder untuk adapter lokal bawaan template, bukan konfigurasi produksi: dotenv EMISELL_LOCAL_CORE_ORIGIN=http://127.0.0.1:8000 EMISELL_LOCAL_APP_ID=APP_ID EMISELL_LOCAL_CLIENT_ID=CLIENT_ID EMISELL_LOCAL_CLIENT_SECRET_FILE=/absolute/private/path/client.secret Gunakan ID sebenarnya milik aplikasi. File secret harus berada di luar source/aset browser, berupa file biasa, bukan symlink. Pada macOS/Linux, batasi izin ke pemilik dengan mode 600 . Jangan commit nilainya ke Git. Ikuti .env.example dan TESTING.md dari project Anda; restart development server setelah perubahan konfigurasi bila diperlukan. Rotasi dan pencabutan Jika Secret terpapar, pilih Rotate dan konfirmasi. Secret lama langsung tidak berlaku, sedangkan Client ID tetap sama. Tampilkan atau salin Secret baru, perbarui backend aplikasi, dan uji kembali. Rotasi dicatat pada audit; jangan menyalin Secret ke tiket dukungan atau log diagnosis. Credential baru tidak menambah scope instalasi. Penambahan izin tetap mengikuti [review dan persetujuan seller](/docs/submissions).",
+    "minutes": 2
+  },
+  {
+    "id": "scopes",
+    "title": "Scope & resource",
+    "summary": "Pilih izin baca dan pahami batas data yang dapat diakses aplikasi.",
+    "category": "Bangun integrasi",
+    "nodes": [
+      {
+        "type": "heading",
+        "id": "minta-izin-minimum",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Minta izin minimum"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Deklarasikan scope sesuai kebutuhan pada versi yang diajukan. Backend menentukan kesiapan endpoint dan akses aktual; menambahkan nama scope ke konfigurasi saja tidak memberi izin."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "resource-baca-dalam-template",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Resource baca dalam template"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "header": [
+          [
+            {
+              "type": "text",
+              "text": "Scope"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Data yang dibaca"
+            }
+          ]
+        ],
+        "rows": [
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "read_products"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Daftar, pencarian, dan detail produk"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "read_orders"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Daftar, filter status, dan detail item pesanan"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "read_shipping"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Konfigurasi, profil, dan nama zona pengiriman"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "read_catalogs"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Daftar katalog dan referensi produk, bukan harga khusus"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "read_collections"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Daftar, pencarian, dan referensi produk dalam koleksi"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "read_inventory"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Persediaan tanpa mengubah jumlah stok"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "read_locations"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Nama dan status lokasi, tanpa alamat atau telepon"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Scope pengiriman ini bukan izin membuat shipment, pickup, cek tarif, atau membuka credential kurir. Scope baca tidak mengizinkan perubahan data."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "deklarasi-pada-rilis-ui",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Deklarasi pada rilis UI"
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "{\n  \"requiredScopes\": [\"read_orders\", \"read_products\"]\n}",
+        "language": "json"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Urutkan scope menurut alfabet, tanpa duplikasi. Aplikasi lama tidak otomatis memperoleh izin baru. Pengajuan rilis dan persetujuan seller diperlukan sesuai alur platform."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "endpoint-bisnis-yang-digunakan",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Endpoint bisnis yang digunakan"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Adapter resource menggunakan endpoint Emisell yang sudah ada. Contoh yang dipakai untuk produk, stok, dan lokasi:"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "header": [
+          [
+            {
+              "type": "text",
+              "text": "Resource"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Endpoint backend Emisell"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Scope"
+            }
+          ]
+        ],
+        "rows": [
+          [
+            [
+              {
+                "type": "text",
+                "text": "Produk"
+              }
+            ],
+            [
+              {
+                "type": "codespan",
+                "text": "GET /v1/products"
+              },
+              {
+                "type": "text",
+                "text": " dan "
+              },
+              {
+                "type": "codespan",
+                "text": "GET /v1/products/:id"
+              }
+            ],
+            [
+              {
+                "type": "codespan",
+                "text": "read_products"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "text",
+                "text": "Stok"
+              }
+            ],
+            [
+              {
+                "type": "codespan",
+                "text": "GET /v1/products?view=inventory"
+              },
+              {
+                "type": "text",
+                "text": " dan "
+              },
+              {
+                "type": "codespan",
+                "text": "GET /v1/products/:id?view=inventory"
+              }
+            ],
+            [
+              {
+                "type": "codespan",
+                "text": "read_inventory"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "text",
+                "text": "Lokasi"
+              }
+            ],
+            [
+              {
+                "type": "codespan",
+                "text": "GET /v1/settings/location"
+              },
+              {
+                "type": "text",
+                "text": " dan "
+              },
+              {
+                "type": "codespan",
+                "text": "GET /v1/settings/location/:id"
+              }
+            ],
+            [
+              {
+                "type": "codespan",
+                "text": "read_locations"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Ini adalah pemetaan adapter backend, bukan instruksi memanggil API langsung dari browser atau memakai base URL Apps Platform untuk endpoint bisnis. Parameter, DTO, dan autentikasi mengikuti kontrak backend yang tersedia di lingkungan Anda."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "pencarian-dan-pagination",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Pencarian dan pagination"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Gunakan cursor dari respons, jangan mengarang nilainya atau memakainya untuk toko/filter lain. Mulai kembali dari halaman pertama ketika filter berubah. Template tidak memberi izin membuka detail resource lain hanya karena sebuah respons memuat ID referensinya."
+          }
+        ]
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": "Daftar scope yang terdokumentasi bukan bukti seluruh scope sudah diaktifkan pada server produksi. Periksa rilis, instalasi, dan readiness lingkungan sebelum menguji data."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "id": "minta-izin-minimum",
+        "title": "Minta izin minimum",
+        "depth": 2
+      },
+      {
+        "id": "resource-baca-dalam-template",
+        "title": "Resource baca dalam template",
+        "depth": 2
+      },
+      {
+        "id": "deklarasi-pada-rilis-ui",
+        "title": "Deklarasi pada rilis UI",
+        "depth": 2
+      },
+      {
+        "id": "endpoint-bisnis-yang-digunakan",
+        "title": "Endpoint bisnis yang digunakan",
+        "depth": 2
+      },
+      {
+        "id": "pencarian-dan-pagination",
+        "title": "Pencarian dan pagination",
+        "depth": 2
+      }
+    ],
+    "searchText": "Minta izin minimum Deklarasikan scope sesuai kebutuhan pada versi yang diajukan. Backend menentukan kesiapan endpoint dan akses aktual; menambahkan nama scope ke konfigurasi saja tidak memberi izin. Resource baca dalam template Scope Data yang dibaca --- --- read_products Daftar, pencarian, dan detail produk read_orders Daftar, filter status, dan detail item pesanan read_shipping Konfigurasi, profil, dan nama zona pengiriman read_catalogs Daftar katalog dan referensi produk, bukan harga khusus read_collections Daftar, pencarian, dan referensi produk dalam koleksi read_inventory Persediaan tanpa mengubah jumlah stok read_locations Nama dan status lokasi, tanpa alamat atau telepon Scope pengiriman ini bukan izin membuat shipment, pickup, cek tarif, atau membuka credential kurir. Scope baca tidak mengizinkan perubahan data. Deklarasi pada rilis UI json { \"requiredScopes\": [\"read_orders\", \"read_products\"] } Urutkan scope menurut alfabet, tanpa duplikasi. Aplikasi lama tidak otomatis memperoleh izin baru. Pengajuan rilis dan persetujuan seller diperlukan sesuai alur platform. Endpoint bisnis yang digunakan Adapter resource menggunakan endpoint Emisell yang sudah ada. Contoh yang dipakai untuk produk, stok, dan lokasi: Resource Endpoint backend Emisell Scope --- --- --- Produk GET /v1/products dan GET /v1/products/:id read_products Stok GET /v1/products?view=inventory dan GET /v1/products/:id?view=inventory read_inventory Lokasi GET /v1/settings/location dan GET /v1/settings/location/:id read_locations Ini adalah pemetaan adapter backend, bukan instruksi memanggil API langsung dari browser atau memakai base URL Apps Platform untuk endpoint bisnis. Parameter, DTO, dan autentikasi mengikuti kontrak backend yang tersedia di lingkungan Anda. Pencarian dan pagination Gunakan cursor dari respons, jangan mengarang nilainya atau memakainya untuk toko/filter lain. Mulai kembali dari halaman pertama ketika filter berubah. Template tidak memberi izin membuka detail resource lain hanya karena sebuah respons memuat ID referensinya. Daftar scope yang terdokumentasi bukan bukti seluruh scope sudah diaktifkan pada server produksi. Periksa rilis, instalasi, dan readiness lingkungan sebelum menguji data.",
+    "minutes": 2
+  },
+  {
+    "id": "embedded-apps",
+    "title": "Aplikasi embedded",
+    "summary": "Tampilkan aplikasi di Dashboard seller dengan identitas yang diverifikasi backend.",
+    "category": "Bangun integrasi",
+    "nodes": [
+      {
+        "type": "heading",
+        "id": "tampil-di-dashboard-seller",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Tampil di Dashboard seller"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Aplikasi embedded tampil di dalam Dashboard seller. Gunakan navigasi untuk halaman aplikasi Anda sendiri; jangan menduplikasi seluruh menu Dashboard seller."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "pisahkan-origin",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Pisahkan origin"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "codespan",
+            "text": "parentOrigin"
+          },
+          {
+            "type": "text",
+            "text": " adalah origin Dashboard seller yang dipercaya. "
+          },
+          {
+            "type": "codespan",
+            "text": "appOrigin"
+          },
+          {
+            "type": "text",
+            "text": " adalah origin aplikasi. Untuk pengujian HTTPS lokal, keduanya dapat berupa domain test yang berbeda dengan sertifikat yang dipercaya komputer penguji."
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "{\n  \"parentOrigin\": \"https://seller.emisell.test\",\n  \"appOrigin\": \"https://app.emisell.test\"\n}",
+        "language": "json"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Ini contoh metadata origin, bukan konfigurasi lengkap. CLI tidak menyiapkan DNS, sertifikat, atau tunnel. Ikuti panduan project untuk proxy lokal dan Host upstream."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "verifikasi-melalui-backend",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Verifikasi melalui backend"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Bridge meminta identitas dari parent yang diizinkan. Frontend meneruskannya ke backend aplikasi untuk verifikasi. Backend harus memeriksa signature dan binding; pesan yang diterima iframe tidak boleh langsung dianggap sebagai izin data toko."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Jangan menyimpan token dalam URL, cookie seller, atau penyimpanan persisten browser. Jangan mengambil lokasi verifikasi dari payload token yang belum dipercaya."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "uji-setelah-instalasi",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Uji setelah instalasi"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Setelah seller menyetujui izin dan memasang aplikasi, buka "
+          },
+          {
+            "type": "strong",
+            "children": [
+              {
+                "type": "text",
+                "text": "Open app"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": ". Uji koneksi, pembacaan resource yang diizinkan, pencarian, pagination, hasil kosong, dan penolakan setelah akses dicabut."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Identitas valid tanpa "
+          },
+          {
+            "type": "codespan",
+            "text": "read_products"
+          },
+          {
+            "type": "text",
+            "text": " tetap tidak boleh membaca produk. Baca "
+          },
+          {
+            "type": "link",
+            "href": "/docs/authentication",
+            "children": [
+              {
+                "type": "text",
+                "text": "autentikasi dan otorisasi"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " untuk perbedaan identitas dan akses."
+          }
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "id": "tampil-di-dashboard-seller",
+        "title": "Tampil di Dashboard seller",
+        "depth": 2
+      },
+      {
+        "id": "pisahkan-origin",
+        "title": "Pisahkan origin",
+        "depth": 2
+      },
+      {
+        "id": "verifikasi-melalui-backend",
+        "title": "Verifikasi melalui backend",
+        "depth": 2
+      },
+      {
+        "id": "uji-setelah-instalasi",
+        "title": "Uji setelah instalasi",
+        "depth": 2
+      }
+    ],
+    "searchText": "Tampil di Dashboard seller Aplikasi embedded tampil di dalam Dashboard seller. Gunakan navigasi untuk halaman aplikasi Anda sendiri; jangan menduplikasi seluruh menu Dashboard seller. Pisahkan origin parentOrigin adalah origin Dashboard seller yang dipercaya. appOrigin adalah origin aplikasi. Untuk pengujian HTTPS lokal, keduanya dapat berupa domain test yang berbeda dengan sertifikat yang dipercaya komputer penguji. json { \"parentOrigin\": \"https://seller.emisell.test\", \"appOrigin\": \"https://app.emisell.test\" } Ini contoh metadata origin, bukan konfigurasi lengkap. CLI tidak menyiapkan DNS, sertifikat, atau tunnel. Ikuti panduan project untuk proxy lokal dan Host upstream. Verifikasi melalui backend Bridge meminta identitas dari parent yang diizinkan. Frontend meneruskannya ke backend aplikasi untuk verifikasi. Backend harus memeriksa signature dan binding; pesan yang diterima iframe tidak boleh langsung dianggap sebagai izin data toko. Jangan menyimpan token dalam URL, cookie seller, atau penyimpanan persisten browser. Jangan mengambil lokasi verifikasi dari payload token yang belum dipercaya. Uji setelah instalasi Setelah seller menyetujui izin dan memasang aplikasi, buka Open app . Uji koneksi, pembacaan resource yang diizinkan, pencarian, pagination, hasil kosong, dan penolakan setelah akses dicabut. Identitas valid tanpa read_products tetap tidak boleh membaca produk. Baca [autentikasi dan otorisasi](/docs/authentication) untuk perbedaan identitas dan akses.",
+    "minutes": 2
+  },
+  {
+    "id": "submissions",
+    "title": "Review & pengujian",
+    "summary": "Ajukan versi, pantau status, dan uji akses setelah persetujuan seller.",
+    "category": "Uji & rilis",
+    "nodes": [
+      {
+        "type": "heading",
+        "id": "draft-dan-snapshot",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Draft dan snapshot"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Buat aplikasi, lengkapi metadata, lalu simpan draft. Pengajuan review menyimpan snapshot versi. Mengubah draft setelah pengajuan tidak mengubah snapshot yang sedang ditinjau."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Pantau status dan feedback di "
+          },
+          {
+            "type": "link",
+            "href": "/development?view=reviews",
+            "children": [
+              {
+                "type": "text",
+                "text": "Pengajuan"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": ". Persetujuan metadata, penandatanganan rilis UI/integrasi, dan publikasi merupakan tahapan berbeda."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "siapkan-konfigurasi-aplikasi",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Siapkan konfigurasi aplikasi"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Pilih jenis rilis sesuai aplikasi. Konfigurasi client, proof endpoint, dan launch harus mengikuti rilis yang benar. Jangan menukar App ID atau memakai secret milik aplikasi lain."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "alur-pengujian-toko",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Alur pengujian toko"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "start": 1,
+        "items": [
+          [
+            {
+              "type": "text",
+              "text": "Siapkan versi/rilis dengan scope yang diperlukan."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Tunggu review dan persetujuan konfigurasi yang dibutuhkan."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Ajukan penugasan ke toko pengujian menggunakan merchant ID, bukan slug URL toko."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Setelah penugasan disetujui, seller membuka Settings → Apps."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Seller meninjau izin lalu memilih Install."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Seller membuka aplikasi dan menguji resource yang telah diizinkan."
+            }
+          ]
+        ]
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": "Penugasan tidak memasang aplikasi otomatis. Rilis yang ditandatangani bukan persetujuan seller dan bukan grant data toko."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "apa-yang-perlu-diuji",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Apa yang perlu diuji"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": 1,
+        "items": [
+          [
+            {
+              "type": "text",
+              "text": "Baca data hanya dari toko yang memasang aplikasi."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Pencarian, halaman berikutnya/sebelumnya, detail, dan hasil kosong."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Token tidak valid atau kedaluwarsa."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Scope tidak tersedia, izin dicabut, dan instalasi tidak aktif."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Backend tidak tersedia tanpa mengembalikan data contoh sebagai hasil nyata."
+            }
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Gunakan "
+          },
+          {
+            "type": "codespan",
+            "text": "TESTING.md"
+          },
+          {
+            "type": "text",
+            "text": " hasil generate untuk langkah teknis sesuai versi template."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "selesaikan-pengujian",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Selesaikan pengujian"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Stop testing mencabut penugasan dan menghentikan akses yang bergantung pada penugasan tersebut. Ini tidak otomatis menghapus instalasi. Gunakan Uninstall secara terpisah jika aplikasi juga perlu dihapus dari toko."
+          }
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "id": "draft-dan-snapshot",
+        "title": "Draft dan snapshot",
+        "depth": 2
+      },
+      {
+        "id": "siapkan-konfigurasi-aplikasi",
+        "title": "Siapkan konfigurasi aplikasi",
+        "depth": 2
+      },
+      {
+        "id": "alur-pengujian-toko",
+        "title": "Alur pengujian toko",
+        "depth": 2
+      },
+      {
+        "id": "apa-yang-perlu-diuji",
+        "title": "Apa yang perlu diuji",
+        "depth": 2
+      },
+      {
+        "id": "selesaikan-pengujian",
+        "title": "Selesaikan pengujian",
+        "depth": 2
+      }
+    ],
+    "searchText": "Draft dan snapshot Buat aplikasi, lengkapi metadata, lalu simpan draft. Pengajuan review menyimpan snapshot versi. Mengubah draft setelah pengajuan tidak mengubah snapshot yang sedang ditinjau. Pantau status dan feedback di [Pengajuan](/development?view=reviews). Persetujuan metadata, penandatanganan rilis UI/integrasi, dan publikasi merupakan tahapan berbeda. Siapkan konfigurasi aplikasi Pilih jenis rilis sesuai aplikasi. Konfigurasi client, proof endpoint, dan launch harus mengikuti rilis yang benar. Jangan menukar App ID atau memakai secret milik aplikasi lain. Alur pengujian toko 1. Siapkan versi/rilis dengan scope yang diperlukan. 2. Tunggu review dan persetujuan konfigurasi yang dibutuhkan. 3. Ajukan penugasan ke toko pengujian menggunakan merchant ID, bukan slug URL toko. 4. Setelah penugasan disetujui, seller membuka Settings → Apps. 5. Seller meninjau izin lalu memilih Install. 6. Seller membuka aplikasi dan menguji resource yang telah diizinkan. Penugasan tidak memasang aplikasi otomatis. Rilis yang ditandatangani bukan persetujuan seller dan bukan grant data toko. Apa yang perlu diuji - Baca data hanya dari toko yang memasang aplikasi. - Pencarian, halaman berikutnya/sebelumnya, detail, dan hasil kosong. - Token tidak valid atau kedaluwarsa. - Scope tidak tersedia, izin dicabut, dan instalasi tidak aktif. - Backend tidak tersedia tanpa mengembalikan data contoh sebagai hasil nyata. Gunakan TESTING.md hasil generate untuk langkah teknis sesuai versi template. Selesaikan pengujian Stop testing mencabut penugasan dan menghentikan akses yang bergantung pada penugasan tersebut. Ini tidak otomatis menghapus instalasi. Gunakan Uninstall secara terpisah jika aplikasi juga perlu dihapus dari toko.",
+    "minutes": 2
+  },
+  {
+    "id": "deployment",
+    "title": "Build & deployment",
+    "summary": "Siapkan hasil build dan container; pisahkan hosting dari aktivasi akses toko.",
+    "category": "Uji & rilis",
+    "nodes": [
+      {
+        "type": "heading",
+        "id": "build-bukan-aktivasi-toko",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Build bukan aktivasi toko"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Template menyediakan runtime web dan Docker. Build yang berhasil tidak menerbitkan aplikasi, memasang aplikasi pada seller, atau mengaktifkan akses resource produksi."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "buat-hasil-build",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Buat hasil build"
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "npm run typecheck\nemisell app build",
+        "language": "sh"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Alternatif tanpa CLI adalah "
+          },
+          {
+            "type": "codespan",
+            "text": "npm run build"
+          },
+          {
+            "type": "text",
+            "text": ". Simpan "
+          },
+          {
+            "type": "codespan",
+            "text": "package-lock.json"
+          },
+          {
+            "type": "text",
+            "text": "; CI dan Docker memakai "
+          },
+          {
+            "type": "codespan",
+            "text": "npm ci"
+          },
+          {
+            "type": "text",
+            "text": ". Tanpa mode produksi, "
+          },
+          {
+            "type": "codespan",
+            "text": "npm start"
+          },
+          {
+            "type": "text",
+            "text": " tetap digunakan untuk preview build lokal."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "preview-docker-lokal",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Preview Docker lokal"
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "npm run docker:preview\ndocker compose ps\nnpm run docker:down",
+        "language": "sh"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Container preview menguji kemasan UI, bukan akses toko. Tidak ada hot reload; build ulang setelah mengubah UI. File privat lokal tidak disalin ke image. Pada mode ini API toko mengembalikan 503 sesuai batas preview."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "siapkan-hosting",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Siapkan hosting"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Ikuti "
+          },
+          {
+            "type": "codespan",
+            "text": "DEPLOYMENT.md"
+          },
+          {
+            "type": "text",
+            "text": " dan "
+          },
+          {
+            "type": "codespan",
+            "text": ".env.production.example"
+          },
+          {
+            "type": "text",
+            "text": " dari project hasil generate. Konfigurasi runtime mencakup:"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "header": [
+          [
+            {
+              "type": "text",
+              "text": "Setting"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Fungsi"
+            }
+          ]
+        ],
+        "rows": [
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "NODE_ENV=production"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Menjalankan hasil build tanpa Vite"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "EMISELL_APP_URL"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Origin HTTPS aplikasi yang ditinjau"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "EMISELL_DASHBOARD_ORIGIN"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "Origin HTTPS Dashboard seller yang dipercaya"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "EMISELL_TLS_TERMINATION=external"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "text": "TLS ditangani reverse proxy dengan upstream privat"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "codespan",
+                "text": "EMISELL_BACKEND_MODE"
+              }
+            ],
+            [
+              {
+                "type": "codespan",
+                "text": "disabled"
+              },
+              {
+                "type": "text",
+                "text": " untuk shell UI; "
+              },
+              {
+                "type": "codespan",
+                "text": "custom"
+              },
+              {
+                "type": "text",
+                "text": " untuk adapter nyata"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Server produksi tidak memakai konfigurasi adapter lokal "
+          },
+          {
+            "type": "codespan",
+            "text": "EMISELL_LOCAL_*"
+          },
+          {
+            "type": "text",
+            "text": ". Jangan mengirim secret lewat build ARG, metadata publik, atau bundle frontend."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "sambungkan-adapter-nyata",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Sambungkan adapter nyata"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Mode "
+          },
+          {
+            "type": "codespan",
+            "text": "custom"
+          },
+          {
+            "type": "text",
+            "text": " memerlukan implementasi backend produksi yang nyata. Factory bawaan bukan koneksi produksi siap pakai. Verifikasi identitas, grant, binding toko/instalasi, timeout, dan readiness tetap diperlukan."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Gunakan origin backend yang dikonfigurasi operator, HTTPS terverifikasi, serta jalur private upstream. Jangan menjadikan endpoint adapter lokal sebagai API publik dengan membuka proxy."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "health-dan-pemeriksaan-rilis",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Health dan pemeriksaan rilis"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": 1,
+        "items": [
+          [
+            {
+              "type": "codespan",
+              "text": "GET /health/live"
+            },
+            {
+              "type": "text",
+              "text": " memeriksa proses HTTP."
+            }
+          ],
+          [
+            {
+              "type": "codespan",
+              "text": "GET /health/ready"
+            },
+            {
+              "type": "text",
+              "text": " memeriksa kesiapan framework dan adapter sesuai mode."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Mode backend "
+            },
+            {
+              "type": "codespan",
+              "text": "disabled"
+            },
+            {
+              "type": "text",
+              "text": " pada produksi tetap mengembalikan readiness 503."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Uji pencabutan akses, token tidak valid, origin salah, dependency mati, dan restart."
+            }
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Hosting, review rilis, dan persetujuan seller dilakukan terpisah. Tidak ada "
+          },
+          {
+            "type": "codespan",
+            "text": "app deploy"
+          },
+          {
+            "type": "text",
+            "text": " otomatis yang dijanjikan oleh panduan ini."
+          }
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "id": "build-bukan-aktivasi-toko",
+        "title": "Build bukan aktivasi toko",
+        "depth": 2
+      },
+      {
+        "id": "buat-hasil-build",
+        "title": "Buat hasil build",
+        "depth": 2
+      },
+      {
+        "id": "preview-docker-lokal",
+        "title": "Preview Docker lokal",
+        "depth": 2
+      },
+      {
+        "id": "siapkan-hosting",
+        "title": "Siapkan hosting",
+        "depth": 2
+      },
+      {
+        "id": "sambungkan-adapter-nyata",
+        "title": "Sambungkan adapter nyata",
+        "depth": 2
+      },
+      {
+        "id": "health-dan-pemeriksaan-rilis",
+        "title": "Health dan pemeriksaan rilis",
+        "depth": 2
+      }
+    ],
+    "searchText": "Build bukan aktivasi toko Template menyediakan runtime web dan Docker. Build yang berhasil tidak menerbitkan aplikasi, memasang aplikasi pada seller, atau mengaktifkan akses resource produksi. Buat hasil build sh npm run typecheck emisell app build Alternatif tanpa CLI adalah npm run build . Simpan package-lock.json ; CI dan Docker memakai npm ci . Tanpa mode produksi, npm start tetap digunakan untuk preview build lokal. Preview Docker lokal sh npm run docker:preview docker compose ps npm run docker:down Container preview menguji kemasan UI, bukan akses toko. Tidak ada hot reload; build ulang setelah mengubah UI. File privat lokal tidak disalin ke image. Pada mode ini API toko mengembalikan 503 sesuai batas preview. Siapkan hosting Ikuti DEPLOYMENT.md dan .env.production.example dari project hasil generate. Konfigurasi runtime mencakup: Setting Fungsi --- --- NODE_ENV=production Menjalankan hasil build tanpa Vite EMISELL_APP_URL Origin HTTPS aplikasi yang ditinjau EMISELL_DASHBOARD_ORIGIN Origin HTTPS Dashboard seller yang dipercaya EMISELL_TLS_TERMINATION=external TLS ditangani reverse proxy dengan upstream privat EMISELL_BACKEND_MODE disabled untuk shell UI; custom untuk adapter nyata Server produksi tidak memakai konfigurasi adapter lokal EMISELL_LOCAL_ . Jangan mengirim secret lewat build ARG, metadata publik, atau bundle frontend. Sambungkan adapter nyata Mode custom memerlukan implementasi backend produksi yang nyata. Factory bawaan bukan koneksi produksi siap pakai. Verifikasi identitas, grant, binding toko/instalasi, timeout, dan readiness tetap diperlukan. Gunakan origin backend yang dikonfigurasi operator, HTTPS terverifikasi, serta jalur private upstream. Jangan menjadikan endpoint adapter lokal sebagai API publik dengan membuka proxy. Health dan pemeriksaan rilis - GET /health/live memeriksa proses HTTP. - GET /health/ready memeriksa kesiapan framework dan adapter sesuai mode. - Mode backend disabled pada produksi tetap mengembalikan readiness 503. - Uji pencabutan akses, token tidak valid, origin salah, dependency mati, dan restart. Hosting, review rilis, dan persetujuan seller dilakukan terpisah. Tidak ada app deploy otomatis yang dijanjikan oleh panduan ini.",
+    "minutes": 2
+  },
+  {
+    "id": "troubleshooting",
+    "title": "Troubleshooting",
+    "summary": "Telusuri masalah instalasi, koneksi, izin, dan pembacaan resource.",
+    "category": "Referensi",
+    "nodes": [
+      {
+        "type": "heading",
+        "id": "mulai-dari-lokasi-kegagalan",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Mulai dari lokasi kegagalan"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Bedakan browser aplikasi, backend aplikasi, API-service Emisell, dan Apps Platform. Catat waktu serta status respons yang gagal tanpa menyertakan password, cookie, token, atau secret."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Jangan menonaktifkan verifikasi untuk membuat status terlihat berhasil. Periksa versi layanan, base URL, dan kemampuan endpoint yang benar-benar berjalan."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "settings-apps-tidak-terhubung",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Settings Apps tidak terhubung"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Pastikan Dashboard menunjuk ke API-service yang sudah memuat integrasi Apps Platform. Jika pesan menyebut endpoint koneksi tidak tersedia, periksa branch/versi dan alamat API-service terlebih dahulu. Ini tidak otomatis berarti merchant belum terdaftar."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Jika koneksi sudah siap tetapi toko belum tersedia, periksa sinkronisasi identitas merchant di backend. Slug URL toko bukan pengganti merchant ID."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "installation-unavailable",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Installation unavailable"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Periksa rilis yang dipilih, scope, konfigurasi client/launch, persetujuan penugasan toko, dan readiness instalasi. Rilis yang sudah ditandatangani belum berarti semua tahapan selesai."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Ikuti "
+          },
+          {
+            "type": "link",
+            "href": "/docs/submissions#alur-pengujian-toko",
+            "children": [
+              {
+                "type": "text",
+                "text": "alur review dan instalasi"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": ", lalu minta seller meninjau izin sebelum memasang aplikasi."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "identitas-belum-terverifikasi",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Identitas belum terverifikasi"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Periksa origin aplikasi dan parent, konfigurasi client, waktu berlaku token, serta koneksi verifier backend. Jangan menggunakan Core key atau cookie seller sebagai client secret aplikasi."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Lihat "
+          },
+          {
+            "type": "link",
+            "href": "/docs/credentials#konfigurasi-pengujian-lokal",
+            "children": [
+              {
+                "type": "text",
+                "text": "credential aplikasi"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " untuk konfigurasi adapter lokal."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "produk-atau-resource-ditolak",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Produk atau resource ditolak"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Periksa apakah instalasi memiliki scope yang diminta dan masih aktif. Aplikasi lama dengan izin produk tidak otomatis bisa membaca orders, stok, atau lokasi. Untuk filter baru, gunakan cursor baru dari halaman pertama."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "respons-503-pada-container",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Respons 503 pada container"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Container preview UI tidak membuka data toko. Pada produksi, backend yang dinonaktifkan atau adapter yang belum siap juga dapat menghasilkan 503. Periksa mode backend dan readiness, bukan mengganti respons error dengan data palsu."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "port-sudah-digunakan",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Port sudah digunakan"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Gunakan port lain pada development:"
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "text": "emisell app dev --port 4331",
+        "language": "sh"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Hentikan hanya proses preview milik project yang diketahui. Jangan mematikan layanan lain untuk mengosongkan port."
+          }
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "id": "mulai-dari-lokasi-kegagalan",
+        "title": "Mulai dari lokasi kegagalan",
+        "depth": 2
+      },
+      {
+        "id": "settings-apps-tidak-terhubung",
+        "title": "Settings Apps tidak terhubung",
+        "depth": 2
+      },
+      {
+        "id": "installation-unavailable",
+        "title": "Installation unavailable",
+        "depth": 2
+      },
+      {
+        "id": "identitas-belum-terverifikasi",
+        "title": "Identitas belum terverifikasi",
+        "depth": 2
+      },
+      {
+        "id": "produk-atau-resource-ditolak",
+        "title": "Produk atau resource ditolak",
+        "depth": 2
+      },
+      {
+        "id": "respons-503-pada-container",
+        "title": "Respons 503 pada container",
+        "depth": 2
+      },
+      {
+        "id": "port-sudah-digunakan",
+        "title": "Port sudah digunakan",
+        "depth": 2
+      }
+    ],
+    "searchText": "Mulai dari lokasi kegagalan Bedakan browser aplikasi, backend aplikasi, API-service Emisell, dan Apps Platform. Catat waktu serta status respons yang gagal tanpa menyertakan password, cookie, token, atau secret. Jangan menonaktifkan verifikasi untuk membuat status terlihat berhasil. Periksa versi layanan, base URL, dan kemampuan endpoint yang benar-benar berjalan. Settings Apps tidak terhubung Pastikan Dashboard menunjuk ke API-service yang sudah memuat integrasi Apps Platform. Jika pesan menyebut endpoint koneksi tidak tersedia, periksa branch/versi dan alamat API-service terlebih dahulu. Ini tidak otomatis berarti merchant belum terdaftar. Jika koneksi sudah siap tetapi toko belum tersedia, periksa sinkronisasi identitas merchant di backend. Slug URL toko bukan pengganti merchant ID. Installation unavailable Periksa rilis yang dipilih, scope, konfigurasi client/launch, persetujuan penugasan toko, dan readiness instalasi. Rilis yang sudah ditandatangani belum berarti semua tahapan selesai. Ikuti [alur review dan instalasi](/docs/submissions alur-pengujian-toko), lalu minta seller meninjau izin sebelum memasang aplikasi. Identitas belum terverifikasi Periksa origin aplikasi dan parent, konfigurasi client, waktu berlaku token, serta koneksi verifier backend. Jangan menggunakan Core key atau cookie seller sebagai client secret aplikasi. Lihat [credential aplikasi](/docs/credentials konfigurasi-pengujian-lokal) untuk konfigurasi adapter lokal. Produk atau resource ditolak Periksa apakah instalasi memiliki scope yang diminta dan masih aktif. Aplikasi lama dengan izin produk tidak otomatis bisa membaca orders, stok, atau lokasi. Untuk filter baru, gunakan cursor baru dari halaman pertama. Respons 503 pada container Container preview UI tidak membuka data toko. Pada produksi, backend yang dinonaktifkan atau adapter yang belum siap juga dapat menghasilkan 503. Periksa mode backend dan readiness, bukan mengganti respons error dengan data palsu. Port sudah digunakan Gunakan port lain pada development: sh emisell app dev --port 4331 Hentikan hanya proses preview milik project yang diketahui. Jangan mematikan layanan lain untuk mengosongkan port.",
+    "minutes": 2
+  },
+  {
+    "id": "changelog",
+    "title": "Changelog CLI",
+    "summary": "Catatan perubahan fitur CLI yang tercatat di repository.",
+    "category": "Referensi",
+    "nodes": [
+      {
+        "type": "heading",
+        "id": "tentang-catatan-ini",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Tentang catatan ini"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Ringkasan berikut mengikuti CHANGELOG CLI dalam repository. Nomor versi di sini tidak membuktikan paket sudah diterbitkan ke npm atau server tertentu sudah diperbarui. Periksa versi CLI yang terpasang dengan "
+          },
+          {
+            "type": "codespan",
+            "text": "emisell --version"
+          },
+          {
+            "type": "text",
+            "text": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "cli-0-4-0",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "CLI 0.4.0"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": 1,
+        "items": [
+          [
+            {
+              "type": "text",
+              "text": "Satu template React Router + TypeScript + Vite menggantikan generator HTML lama."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Tersedia perintah build, Docker multi-stage non-root, serta runtime web produksi dengan adapter eksplisit."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Demo stok dan lokasi menggunakan endpoint produk/lokasi yang sudah ada serta scope "
+            },
+            {
+              "type": "codespan",
+              "text": "read_inventory"
+            },
+            {
+              "type": "text",
+              "text": " dan "
+            },
+            {
+              "type": "codespan",
+              "text": "read_locations"
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Akses produksi tidak diaktifkan otomatis; review, konfigurasi adapter, dan persetujuan seller tetap diperlukan."
+            }
+          ]
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "cli-0-3-1",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "CLI 0.3.1"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Dokumentasi publik difokuskan pada fitur dan penggunaan Emisell. Tidak mengubah perilaku runtime maupun izin merchant."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "cli-0-3-0",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "CLI 0.3.0"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": 1,
+        "items": [
+          [
+            {
+              "type": "text",
+              "text": "Wizard "
+            },
+            {
+              "type": "codespan",
+              "text": "app init"
+            },
+            {
+              "type": "text",
+              "text": " untuk nama, folder, template, dan origin seller."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Penemuan project dari folder aktif, serta alias "
+            },
+            {
+              "type": "codespan",
+              "text": "--path"
+            },
+            {
+              "type": "text",
+              "text": " dan "
+            },
+            {
+              "type": "codespan",
+              "text": "--dir"
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ],
+          [
+            {
+              "type": "codespan",
+              "text": "app info"
+            },
+            {
+              "type": "text",
+              "text": " untuk metadata aman dan "
+            },
+            {
+              "type": "codespan",
+              "text": "app doctor"
+            },
+            {
+              "type": "text",
+              "text": " untuk pemeriksaan lokal."
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "text": "Tidak menyediakan browser OAuth, tunnel, atau persetujuan seller otomatis."
+            }
+          ]
+        ]
+      },
+      {
+        "type": "heading",
+        "id": "memperbarui-project",
+        "depth": 2,
+        "children": [
+          {
+            "type": "text",
+            "text": "Memperbarui project"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "text": "Update CLI tidak menghapus atau menimpa project existing. Bandingkan struktur template dan uji perubahan pada project Anda. Jangan menganggap update dependency sebagai penambahan scope atau migrasi data toko."
+          }
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "id": "tentang-catatan-ini",
+        "title": "Tentang catatan ini",
+        "depth": 2
+      },
+      {
+        "id": "cli-0-4-0",
+        "title": "CLI 0.4.0",
+        "depth": 2
+      },
+      {
+        "id": "cli-0-3-1",
+        "title": "CLI 0.3.1",
+        "depth": 2
+      },
+      {
+        "id": "cli-0-3-0",
+        "title": "CLI 0.3.0",
+        "depth": 2
+      },
+      {
+        "id": "memperbarui-project",
+        "title": "Memperbarui project",
+        "depth": 2
+      }
+    ],
+    "searchText": "Tentang catatan ini Ringkasan berikut mengikuti CHANGELOG CLI dalam repository. Nomor versi di sini tidak membuktikan paket sudah diterbitkan ke npm atau server tertentu sudah diperbarui. Periksa versi CLI yang terpasang dengan emisell --version . CLI 0.4.0 - Satu template React Router + TypeScript + Vite menggantikan generator HTML lama. - Tersedia perintah build, Docker multi-stage non-root, serta runtime web produksi dengan adapter eksplisit. - Demo stok dan lokasi menggunakan endpoint produk/lokasi yang sudah ada serta scope read_inventory dan read_locations . - Akses produksi tidak diaktifkan otomatis; review, konfigurasi adapter, dan persetujuan seller tetap diperlukan. CLI 0.3.1 Dokumentasi publik difokuskan pada fitur dan penggunaan Emisell. Tidak mengubah perilaku runtime maupun izin merchant. CLI 0.3.0 - Wizard app init untuk nama, folder, template, dan origin seller. - Penemuan project dari folder aktif, serta alias --path dan --dir . - app info untuk metadata aman dan app doctor untuk pemeriksaan lokal. - Tidak menyediakan browser OAuth, tunnel, atau persetujuan seller otomatis. Memperbarui project Update CLI tidak menghapus atau menimpa project existing. Bandingkan struktur template dan uji perubahan pada project Anda. Jangan menganggap update dependency sebagai penambahan scope atau migrasi data toko.",
+    "minutes": 2
+  }
+]

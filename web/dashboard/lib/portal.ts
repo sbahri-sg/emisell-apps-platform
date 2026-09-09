@@ -26,6 +26,11 @@ export type Draft = {
   revision: number;
   document: AppDocument;
   updatedAt: string;
+  activeVersion?: {
+    document: AppDocument;
+    revision: number;
+    activatedAt: string;
+  };
 };
 export type Submission = {
   id: string;
@@ -65,8 +70,13 @@ export const blankDocument = (): AppDocument => ({
   summary: '',
   description: '',
   version: '1.0.0',
-  capability: 'shipping/v1',
-  scopes: scopesFor('shipping/v1'),
+  capability: 'private-products/v1',
+  scopes: [],
+  accessScopes: {
+    profile: 'shopify-authenticated-2026-09-05',
+    required: ['read_products'],
+    optional: [],
+  },
   endpoint: '',
 });
 export class PortalError extends Error {

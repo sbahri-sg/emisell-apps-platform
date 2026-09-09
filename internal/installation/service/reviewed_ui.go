@@ -53,7 +53,7 @@ func (s Lifecycle) WithReviewedUIAccess(ctx context.Context, p identity.ServiceP
 	if current.Release.InstallPolicy != domain.ReviewedUIPolicy {
 		return fault.Forbidden
 	}
-	return s.Intents.withManaged(ctx, o.TenantID, current.Release.AppID, current.Release.Version, func(ctx context.Context) error {
+	return s.Intents.withManaged(ctx, o, current.Release.AppID, current.Release.Version, func(ctx context.Context) error {
 		return repo.WithCoreAccess(ctx, o, id, func(a domain.Access) error {
 			if a.Installation.Status != "active" || a.GrantState != "active" || len(a.GrantedScopes) != 0 {
 				return fault.Forbidden

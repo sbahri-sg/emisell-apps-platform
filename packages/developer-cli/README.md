@@ -31,7 +31,7 @@ server yang terverifikasi; jangan mengaktifkan bypass izin atau memasukkan secre
 aplikasi ke kode browser.
 
 CLI untuk membangun aplikasi dan mengelola rilis di Emisell Apps Platform.
-Versi **0.4.0** menggunakan satu template **React Router + TypeScript + Vite**,
+Versi **0.5.0** menggunakan satu template **React Router + TypeScript + Vite**,
 dengan backend Node, halaman koneksi, serta contoh pembaca produk.
 
 CLI memerlukan Node.js 22+ dan tidak memiliki dependency runtime, telemetry,
@@ -174,11 +174,11 @@ hapus challenge setelah verifikasi. Ini bukan persetujuan install.
 
 ## Akun developer
 
-Akun Apps Platform dibuat administrator; berbeda dengan akun npm.
+Developer memakai akun merchant Emisell; berbeda dengan akun npm. Akun developer ditautkan oleh backend berdasarkan identitas merchant terverifikasi, bukan undangan atau email/password CLI.
 Login tidak diperlukan untuk generate/preview lokal.
 
 ```sh
-emisell auth login --url https://portal.example.com --email developer@example.com
+emisell auth login --url https://portal.example.com
 emisell whoami
 emisell auth logout
 ```
@@ -187,16 +187,18 @@ Ganti origin portal contoh dengan alamat yang diberikan administrator.
 Untuk portal lokal gunakan `http://localhost:4317`. HTTP hanya untuk loopback;
 URL harus origin tanpa path, query atau credential. Tidak ada bypass TLS/redirect.
 
-Password diminta tanpa echo. Tidak ada opsi `--password`.
-`--password-stdin` hanya untuk pipe dari secret manager; jangan tulis password
-literal di command atau repository. `login/logout` tetap menjadi alias lama.
+Browser membuka login Dashboard merchant, lalu halaman **Izinkan login CLI**.
+Konfirmasi hanya jika Anda sendiri memulai login di terminal. `--no-open` mencetak URL
+untuk dibuka manual. Request berlaku 5 menit; verifier hanya di memori terminal.
+Login email/password dan `--password-stdin` tidak lagi didukung. `login/logout` tetap alias.
 
 Sesi disimpan di `~/.emisell-cli/session.json`, bukan folder aplikasi.
 Password tidak disimpan; file sesi bukan keychain/enkripsi. Pada macOS/Linux
 direktori harus 0700 dan file 0600; symlink ditolak. Windows bergantung pada ACL.
 Jangan bagikan, commit, atau masukkan sesi ke backup publik.
 
-Satu profil lokal; batas sesi mengikuti server, maksimal delapan jam.
+Satu profil lokal; sesi berakhir setelah satu jam tanpa aktivitas. Perintah pengguna
+memperbarui aktivitas melalui backend; dev server tidak menjaga sesi hidup dengan heartbeat.
 Logout default mencabut sesi server. `emisell auth logout --local` hanya
 menghapus salinan lokal ketika server tidak tersedia, bukan mencabut sesi server.
 
@@ -226,7 +228,7 @@ Gunakan ID merchant sebenarnya, bukan slug URL toko. Admin memutuskan assignment
 seller melakukan consent/install. Approved assignment bukan akses data.
 Seller dapat Stop testing; Uninstall tetap tindakan terpisah.
 
-## Draft shipping dan review
+## Aplikasi pribadi dan pilihan toko
 
 ```sh
 emisell apps list
@@ -234,14 +236,30 @@ emisell apps show APP_ID
 emisell apps init --file app.json
 emisell apps create --file app.json --request-key app-create-001
 emisell apps update APP_ID --file app.json --revision 1 --request-key app-update-001
-emisell reviews submit APP_ID --revision 2 --request-key app-review-001 --yes
-emisell reviews list
-emisell reviews show REVIEW_ID
+emisell stores list
+emisell app config link --app APP_ID --store STORE_ID
+emisell app install
+emisell app dev --connect
 ```
 
-`apps init` (plural) hanya membuat dokumen draft shipping, bukan project frontend.
-Edit nama dan endpoint HTTPS sebelum submit. Gunakan revision terbaru dari API,
-bukan angka contoh. Review bukan publish, signing, instalasi, atau izin seller.
+`apps init` (plural) membuat dokumen pribadi `private-products/v1`, tepat `read_products`,
+tanpa endpoint/UI. `apps create` membuat konfigurasi Active dan credential server;
+bukan instalasi atau grant. Dokumen shipping lama tidak dikonversi. Perintah `reviews`
+dan `testing` tetap untuk jalur rilis lama yang memerlukan review, bukan app pribadi ini.
+
+`app install` memilih aplikasi/toko secara interaktif. Untuk non-interaktif isi
+`--app APP_ID --store STORE_ID` (commonId toko juga diterima). Pilihan disimpan per
+origin/akun/direktori project di file sesi privat, bukan di source atau `.env`.
+`--reset` memilih ulang; login akun baru menghapus pilihan sebelumnya. Daftar toko
+merupakan profil login terakhir: login ulang untuk memperbaruinya. Ini bukan bukti
+izin terkini. Dashboard menandai toko pilihan, memverifikasi sesi dan mengganti merchant
+melalui endpoint existing setelah klik toko, lalu membuka consent. CLI tidak menekan
+Install, membaca cookie merchant, atau menyatakan instalasi sukses dari URL.
+
+`app config link` hanya menyimpan pilihan, tanpa membuka browser. `app dev --connect`
+membuka alur consent dan menjalankan preview lokal; tanpa `--connect` tetap offline.
+Ini belum membuat tunnel atau binding App URL. Aplikasi headless tetap tidak mempunyai
+halaman Open app. Sesi CLI **bukan** client secret, token embedded atau resource token.
 
 Output API berupa JSON. Daftar mengikuti batas API; bukan jaminan seluruh halaman.
 Request-key 8–128 karakter huruf/angka/`_`/`-`: key baru untuk operasi baru,
@@ -271,7 +289,7 @@ Docker tidak diperlukan untuk `emisell app dev`. Runtime image tidak memerlukan 
 UI tetapi menolak API toko; readiness production 503. Mode `custom` wajib menggunakan
 adapter nyata di `server/production-backend.mjs`; stub bawaan menolak startup. Jangan
 membuka endpoint preview lokal ke internet. Hosting/DNS/TLS, adapter otorisasi
-production, browser/device OAuth, pengelolaan secret via CLI, tunnel, `app deploy`,
+production, OAuth aplikasi umum, pengelolaan secret via CLI, tunnel, `app deploy`,
 dan worker webhook bukan fitur otomatis template. Tidak ada database/migrasi bawaan.
 Install CLI tidak mengubah server, scope Plan, atau consent seller.
 Emisell Kurir bawaan tidak dipindahkan atau diubah oleh template ini.

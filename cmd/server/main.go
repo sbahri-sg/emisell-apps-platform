@@ -41,12 +41,16 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	privateApps, err := readProductionPrivateApps()
+	if err != nil {
+		return err
+	}
 	proofVerifier, err := readProofVerifier()
 	if err != nil {
 		return err
 	}
 	if os.Getenv("EMISELL_ENV") == "production" {
-		for _, name := range []string{"remote-platform.json", "managed-engine.json", "reviewed-ui.json", "embedded-pilot.json"} {
+		for _, name := range []string{"remote-platform.json", "managed-engine.json", "reviewed-ui.json", "embedded-pilot.json", "resource-runtime.json", "ui-resource-signing.json"} {
 			if _, e := os.Stat(".local/" + name); !errors.Is(e, os.ErrNotExist) {
 				return errors.New("production cannot load local simulator or pilot configuration")
 			}
@@ -82,6 +86,9 @@ func run() error {
 	}
 	defer connectionsPool.Close()
 	var remoteConfig localfiles.RemoteConfig
+	if _, err = localfiles.ReadApplicationCredentialBox(); err != nil {
+		return errors.New("application credential encryption unavailable; configure EMISELL_APP_CREDENTIAL_KEY or run cli init-app-credentials locally")
+	}
 	var connections *oauth.Service
 	if err = localfiles.Read(".local/remote-platform.json", &remoteConfig); err == nil {
 		connections, err = bootstrap.Connections(pool, connectionsPool, remoteConfig)
@@ -209,6 +216,14 @@ func run() error {
 	httpHandler = bootstrap.AddUIReleaseRoutes(httpHandler, pool, cfg.Origin, logger, uiKey)
 	if resourceKey != nil {
 		httpHandler = bootstrap.AddUIResourceReleaseRoutes(httpHandler, pool, cfg.Origin, logger, resourceKey)
+	}
+	if privateApps != nil {
+		httpHandler = bootstrap.HandlerWithPrivateProducts(pool, caps, clientPool, cfg.Origin, logger, signer, integrationSigner, managedSigner, proofVerifier, privateApps.Key)
+		httpHandler = bootstrap.AddUIReleaseRoutes(httpHandler, pool, cfg.Origin, logger, uiKey)
+		internalHandler, err = bootstrap.InternalHandlerWithPrivateProducts(pool, caps, clientPool, logger, integrationSigner, managedSigner, privateApps.Key, privateApps.Products)
+		if err != nil {
+			return err
+		}
 	}
 	internalHandler, err = providergrant.Attach(internalHandler, os.Getenv("EMISELL_PROVIDER_GRANT_FILE"), providergrant.Postgres{Pool: pool})
 	if err != nil {

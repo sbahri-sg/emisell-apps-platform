@@ -94,8 +94,18 @@ func (s Server) resourceProductsHandler() http.Handler {
 			fail(403, "permission_denied")
 			return
 		}
-		binding, err := s.ResourceClients.Authenticate(ctx, in.ClientID, in.ClientSecret)
-		if err != nil || binding.AppID != in.AppID {
+		var authenticatedApp string
+		if strings.HasPrefix(in.ClientID, "eai_") {
+			if s.PrivateResourceAuth == nil {
+				fail(403, "permission_denied")
+				return
+			}
+			authenticatedApp, err = s.PrivateResourceAuth(ctx, in.ClientID, in.ClientSecret)
+		} else {
+			binding, authErr := s.ResourceClients.Authenticate(ctx, in.ClientID, in.ClientSecret)
+			authenticatedApp, err = binding.AppID, authErr
+		}
+		if err != nil || authenticatedApp != in.AppID {
 			fail(403, "permission_denied")
 			return
 		}

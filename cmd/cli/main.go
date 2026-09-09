@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	referencecore "emisell.app/platform/examples/core-reference"
 	apprepo "emisell.app/platform/internal/app/repository"
+	"emisell.app/platform/internal/bootstrap"
 	caprepo "emisell.app/platform/internal/capability/postgres"
 	"emisell.app/platform/internal/event"
 	"emisell.app/platform/internal/identity"
@@ -44,7 +45,7 @@ func run() error {
 	if len(os.Args) == 3 && os.Args[1] == "bootstrap-admin" {
 		return bootstrapAdmin(os.Args[2], os.Stdin)
 	}
-	if os.Getenv("EMISELL_ENV") == "production" && (len(os.Args) != 2 || !slices.Contains([]string{"migrate", "init-catalog", "init-integration-signing", "init-ui-release-signing"}, os.Args[1])) {
+	if os.Getenv("EMISELL_ENV") == "production" && (len(os.Args) != 2 || !slices.Contains([]string{"migrate", "init-app-credentials", "init-catalog", "init-integration-signing", "init-ui-release-signing"}, os.Args[1])) {
 		return fmt.Errorf("production CLI only supports explicit migration, signing-key setup and bootstrap-admin")
 	}
 	if len(os.Args) == 2 && os.Args[1] == "init-ui-release-signing" {
@@ -87,10 +88,18 @@ func run() error {
 	if len(os.Args) > 1 && (os.Args[1] == "init-catalog" || os.Args[1] == "catalog-validate" || os.Args[1] == "catalog-verify") {
 		return catalogCommand(os.Args[1:])
 	}
-	if len(os.Args) < 2 || !slices.Contains([]string{"update-admin", "init-portals", "init-local", "migrate", "init-events", "init-core", "rotate-core", "revoke-core", "outbox-status", "replay-event", "init-remote", "webhook-status", "replay-webhook", "retry-cleanup"}, os.Args[1]) {
+	if len(os.Args) < 2 || !slices.Contains([]string{"init-app-credentials", "update-admin", "init-portals", "init-local", "migrate", "init-events", "init-core", "rotate-core", "revoke-core", "outbox-status", "replay-event", "init-remote", "webhook-status", "replay-webhook", "retry-cleanup"}, os.Args[1]) {
 		return fmt.Errorf("usage: cli init-portals|update-admin <email> (password via stdin)|init-local|migrate|init-events|init-core|rotate-core|revoke-core|outbox-status|replay-event <installation|capability> <event-id> <reason>")
 	}
 	command := os.Args[1]
+	if command == "init-app-credentials" {
+		if len(os.Args) != 2 {
+			return fault.Invalid
+		}
+		if err := localfiles.InitApplicationCredentialKey(); err != nil {
+			return err
+		}
+	}
 	if !slices.Contains([]string{"update-admin", "replay-event", "webhook-status", "replay-webhook", "retry-cleanup"}, command) && len(os.Args) != 2 {
 		return fault.Invalid
 	}
@@ -133,6 +142,13 @@ func run() error {
 	}
 	if os.Args[1] == "migrate" {
 		fmt.Println("Migrations verified.")
+		return nil
+	}
+	if command == "init-app-credentials" {
+		if err := bootstrap.BackfillApplicationCredentials(ctx, pool); err != nil {
+			return err
+		}
+		fmt.Println("Application credentials ready. Existing identities, releases and grants unchanged.")
 		return nil
 	}
 	if command == "init-portals" {

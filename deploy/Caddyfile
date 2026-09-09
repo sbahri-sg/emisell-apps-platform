@@ -8,6 +8,9 @@
  handle /api/v1/portal/* {
   reverse_proxy api:8087
  }
+ handle /api/v1/developer-login/* {
+  reverse_proxy api:8087
+ }
  handle /api/v1/developer/* {
   reverse_proxy api:8087
  }

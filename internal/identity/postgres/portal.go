@@ -114,7 +114,7 @@ func (p Repository) UpdatePrimaryAdmin(ctx context.Context, expected identity.Po
 }
 func (p Repository) PortalSession(ctx context.Context, surface, hash string) (identity.PortalPrincipal, error) {
 	var v identity.PortalPrincipal
-	err := p.Pool.QueryRow(ctx, `SELECT a.id,a.email,a.surface,a.role FROM platform_identity.portal_sessions s JOIN platform_identity.portal_accounts a ON a.id=s.account_id AND a.surface=s.surface WHERE s.surface=$1 AND s.token_hash=$2 AND s.expires_at>now() AND a.enabled`, surface, hash).Scan(&v.ID, &v.Email, &v.Surface, &v.Role)
+	err := p.Pool.QueryRow(ctx, `SELECT a.id,coalesce(l.core_email,a.email),a.surface,a.role FROM platform_identity.portal_sessions s JOIN platform_identity.portal_accounts a ON a.id=s.account_id AND a.surface=s.surface LEFT JOIN platform_identity.developer_core_links l ON l.account_id=a.id WHERE s.surface=$1 AND s.token_hash=$2 AND s.expires_at>now() AND a.enabled AND (s.surface<>'developer' OR (l.account_id IS NOT NULL AND s.last_active_at>now()-interval '1 hour'))`, surface, hash).Scan(&v.ID, &v.Email, &v.Surface, &v.Role)
 	if errors.Is(err, pgx.ErrNoRows) {
 		err = fault.Unauthenticated
 	}

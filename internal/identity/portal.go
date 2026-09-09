@@ -54,7 +54,7 @@ func (s Portals) ListStaff(ctx context.Context, actor PortalPrincipal, after str
 }
 
 func (s Portals) Login(ctx context.Context, surface, email, password, oldToken string) (PortalPrincipal, string, error) {
-	if (surface != "admin" && surface != "developer") || len(email) > 254 || len(password) > 256 {
+	if surface != "admin" || len(email) > 254 || len(password) > 256 {
 		return PortalPrincipal{}, "", fault.Unauthenticated
 	}
 	p, hash, err := s.Repo.FindPortal(ctx, surface, strings.ToLower(strings.TrimSpace(email)))

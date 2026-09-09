@@ -4,13 +4,13 @@ import { publicDistributionAllowed } from './distribution.ts';
 import { blankDocument, scopesFor } from './portal.ts';
 import { readFileSync } from 'node:fs';
 
-void test('authoring defaults to shipping; payment and unknown capabilities fail closed', () => {
-  assert.equal(blankDocument().capability, 'shipping/v1');
-  assert.deepEqual(blankDocument().scopes, [
-    'orders.read',
-    'shipping.read',
-    'shipping.write',
-  ]);
+void test('new private apps request product reads only, without changing public distribution', () => {
+  assert.equal(blankDocument().capability, 'private-products/v1');
+  assert.deepEqual(blankDocument().scopes, []);
+  assert.deepEqual(blankDocument().accessScopes?.required, ['read_products']);
+  assert.deepEqual(blankDocument().accessScopes?.optional, []);
+  assert.equal(blankDocument().endpoint, '');
+  assert.equal(publicDistributionAllowed('private-products/v1'), false);
   assert.equal(publicDistributionAllowed('shipping/v1'), true);
   for (const c of ['payment/v1', '', 'shipping/v2', 'unknown'])
     assert.equal(publicDistributionAllowed(c), false);
@@ -38,8 +38,11 @@ void test('input schema only offers shipping while historical response schemas r
       'payment/v1',
     ),
   );
-  assert.equal(
-    spec.components.schemas.SaveDraft.properties.document.$ref,
-    '#/components/schemas/PublicAppDocument',
+  assert.deepEqual(
+    spec.components.schemas.SaveDraft.properties.document.oneOf,
+    [
+      { $ref: '#/components/schemas/PublicAppDocument' },
+      { $ref: '#/components/schemas/PrivateProductDocument' },
+    ],
   );
 });

@@ -3,8 +3,8 @@ package bootstrap_test
 import (
 	"context"
 	"emisell.app/platform/internal/app/service"
-	developerrepo "emisell.app/platform/internal/developer/postgres"
 	"emisell.app/platform/internal/identity"
+	"emisell.app/platform/internal/identity/merchantlogin"
 	identityrepo "emisell.app/platform/internal/identity/postgres"
 	"emisell.app/platform/internal/platform/ids"
 	"emisell.app/platform/internal/review"
@@ -22,13 +22,34 @@ func portalAccount(t *testing.T, f *fixture, surface, role string) *fixture {
 	p := identity.PortalPrincipal{ID: ids.New("portal"), Surface: surface, Role: role}
 	p.Email = p.ID + "@portal.invalid"
 	password := ids.New("password")
-	if err := (identityrepo.Repository{Pool: f.pool}).SeedPortal(context.Background(), p, password); err != nil {
-		t.Fatal(err)
-	}
 	if surface == "developer" {
-		if err := (developerrepo.Repository{Pool: f.pool}).SeedOrganization(context.Background(), p.ID, ids.New("org"), "Test Developer"); err != nil {
+		repo := merchantlogin.Repository{Pool: f.pool}
+		ctx := context.Background()
+		request, proof, err := repo.Start(ctx, developerOrigin)
+		if err != nil {
 			t.Fatal(err)
 		}
+		_, code, err := repo.Approve(ctx, merchantlogin.Assertion{Request: request, Subject: p.ID, Email: p.Email, Name: "Test Developer", Stores: []merchantlogin.Store{{ID: "store1", CommonID: "test-store", Name: "Test Store"}}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		token, err := repo.Finish(ctx, request, proof, code, developerOrigin)
+		if err != nil {
+			t.Fatal(err)
+		}
+		user, err := (identity.Portals{Repo: identityrepo.Repository{Pool: f.pool}}).Authenticate(ctx, "developer", token)
+		if err != nil {
+			t.Fatal(err)
+		}
+		client := *f
+		client.user = user.ID
+		client.email = p.Email
+		client.password = password
+		client.cookie = &http.Cookie{Name: "emisell_developer_session", Value: token, Path: "/api/v1/developer", HttpOnly: true, SameSite: http.SameSiteStrictMode}
+		return &client
+	}
+	if err := (identityrepo.Repository{Pool: f.pool}).SeedPortal(context.Background(), p, password); err != nil {
+		t.Fatal(err)
 	}
 	client := *f
 	client.cookie = nil
@@ -168,18 +189,17 @@ func TestPortalDraftReviewIsolationAndPersistence(t *testing.T) {
 	if _, err := f.pool.Exec(context.Background(), `UPDATE platform_review.submissions SET snapshot='{}' WHERE id=$1`, subID); err == nil {
 		t.Fatal("database allowed immutable snapshot mutation")
 	}
-	// Persistence through fresh login; replacing a session invalidates the old one.
+	// Password login is retired; logout still invalidates the merchant-backed session.
 	previous := *dev.cookie
-	status, _, cookies, err := dev.call("POST", "/api/v1/developer/login", map[string]string{"email": dev.email, "password": dev.password}, "", developerOrigin)
-	if status != 200 || err != nil {
-		t.Fatal("relogin", status, err)
+	status, _, _, err := dev.call("POST", "/api/v1/developer/login", map[string]string{"email": dev.email, "password": dev.password}, "", developerOrigin)
+	if status != 404 || err != nil {
+		t.Fatal("legacy login enabled", status, err)
 	}
-	dev.cookie = cookies[0]
 	pexpect(t, dev, "GET", path, nil, "", 200)
 	stale := *dev
 	stale.cookie = &previous
-	pexpect(t, &stale, "GET", "/api/v1/developer/session", nil, "", 401)
 	pexpect(t, dev, "POST", "/api/v1/developer/logout", map[string]any{}, "", 200)
+	pexpect(t, &stale, "GET", "/api/v1/developer/session", nil, "", 401)
 	pexpect(t, dev, "GET", "/api/v1/developer/session", nil, "", 401)
 	pexpect(t, admin, "GET", "/api/v1/admin/session", nil, "", 200)
 	// Disabled roles and revoked developer membership take effect on existing sessions.

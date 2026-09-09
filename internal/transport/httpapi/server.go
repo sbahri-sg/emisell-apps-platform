@@ -2,14 +2,17 @@ package httpapi
 
 import (
 	"context"
+	"emisell.app/platform/internal/app/contact"
 	"emisell.app/platform/internal/app/service"
 	"emisell.app/platform/internal/capability"
 	"emisell.app/platform/internal/developer"
 	"emisell.app/platform/internal/identity"
+	"emisell.app/platform/internal/identity/merchantlogin"
 	"emisell.app/platform/internal/installation/domain"
 	installation "emisell.app/platform/internal/installation/service"
 	"emisell.app/platform/internal/oauth"
 	"emisell.app/platform/internal/oauth/appclient"
+	"emisell.app/platform/internal/oauth/appidentity"
 	"emisell.app/platform/internal/oauth/embedded"
 	"emisell.app/platform/internal/platform/config"
 	"emisell.app/platform/internal/platform/fault"
@@ -39,6 +42,10 @@ import (
 )
 
 type Server struct {
+	DeveloperLogin       merchantlogin.Repository
+	CoreAccounts         identity.ServiceAccounts
+	AppContacts          contact.Repository
+	AppIdentities        appidentity.Repository
 	WebhookSubscriptions subscriptions.Repository
 	OverviewPool         *pgxpool.Pool
 	UIReleases           service.UIReleases
@@ -99,7 +106,7 @@ func (s Server) Handler() http.Handler {
 				write(w, 404, map[string]string{"error": "not_found"})
 				return
 			}
-			if os.Getenv("EMISELL_ENV") == "production" && portalSurface(r.URL.Path) == "" && !strings.HasPrefix(r.URL.Path, "/api/v1/portal/") && !strings.HasPrefix(r.URL.Path, "/api/v1/store/") && r.URL.Path != "/healthz" && r.URL.Path != "/readyz" {
+			if os.Getenv("EMISELL_ENV") == "production" && portalSurface(r.URL.Path) == "" && !strings.HasPrefix(r.URL.Path, developerLoginPrefix+"/") && !strings.HasPrefix(r.URL.Path, "/api/v1/portal/") && !strings.HasPrefix(r.URL.Path, "/api/v1/store/") && r.URL.Path != "/healthz" && r.URL.Path != "/readyz" {
 				write(w, 404, map[string]string{"error": "not_found"})
 				return
 			}
@@ -111,6 +118,7 @@ func (s Server) Handler() http.Handler {
 			if r.Method != "GET" && r.Method != "HEAD" {
 				callback := r.Method == "POST" && r.URL.Path == paymentCallbackPath && r.URL.RawQuery == "" && r.Header.Get("Origin") == "" && r.Header.Get("Cookie") == ""
 				clientCheck := r.Method == "POST" && r.URL.Path == clientCheckPath && r.URL.RawQuery == "" && r.Header.Get("Origin") == "" && r.Header.Get("Cookie") == ""
+				developerAssertion := r.Method == "POST" && r.URL.Path == developerLoginPrefix+"/approve" && r.URL.RawQuery == "" && r.Header.Get("Origin") == "" && r.Header.Get("Cookie") == ""
 				expectedOrigin := originURL.String()
 				if surface := portalSurface(r.URL.Path); surface != "" {
 					expectedOrigin = s.portalOrigin(surface)
@@ -121,12 +129,16 @@ func (s Server) Handler() http.Handler {
 				if strings.HasPrefix(r.URL.Path, "/api/v1/portal/") {
 					expectedOrigin = s.publicOrigins.Admin
 				}
-				if !callback && !clientCheck && r.Header.Get("Origin") != expectedOrigin {
+				if r.URL.Path == developerLoginPrefix+"/start" || strings.HasPrefix(r.URL.Path, developerLoginPrefix+"/cli/") {
+					expectedOrigin = s.developerBrowserOrigin(r)
+				}
+				if !callback && !clientCheck && !developerAssertion && r.Header.Get("Origin") != expectedOrigin {
 					write(w, 403, map[string]string{"error": "forbidden_origin"})
 					return
 				}
 				media, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
-				if err != nil || media != "application/json" {
+				cliForm := r.Method == "POST" && r.URL.Path == developerLoginPrefix+"/cli/confirm" && media == "application/x-www-form-urlencoded"
+				if err != nil || (media != "application/json" && !cliForm) {
 					write(w, 415, map[string]string{"error": "json_required"})
 					return
 				}
@@ -171,6 +183,7 @@ func (s Server) Handler() http.Handler {
 	router.Get("/api/v1/app/installation-access", s.appInstallationAccess)
 	s.portalRoutes(router)
 	s.unifiedRoutes(router)
+	s.developerLoginRoutes(router)
 	s.publicCatalogRoutes(router)
 	s.appClientCheck(router)
 	var throttle sync.Mutex

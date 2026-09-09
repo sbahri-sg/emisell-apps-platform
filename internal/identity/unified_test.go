@@ -29,16 +29,16 @@ func TestUnifiedLoginIdentity(t *testing.T) {
 	hash, _ := HashPassword("test-password-123456")
 	r := &unifiedRepo{hash: hash, accounts: map[string]PortalPrincipal{"developer": {ID: "dev", Email: "demo@example.test", Surface: "developer", Role: "developer"}}}
 	s := Portals{Repo: r}
-	p, _, err := s.LoginUnified(context.Background(), "demo@example.test", "test-password-123456", "")
-	if err != nil || p.Surface != "developer" || r.issued != "developer" {
-		t.Fatal("wrong resolved identity", err)
+	_, _, err := s.LoginUnified(context.Background(), "demo@example.test", "test-password-123456", "")
+	if err != fault.Unauthenticated || r.issued != "" {
+		t.Fatal("developer password login must be retired", err)
 	}
 	r.issued = ""
 	if _, _, err = s.LoginUnified(context.Background(), "demo@example.test", "wrong", ""); err != fault.Unauthenticated || r.issued != "" {
 		t.Fatal("wrong password accepted")
 	}
 	r.accounts["admin"] = PortalPrincipal{ID: "admin", Email: "demo@example.test", Surface: "admin", Role: "administrator"}
-	if _, _, err = s.LoginUnified(context.Background(), "demo@example.test", "test-password-123456", ""); err != fault.Unauthenticated || r.issued != "" {
-		t.Fatal("ambiguous credentials elevated access")
+	if p, _, err := s.LoginUnified(context.Background(), "demo@example.test", "test-password-123456", ""); err != nil || p.Surface != "admin" || r.issued != "admin" {
+		t.Fatal("admin password login unavailable", err)
 	}
 }

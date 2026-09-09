@@ -14,11 +14,24 @@ if (process.argv[2]) {
   const store = new SessionStore(join(process.argv[3], 'session'));
   const output = [];
   const options = {
-    store, output: value => output.push(value), password: async () => credentials.password,
+    store, output: value => output.push(value), wait:async()=>{},
+    open:async value=>{
+      const request=new URL(value).searchParams.get('request');
+      const approval=await fetch(process.argv[2]+'/api/v1/developer-login/approve',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${credentials.coreKey}`},body:JSON.stringify({request,subject:'cli-contract-owner',email:credentials.email,name:'CLI Test Owner',stores:[{id:credentials.merchant,commonId:'cli-store',name:'CLI Test Store'}]})});
+      assert.equal(approval.status,200);
+      const exchange=new URL((await approval.json()).exchangeUrl);
+      const finished=await fetch(process.argv[2]+exchange.pathname+exchange.search,{headers:{Host:'localhost:4317'},redirect:'manual'});
+      assert.equal(finished.status,303);
+      const confirmation=new URL(finished.headers.get('location'));
+      const page=await fetch(process.argv[2]+confirmation.pathname+confirmation.search,{headers:{Host:'localhost:4317'}});
+      assert.equal(page.status,200);assert.match(await page.text(),/Izinkan login/);
+      const confirm=await fetch(process.argv[2]+confirmation.pathname,{method:'POST',headers:{Host:'localhost:4317',Origin:'http://localhost:4317','Content-Type':'application/x-www-form-urlencoded'},body:confirmation.searchParams});
+      assert.equal(confirm.status,200);
+    },
     // Test-only routing: preserve the real configured portal Origin while using an ephemeral listener.
-    fetcher: (url, init) => fetch(process.argv[2] + new URL(url).pathname, init),
+    fetcher: (url, init) => fetch(process.argv[2] + new URL(url).pathname, {...init,headers:{...init.headers,Host:'localhost:4317'}}),
   };
-  await run(['login', '--url', 'http://localhost:4317', '--email', credentials.email], options);
+  await run(['login', '--url', 'http://localhost:4317'], options);
   await run(['whoami'], options);
   assert.equal(JSON.parse(output.at(-1)).user.email, credentials.email.toLowerCase());
   await run(['scopes'], options);
@@ -46,6 +59,6 @@ if (process.argv[2]) {
   await run(['reviews', 'list'], options);
   await run(['logout'], options);
   await assert.rejects(run(['apps', 'list'], options), /Belum login/);
-  assert.ok(!output.join('').includes(credentials.password));
+  assert.ok(!output.join('').includes(credentials.coreKey));
   console.log('CLI real backend contract passed');
 }

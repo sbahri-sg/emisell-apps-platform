@@ -16,7 +16,98 @@
     }
   ],
   "paths": {
-    "/api/v1/portal/login": {"post":{"operationId":"unifiedPortalLogin","description":"Unified dashboard login. Body contains only email/password; identity and surface resolved by backend. Ambiguous matching credentials rejected. Sets HttpOnly host-only emisell_portal_session at /api/v1; HTTPS uses Secure. Exact dashboard origin required. Legacy API permissions remain unchanged.","requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","additionalProperties":false,"required":["email","password"],"properties":{"email":{"type":"string"},"password":{"type":"string","format":"password"}}}}}},"responses":{"200":{"description":"Authenticated user with server-selected surface and role"},"401":{"description":"Invalid or ambiguous credentials"},"403":{"description":"Wrong origin"},"429":{"description":"Rate limited"}}}},
+    "/api/v1/developer-login/cli/start": {
+      "post": {
+        "operationId": "startCLIMerchantLogin", "security": [],
+        "description": "Exact configured portal Host/Origin required. Starts a five-minute CLI request with a private in-memory verifier. Opens the existing Core merchant login; no app grant or browser session is imported.",
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "additionalProperties": false}}}},
+        "responses": {"200": {"description": "No-store request ID, secret verifier, authorizeUrl, expiresIn=300, interval=3. Verifier must never enter logs, browser URLs or project files.", "content": {"application/json": {"schema": {"type": "object", "required": ["request", "verifier", "authorizeUrl", "expiresIn", "interval"], "properties": {"request": {"type": "string"}, "verifier": {"type": "string", "format": "password"}, "authorizeUrl": {"type": "string", "format": "uri"}, "expiresIn": {"const": 300}, "interval": {"const": 3}}}}}}, "403": {"description": "Untrusted Host/Origin"}, "429": {"description": "Rate limited"}}
+      }
+    },
+    "/api/v1/developer-login/cli/poll": {
+      "post": {
+        "operationId": "pollCLIMerchantLogin", "security": [],
+        "description": "Exact portal Host/Origin and request verifier required. Returns pending until Core identity and explicit browser CLI confirmation. Single-use completion sets a separate developer session cookie, with a one-hour idle lifetime; does not return app credentials or grants. Poll at most once per three seconds.",
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "additionalProperties": false, "required": ["request", "verifier"], "properties": {"request": {"type": "string"}, "verifier": {"type": "string", "format": "password"}}}}}},
+        "responses": {"200": {"description": "No-store status: pending or authorized; authorized sets HttpOnly session cookie"}, "401": {"description": "Invalid, expired or consumed request/proof"}, "403": {"description": "Origin or current account denied"}, "429": {"description": "Rate limited"}}
+      }
+    },
+    "/api/v1/developer-login/cli/confirm": {
+      "get": {"operationId": "viewCLIMerchantConfirmation", "security": [], "description": "Browser-only confirmation form. Requires request and single-use Core-issued code on the exact configured portal Host. No-store, no-referrer, no framing; does not issue a CLI session.", "parameters": [{"name": "request", "in": "query", "required": true, "schema": {"type": "string"}}, {"name": "code", "in": "query", "required": true, "schema": {"type": "string"}}], "responses": {"200": {"description": "HTML CLI confirmation"}, "401": {"description": "Invalid or expired request/code"}}},
+      "post": {"operationId": "confirmCLIMerchantLogin", "security": [], "description": "Explicit browser confirmation; exact portal Origin, request and Core-issued code required. Does not install apps. CLI must separately consume with its private verifier.", "requestBody": {"required": true, "content": {"application/x-www-form-urlencoded": {"schema": {"type": "object", "required": ["request", "code"], "properties": {"request": {"type": "string"}, "code": {"type": "string", "format": "password"}}}}}}, "responses": {"200": {"description": "HTML confirmation; return to terminal"}, "401": {"description": "Invalid or expired request/code"}, "403": {"description": "Untrusted origin"}}}
+    },
+    "/api/v1/developer/apps/{id}/install-url": {
+      "get": {
+        "operationId": "developerAppInstallURL",
+        "description": "Ownership-checked navigation to the configured Emisell Dashboard merchant picker using the stored active configuration version. Does not load merchant profiles, grant access or install the app. Requires exact portal Origin/Referer and an authenticated developer session.",
+        "security": [{"DeveloperSession": []}, {"UnifiedPortalSession": []}],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {
+          "200": {"description": "Operator-configured Dashboard URL; Cache-Control: no-store", "content": {"application/json": {"schema": {"type": "object", "required": ["url"], "properties": {"url": {"type": "string", "format": "uri"}}}}}},
+          "401": {"description": "Missing or expired session"},
+          "403": {"description": "Untrusted portal origin"},
+          "404": {"description": "Application absent or not owned by developer"},
+          "503": {"description": "Dashboard origin or active version unavailable"}
+        }
+      }
+    },
+    "/api/v1/developer/activity": {
+      "get": {
+        "operationId": "developerSessionDeadline",
+        "security": [
+          {
+            "DeveloperSession": []
+          },
+          {
+            "UnifiedPortalSession": []
+          }
+        ],
+        "description": "Read the server idle deadline without renewing the session. Exact portal origin required.",
+        "responses": {
+          "200": {
+            "description": "expiresAt: ISO timestamp of the shared session deadline"
+          },
+          "401": {
+            "description": "Missing, revoked or expired session"
+          }
+        }
+      },
+      "post": {
+        "operationId": "developerSessionActivity",
+        "security": [
+          {
+            "DeveloperSession": []
+          },
+          {
+            "UnifiedPortalSession": []
+          }
+        ],
+        "description": "Record explicit foreground user input, extending a still-valid merchant-backed developer session and cookie by one hour. Passive requests must not call this. Expired sessions cannot be renewed. Does not modify the merchant session.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated expiresAt and one-hour HttpOnly cookie"
+          },
+          "401": {
+            "description": "Missing, revoked or expired session"
+          },
+          "403": {
+            "description": "Wrong portal origin"
+          }
+        }
+      }
+    },
+    "/api/v1/portal/login": {"post":{"operationId":"unifiedPortalLogin","description":"Admin password login only. Developers authenticate through the verified Emisell merchant session. Sets HttpOnly host-only emisell_portal_session; HTTPS uses Secure. Exact dashboard origin required.","requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","additionalProperties":false,"required":["email","password"],"properties":{"email":{"type":"string"},"password":{"type":"string","format":"password"}}}}}},"responses":{"200":{"description":"Authenticated user with server-selected surface and role"},"401":{"description":"Invalid admin credentials; developer password login is not supported"},"403":{"description":"Wrong origin"},"429":{"description":"Rate limited"}}}},
     "/api/v1/portal/session": {"get":{"operationId":"unifiedPortalSession","security":[{"UnifiedPortalSession":[]}],"description":"Read unified cookie session. Requires exact dashboard Origin/Referer; returns user with backend-selected surface. Does not accept client role or organization overrides.","responses":{"200":{"description":"Authenticated user"},"401":{"description":"Missing or expired session"},"403":{"description":"Wrong origin"}}}},
     "/api/v1/admin/staff": {
       "get": {
@@ -33,19 +124,6 @@
       }
     },
     "/api/v1/admin/developers": {
-      "post": {
-        "operationId": "adminCreateDeveloper",
-        "security": [{"AdminSession":[]},{"UnifiedPortalSession":[]}],
-        "description": "Administrator-only account provisioning with exact dashboard Origin. Atomically creates enabled developer login, organization, owner membership and audit entry. Email is normalized and rejected if already used on either surface. Password is hashed, never returned. No invitation email is sent. Not public registration; no existing account is overwritten.",
-        "requestBody": {"required":true,"content":{"application/json":{"schema":{"type":"object","additionalProperties":false,"required":["organizationName","email","password"],"properties":{"organizationName":{"type":"string","minLength":1,"maxLength":120},"email":{"type":"string","format":"email","maxLength":254},"password":{"type":"string","format":"password","writeOnly":true,"minLength":12,"maxLength":256,"description":"12–256 UTF-8 bytes, consistent with portal password policy."}}}}}},
-        "responses": {
-          "201":{"description":"Created organization, containing id, name and memberCount; no credential material"},
-          "400":{"description":"Invalid name, email or password"},
-          "401":{"description":"Missing or expired session"},
-          "403":{"description":"Not administrator or wrong origin"},
-          "409":{"description":"Email already in use; no changes made"}
-        }
-      },
       "get": {
         "operationId": "adminDeveloperOrganizations",
         "security": [{"AdminSession":[]}],
@@ -763,145 +841,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/developer/login": {
-      "post": {
-        "operationId": "developerLogin",
-        "description": "Credentials provisioned explicitly by CLI; no implicit upgrade of merchant accounts. Replaces this surface's previous session. ADR 0022: authoring/distribusi baru hanya shipping/v1. Payment gateway checkout internal Emisell, bukan aplikasi umum. Record payment historis tetap terbaca; reject/suspend/revoke tersedia. Pengajuan/approval/sign/publish dan kesiapan app-client/Testing payment ditolak. Instalasi/RPC payment fixture tidak diubah.",
-        "security": [],
-        "parameters": [
-          {
-            "name": "Origin",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "const": "http://localhost:4319"
-            },
-            "description": "Exact surface origin; reads accept same-origin Referer when Origin is absent. No CORS wildcard."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "properties": {
-                    "user": {
-                      "$ref": "#/components/schemas/Principal"
-                    }
-                  },
-                  "required": [
-                    "user"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Rejected or unavailable; no success implied.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Rejected or unavailable; no success implied.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Rejected or unavailable; no success implied.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Rejected or unavailable; no success implied.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Rejected or unavailable; no success implied.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "Rejected or unavailable; no success implied.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rejected or unavailable; no success implied.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Rejected or unavailable; no success implied.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Rejected or unavailable; no success implied.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Login"
               }
             }
           }
@@ -2416,7 +2355,8 @@
           "capability": {
             "enum": [
               "shipping/v1",
-              "payment/v1"
+              "payment/v1",
+              "private-products/v1"
             ],
             "description": "shipping/v1 untuk authoring baru; payment/v1 hanya record historis, ditolak policy distribusi."
           },
@@ -2470,6 +2410,18 @@
           "document": {
             "$ref": "#/components/schemas/AppDocument"
           },
+          "activeVersion": {
+            "type": "object",
+            "readOnly": true,
+            "description": "Active developer configuration snapshot. Created atomically with a new app, independent of review, runtime releases and merchant grants. Editing a draft does not replace this snapshot.",
+            "additionalProperties": false,
+            "properties": {
+              "document": { "$ref": "#/components/schemas/AppDocument" },
+              "revision": { "type": "integer", "minimum": 1 },
+              "activatedAt": { "type": "string", "format": "date-time" }
+            },
+            "required": ["document", "revision", "activatedAt"]
+          },
           "updatedAt": {
             "type": "string",
             "format": "date-time"
@@ -2493,7 +2445,10 @@
             "description": "0 on create; exact current revision on update."
           },
           "document": {
-            "$ref": "#/components/schemas/PublicAppDocument"
+            "oneOf": [
+              { "$ref": "#/components/schemas/PublicAppDocument" },
+              { "$ref": "#/components/schemas/PrivateProductDocument" }
+            ]
           }
         },
         "required": [
@@ -2717,6 +2672,31 @@
         },
         "required": [
           "error"
+        ]
+      },
+      "PrivateProductDocument": {
+        "description": "Private headless product reader. Initial signed configuration and stable app credential are created atomically. No marketplace review, store assignment, consent or grant is created. Requires configured private-product signing/runtime composition. Updates do not replace the immutable active version.",
+        "allOf": [
+          { "$ref": "#/components/schemas/AppDocument" },
+          {
+            "type": "object",
+            "properties": {
+              "capability": { "const": "private-products/v1" },
+              "scopes": { "type": "array", "maxItems": 0 },
+              "endpoint": { "const": "" },
+              "accessScopes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "profile": { "const": "shopify-authenticated-2026-09-05" },
+                  "required": { "const": ["read_products"] },
+                  "optional": { "const": [] }
+                },
+                "required": ["profile", "required", "optional"]
+              }
+            },
+            "required": ["accessScopes"]
+          }
         ]
       },
       "PublicAppDocument": {

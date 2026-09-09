@@ -84,11 +84,11 @@ export async function loadScopeReadiness(
 export function scopeCatalogURL(scope = ''): string {
   const query = new URLSearchParams({ view: 'scopes' });
   if (scope) query.set('scope', scope);
-  return '/?' + query.toString();
+  return '/admin?' + query.toString();
 }
 export function gatewayOperationURL(procedure: string): string {
   return (
-    '/?' +
+    '/admin?' +
     new URLSearchParams({
       view: 'api-docs',
       api_group: 'gateway',

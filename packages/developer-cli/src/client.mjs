@@ -36,7 +36,7 @@ export class SessionStore {
       }
       return session;
     } catch (error) {
-      if (error.code === 'ENOENT') throw new Error('Belum login. Jalankan emisell login --url URL --email EMAIL.');
+      if (error.code === 'ENOENT') throw new Error('Belum login. Jalankan emisell auth login --url URL.');
       throw error;
     } finally { await handle?.close(); }
   }
@@ -60,7 +60,7 @@ export class Client {
     this.base = origin(base); this.cookie = cookie; this.fetcher = fetcher;
   }
   async request(path, { method = 'GET', body, key } = {}) {
-    if (!/^\/api\/v1\/(developer|portal)\/[A-Za-z0-9_/?=&.-]+$/.test(path) || path.includes('..')) throw new Error('Path CLI tidak valid.');
+    if (!/^\/api\/v1\/(developer|portal|developer-login\/cli)\/[A-Za-z0-9_/?=&.-]+$/.test(path) || path.includes('..')) throw new Error('Path CLI tidak valid.');
     const headers = { Accept: 'application/json', Origin: this.base };
     if (this.cookie) headers.Cookie = this.cookie;
     if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -75,7 +75,8 @@ export class Client {
     if (!response.ok) {
       await response.body?.cancel();
       const hints = { 401: 'Sesi habis; login kembali.', 403: 'Akses ditolak; periksa akun developer dan URL dashboard.', 409: 'Konflik revisi/request-key; baca ulang data sebelum mengirim.', 429: 'Terlalu banyak permintaan; coba lagi nanti.' };
-      throw new Error(`HTTP ${response.status}. ${hints[response.status] || 'Permintaan ditolak server; periksa dokumen dan izin.'}`);
+      const error = new Error(`HTTP ${response.status}. ${hints[response.status] || 'Permintaan ditolak server; periksa dokumen dan izin.'}`);
+      error.status = response.status; throw error;
     }
     if (!response.headers.get('content-type')?.includes('application/json')) {
       await response.body?.cancel(); throw new Error('Respons bukan JSON. Gunakan URL dashboard Apps Platform.');
@@ -91,19 +92,14 @@ export class Client {
     catch { throw new Error('Respons JSON tidak valid.'); }
     return { data, headers: response.headers };
   }
-  async login(email, password) {
-    const { data, headers } = await this.request('/api/v1/portal/login', { method: 'POST', body: { email, password } });
+  sessionFromHeaders(headers) {
     const raw = headers.getSetCookie().find(c => c.startsWith('emisell_portal_session='));
     const cookie = raw?.split(';')[0];
     if (!cookie || !/^emisell_portal_session=[A-Za-z0-9_-]+$/.test(cookie)) throw new Error('Server tidak memberikan sesi yang valid.');
     this.cookie = cookie;
-    if (data.user?.surface !== 'developer') {
-      this.cookie = '';
-      throw new Error('Gunakan akun developer, bukan akun admin. Sesi tidak disimpan.');
-    }
     const age = Number(raw.match(/Max-Age=(\d+)/i)?.[1]);
     if (!age) throw new Error('Sesi tidak memiliki masa berlaku.');
-    return { origin: this.base, cookie, expiresAt: Date.now() + Math.min(age, 28800) * 1000 };
+    return { origin: this.base, cookie, expiresAt: Date.now() + Math.min(age, 3600) * 1000 };
   }
 }
 

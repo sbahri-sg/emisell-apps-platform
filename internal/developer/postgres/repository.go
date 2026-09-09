@@ -11,6 +11,16 @@ import (
 
 type Repository struct{ Pool *pgxpool.Pool }
 
+// Composed with current Core identity checks without opening a nested pool lease.
+func (p Repository) OwnsOrganizationTx(ctx context.Context, tx pgx.Tx, account, org string) error {
+	var actual string
+	err := tx.QueryRow(ctx, `SELECT organization_id FROM platform_developer.memberships WHERE account_id=$1 FOR SHARE`, account).Scan(&actual)
+	if err != nil || actual != org {
+		return fault.Forbidden
+	}
+	return nil
+}
+
 func (p Repository) ListOrganizations(ctx context.Context, after string) ([]developer.AdminOrganization, error) {
 	rows, err := p.Pool.Query(ctx, `SELECT o.id,o.name,(SELECT count(*) FROM platform_developer.memberships m WHERE m.organization_id=o.id) FROM platform_developer.organizations o WHERE o.id>$1 ORDER BY o.id LIMIT 51`, after)
 	if err != nil {

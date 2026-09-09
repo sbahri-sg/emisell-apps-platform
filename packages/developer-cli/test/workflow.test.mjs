@@ -172,22 +172,22 @@ test('help is local, unknown/duplicate options are rejected and deployment remai
     assert.match(messages.at(-1), new RegExp('emisell app ' + command));
   }
   await run(['auth', 'login', '--help'], options);
-  assert.match(messages.at(-1), /login browser\/OAuth belum tersedia/);
-  for (const args of [ ['app', 'dev', '--store', 'a'], ['app', 'info', '-p', 'a', '--path', 'b'], ['app', 'init', '-n', 'a', '--name', 'b'] ]) {
+  assert.match(messages.at(-1), /browser merchant/);
+  for (const args of [ ['app', 'dev', '--unknown', 'a'], ['app', 'info', '-p', 'a', '--path', 'b'], ['app', 'init', '-n', 'a', '--name', 'b'] ]) {
     await assert.rejects(run(args, options), /Opsi/);
   }
   await assert.rejects(run(['app', 'deploy'], options), /belum tersedia/);
 });
 
-test('auth login/logout aliases retain the existing developer-only session flow', async () => {
+test('auth login/logout aliases use merchant browser flow', async () => {
   let saved, cleared = false;
-  const opts = { output() {}, password: async () => 'synthetic-password',
+  const opts = { output() {}, open:async()=>{},wait:async()=>{},
     store: { save: async session => { saved = session; }, load: async () => saved, clear: async () => { cleared = true; } },
-    fetcher: async () => new Response(JSON.stringify({ user: { surface: 'developer' } }), { headers: {
+    fetcher: async url => new Response(JSON.stringify(url.endsWith('/start')?{request:'A'.repeat(52),verifier:'B'.repeat(52),authorizeUrl:'https://seller.example.com/auth/developer?request='+'A'.repeat(52),expiresIn:300,interval:3}:url.endsWith('/poll')?{status:'authorized'}:{ user: { id:'u1', surface: 'developer', role:'developer' } }), { headers: {
       'content-type': 'application/json', 'set-cookie': 'emisell_portal_session=' + 'a'.repeat(52) + '; Max-Age=100',
     } }),
   };
-  await run(['auth', 'login', '--url', 'https://portal.example.com', '--email', 'dev@example.invalid'], opts);
+  await run(['auth', 'login', '--url', 'https://portal.example.com'], opts);
   assert.equal(saved.origin, 'https://portal.example.com');
   await run(['auth', 'logout'], opts);
   assert.equal(cleared, true);

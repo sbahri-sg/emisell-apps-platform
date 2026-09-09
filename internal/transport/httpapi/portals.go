@@ -3,7 +3,6 @@ package httpapi
 import (
 	"context"
 	"emisell.app/platform/internal/app/service"
-	"emisell.app/platform/internal/developer"
 	"emisell.app/platform/internal/identity"
 	"emisell.app/platform/internal/platform/fault"
 	"emisell.app/platform/internal/review"
@@ -85,6 +84,10 @@ func (s Server) portalRoutes(router chi.Router) {
 			var window time.Time
 			attempts := 0
 			r.Post("/login", func(w http.ResponseWriter, r *http.Request) {
+				if surface == "developer" {
+					s.fail(w, r, fault.NotFound)
+					return
+				}
 				mu.Lock()
 				if time.Since(window) > time.Minute {
 					window = time.Now()
@@ -139,19 +142,6 @@ func (s Server) portalRoutes(router chi.Router) {
 							next = rows[49].ID
 						}
 						write(w, 200, map[string]any{"accounts": rows, "nextAfterId": next})
-					})
-					r.Post("/developers", func(w http.ResponseWriter, r *http.Request) {
-						var input developer.CreateAccount
-						if err := decode(w, r, &input); err != nil {
-							s.fail(w, r, err)
-							return
-						}
-						organization, err := s.Developers.CreateAccount(r.Context(), portalPrincipal(r), input)
-						if err != nil {
-							s.fail(w, r, err)
-							return
-						}
-						write(w, http.StatusCreated, map[string]any{"organization": organization})
 					})
 					r.Get("/developers", func(w http.ResponseWriter, r *http.Request) {
 						rows, err := s.Developers.ListOrganizations(r.Context(), portalPrincipal(r), r.URL.Query().Get("afterId"))
@@ -222,6 +212,49 @@ func (s Server) portalRoutes(router chi.Router) {
 				}
 				if s.AppClients.Repo != nil {
 					s.appClientRoutes(r, surface)
+				}
+				if surface == "developer" {
+					if s.DeveloperLogin.Pool != nil {
+						r.Get("/activity", func(w http.ResponseWriter, r *http.Request) {
+							expires, err := s.DeveloperLogin.ActivityExpiry(r.Context(), portalToken(r, "developer"))
+							if err != nil {
+								s.fail(w, r, err)
+								return
+							}
+							write(w, 200, map[string]any{"expiresAt": expires})
+						})
+						r.Post("/activity", func(w http.ResponseWriter, r *http.Request) {
+							var body struct{}
+							if err := decode(w, r, &body); err != nil {
+								s.fail(w, r, err)
+								return
+							}
+							token := portalToken(r, "developer")
+							expires, err := s.DeveloperLogin.Activity(r.Context(), token)
+							if err != nil {
+								s.fail(w, r, err)
+								return
+							}
+							if unifiedToken(r) != "" {
+								s.unifiedCookie(w, token, 3600)
+							} else {
+								s.setPortalCookie(w, "developer", token, 3600)
+							}
+							write(w, 200, map[string]any{"expiresAt": expires})
+						})
+						r.Get("/account", func(w http.ResponseWriter, r *http.Request) {
+							profile, err := s.DeveloperLogin.Profile(r.Context(), portalPrincipal(r))
+							if err != nil {
+								s.fail(w, r, err)
+								return
+							}
+							write(w, 200, map[string]any{"profile": profile, "sellerOrigin": s.sellerOrigin()})
+						})
+					}
+					s.applicationCredentialRoutes(r)
+					if s.AppContacts.Pool != nil {
+						s.applicationContactRoutes(r)
+					}
 				}
 				if s.EmbeddedLaunches.Repo.Pool != nil {
 					s.embeddedLaunchRoutes(r, surface)
