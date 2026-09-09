@@ -16,6 +16,7 @@ x-api: &api
   volumes:
     - platform_keys:/app/.local
   networks: [database, edge]
+  extra_hosts: ['host.docker.internal:host-gateway']
   security_opt: [no-new-privileges:true]
   cap_drop: [ALL]
 services:
