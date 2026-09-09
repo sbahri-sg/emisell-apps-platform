@@ -20,6 +20,18 @@ Do not infer production runtime readiness from local installation tests.
 
 ## Production blockers found before cutover
 
+Update after approved refactor: blockers 2 and the **private headless-app** part
+of 3 are addressed in code by the independent private-app composition. The Core
+production adapter now accepts exact `read_products` installs without the UI
+pilot. Activation/uninstall scope snapshot validation was also corrected. See
+[production-private-apps.md](production-private-apps.md). Shipping and reviewed
+embedded UI remain outside this production release. Configuring keys/trust and
+actual cutover are still pending, not implied by successful isolated tests.
+
+The user confirmed Core runs internally on port 8000 and will configure Dashboard
+addresses themselves. An explicit private-network transport now supports that
+deployment without permitting public-network HTTP or disabling DNS address checks.
+
 1. `cmd/server/main.go` requires a persistent application-credential encryption
    key at startup. Existing server deployment does not yet supply it. Generate
    a production key securely once, back it up, and retain it across deployments.

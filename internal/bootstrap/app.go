@@ -62,6 +62,11 @@ func HandlerWithLocalManagedShipping(pool, capabilityPool, clientPool *pgxpool.P
 	return handlerWithManagedShipping(pool, capabilityPool, clientPool, origin, logger, signer, integrationSigner, managedSigner, verifier, true, nil, connections...)
 }
 
+// Private app authoring does not require an embedded launch or a reviewed-UI pilot.
+func HandlerWithPrivateProducts(pool, caps, clients *pgxpool.Pool, origin string, logger *slog.Logger, catalog appservice.CatalogSigner, integration appservice.IntegrationSigner, managed appservice.ManagedShippingSigner, verifier appclient.Verifier, key ed25519.PrivateKey) http.Handler {
+	return handlerWithAppAuthoring(pool, caps, clients, origin, logger, catalog, integration, managed, verifier, false, nil, key)
+}
+
 type EmbeddedReviewConfig struct {
 	Runtime            *ReviewedUIRuntime
 	UIReleaseKey       ed25519.PrivateKey
@@ -80,6 +85,14 @@ func HandlerWithReviewedUIRuntime(pool, caps, clients *pgxpool.Pool, origin stri
 }
 
 func handlerWithManagedShipping(pool, capabilityPool, clientPool *pgxpool.Pool, origin string, logger *slog.Logger, signer appservice.CatalogSigner, integrationSigner appservice.IntegrationSigner, managedSigner appservice.ManagedShippingSigner, verifier appclient.Verifier, managedInstallEnabled bool, embeddedConfig *EmbeddedReviewConfig, connections ...*oauth.Service) http.Handler {
+	var privateKey ed25519.PrivateKey
+	if embeddedConfig != nil {
+		privateKey = embeddedConfig.ResourceReleaseKey
+	}
+	return handlerWithAppAuthoring(pool, capabilityPool, clientPool, origin, logger, signer, integrationSigner, managedSigner, verifier, managedInstallEnabled, embeddedConfig, privateKey, connections...)
+}
+
+func handlerWithAppAuthoring(pool, capabilityPool, clientPool *pgxpool.Pool, origin string, logger *slog.Logger, signer appservice.CatalogSigner, integrationSigner appservice.IntegrationSigner, managedSigner appservice.ManagedShippingSigner, verifier appclient.Verifier, managedInstallEnabled bool, embeddedConfig *EmbeddedReviewConfig, privateKey ed25519.PrivateKey, connections ...*oauth.Service) http.Handler {
 	auth := identity.Service{Repo: identityrepo.Repository{Pool: pool}}
 	portals := identity.Portals{Repo: identityrepo.Repository{Pool: pool}}
 	developers := developer.Service{Repo: developerrepo.Repository{Pool: pool}}
@@ -95,11 +108,7 @@ func handlerWithManagedShipping(pool, capabilityPool, clientPool *pgxpool.Pool, 
 			if err != nil {
 				return err
 			}
-			var key ed25519.PrivateKey
-			if embeddedConfig != nil {
-				key = embeddedConfig.ResourceReleaseKey
-			}
-			return draftRepo.CreatePrivateProductTx(ctx, tx, org, app, actor, client, key)
+			return draftRepo.CreatePrivateProductTx(ctx, tx, org, app, actor, client, privateKey)
 		}
 	}
 	drafts := appservice.Drafts{Repo: draftRepo, Developers: developers}

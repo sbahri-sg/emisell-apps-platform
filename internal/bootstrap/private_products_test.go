@@ -16,10 +16,7 @@ import (
 	installrepo "emisell.app/platform/internal/installation/postgres"
 	installservice "emisell.app/platform/internal/installation/service"
 	clientrepo "emisell.app/platform/internal/oauth/appclient/postgres"
-	"emisell.app/platform/internal/oauth/appidentity"
-	"emisell.app/platform/internal/platform/localfiles"
 	"emisell.app/platform/internal/resourceclient"
-	"emisell.app/platform/internal/transport/connectapi"
 	"emisell.app/platform/pkg/accessscope"
 	"encoding/base64"
 	"encoding/json"
@@ -44,7 +41,7 @@ func TestPrivateProductCreateConsentAndIsolation(t *testing.T) {
 		t.Fatal(err)
 	}
 	f.server.Close()
-	f.server = httptest.NewServer(bootstrap.HandlerWithReviewedUIRuntime(f.pool, f.caps, f.pool, origin, slog.New(slog.NewTextHandler(io.Discard, nil)), nil, nil, nil, nil, false, bootstrap.EmbeddedReviewConfig{ResourceReleaseKey: signer}))
+	f.server = httptest.NewServer(bootstrap.HandlerWithPrivateProducts(f.pool, f.caps, f.pool, origin, slog.New(slog.NewTextHandler(io.Discard, nil)), nil, nil, nil, nil, signer))
 	t.Cleanup(f.server.Close)
 	dev.server, other.server = f.server, f.server
 	doc := appservice.AppDocument{Name: "Product Reader", Version: "1.0.0", Capability: appservice.PrivateProducts, Scopes: []string{}, AccessScopes: &accessscope.Declaration{Profile: accessscope.Profile, Required: []string{"read_products"}, Optional: []string{}}}
@@ -125,17 +122,28 @@ func TestPrivateProductCreateConsentAndIsolation(t *testing.T) {
 		t.Fatal("product read denied")
 	}
 	secret := pexpect(t, dev, "POST", "/api/v1/developer/apps/"+app+"/credentials/reveal", map[string]int{"version": 1}, "", 200)["secret"].(string)
-	box, err := localfiles.ReadApplicationCredentialBox()
+	transport, err := bootstrap.InternalHandlerWithPrivateProducts(f.pool, f.caps, f.pool, slog.New(slog.NewTextHandler(io.Discard, nil)), nil, nil, signer, products)
 	if err != nil {
 		t.Fatal(err)
 	}
-	identities := appidentity.Repository{Pool: f.pool, Box: box}
-	transport := connectapi.Server{Accounts: identity.ServiceAccounts{Repo: identityrepo.Repository{Pool: f.pool}}, Logger: slog.New(slog.NewTextHandler(io.Discard, nil)), Lifecycle: life, Intents: intents, ResourceProducts: products, PrivateResourceAuth: func(ctx context.Context, id, secret string) (string, error) {
-		c, e := identities.Authenticate(ctx, id, secret)
-		return c.AppID, e
-	}}
-	rpc := httptest.NewServer(transport.Handler())
+	rpc := httptest.NewServer(transport)
 	t.Cleanup(rpc.Close)
+	// The production composition must not fall back to historical fixtures.
+	for _, id := range []string{"parcel", "emisell-pay", "embedded-local-demo", "app_AAAAAAAAAAAAAAAAAAAAAAAAAA"} {
+		raw, _ := json.Marshal(map[string]string{"merchantId": f.tenant, "coreActorId": actor, "appId": id, "version": "1.0.0", "idempotencyKey": key()})
+		req, _ := http.NewRequest("POST", rpc.URL+"/emisell.installation.v1.InstallIntentService/Prepare", bytes.NewReader(raw))
+		req.Header.Set("Authorization", "Bearer "+coreKey)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Connect-Protocol-Version", "1")
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		res.Body.Close()
+		if res.StatusCode != 403 && res.StatusCode != 404 {
+			t.Fatalf("fixture/unknown app %s status %d", id, res.StatusCode)
+		}
+	}
 	requestRead := func(clientSecret, path string, want int) {
 		raw, _ := json.Marshal(map[string]any{"merchantId": f.tenant, "coreActorId": actor, "appId": app, "clientId": credentials["clientId"], "clientSecret": clientSecret, "installationId": installation, "limit": 5, "path": path})
 		req, _ := http.NewRequest("POST", rpc.URL+"/internal/resources/products", bytes.NewReader(raw))
