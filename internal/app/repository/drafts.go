@@ -13,17 +13,21 @@ import (
 func scanDraft(row pgx.Row) (service.Draft, error) {
 	var v service.Draft
 	var raw []byte
-	err := row.Scan(&v.ID, &v.OrganizationID, &v.Revision, &raw, &v.UpdatedAt)
+	var active []byte
+	err := row.Scan(&v.ID, &v.OrganizationID, &v.Revision, &raw, &v.UpdatedAt, &active)
 	if errors.Is(err, pgx.ErrNoRows) {
 		err = fault.NotFound
 	}
 	if err == nil {
 		err = json.Unmarshal(raw, &v.Document)
 	}
+	if err == nil && len(active) > 0 {
+		err = json.Unmarshal(active, &v.ActiveVersion)
+	}
 	return v, err
 }
 
-const draftColumns = `id,organization_id,revision,document,updated_at`
+const draftColumns = `id,organization_id,revision,document,updated_at,active_version`
 
 func (p Postgres) Drafts(ctx context.Context, org string) ([]service.Draft, error) {
 	rows, err := p.Pool.Query(ctx, `SELECT `+draftColumns+` FROM platform_app.drafts WHERE organization_id=$1 ORDER BY updated_at DESC,id LIMIT 200`, org)
@@ -46,6 +50,9 @@ func (p Postgres) Draft(ctx context.Context, org, id string) (service.Draft, err
 }
 func (p Postgres) SaveDraft(ctx context.Context, org, actor, id, key, hash string, b service.SaveDraft) (service.Draft, error) {
 	var out service.Draft
+	if id == "" && b.Document.Capability == service.PrivateProducts && p.OnDraftCreated == nil {
+		return out, fault.Unavailable
+	}
 	tx, err := p.Pool.Begin(ctx)
 	if err != nil {
 		return out, err
@@ -82,7 +89,9 @@ func (p Postgres) SaveDraft(ctx context.Context, org, actor, id, key, hash strin
 	if id == "" {
 		id = ids.New("app")
 		action = "draft_created"
-		out, err = scanDraft(tx.QueryRow(ctx, `INSERT INTO platform_app.drafts(id,organization_id,revision,document) VALUES($1,$2,1,$3) RETURNING `+draftColumns, id, org, doc))
+		out, err = scanDraft(tx.QueryRow(ctx, `INSERT INTO platform_app.drafts(id,organization_id,revision,document,active_version)
+VALUES($1,$2,1,$3,jsonb_build_object('document',$3::jsonb,'revision',1,'activatedAt',now()))
+RETURNING `+draftColumns, id, org, doc))
 	} else {
 		out, err = scanDraft(tx.QueryRow(ctx, `UPDATE platform_app.drafts SET revision=revision+1,document=$4,updated_at=now() WHERE id=$1 AND organization_id=$2 AND revision=$3 RETURNING `+draftColumns, id, org, b.Revision, doc))
 		if errors.Is(err, fault.NotFound) {
@@ -93,11 +102,21 @@ func (p Postgres) SaveDraft(ctx context.Context, org, actor, id, key, hash strin
 		return out, err
 	}
 	raw, _ = json.Marshal(out)
+	if action == "draft_created" && p.OnDraftCreated != nil {
+		if err = p.OnDraftCreated(ctx, tx, org, id, actor); err != nil {
+			return out, err
+		}
+	}
 	if _, err = tx.Exec(ctx, `INSERT INTO platform_app.draft_requests(organization_id,request_key,request_hash,response) VALUES($1,$2,$3,$4)`, org, key, hash, raw); err != nil {
 		return out, err
 	}
 	if _, err = tx.Exec(ctx, `INSERT INTO platform_app.draft_audit(id,app_id,organization_id,actor_id,revision,action) VALUES($1,$2,$3,$4,$5,$6)`, ids.New("aud"), id, org, actor, out.Revision, action); err != nil {
 		return out, err
+	}
+	if action == "draft_created" {
+		if _, err = tx.Exec(ctx, `INSERT INTO platform_app.draft_audit(id,app_id,organization_id,actor_id,revision,action) VALUES($1,$2,$3,$4,1,'initial_version_activated')`, ids.New("aud"), id, org, actor); err != nil {
+			return out, err
+		}
 	}
 	return out, tx.Commit(ctx)
 }

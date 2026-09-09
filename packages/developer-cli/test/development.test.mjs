@@ -4,6 +4,7 @@ import { mkdtemp, rm, readFile, writeFile, symlink, unlink } from 'node:fs/promi
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { get } from 'node:http';
+import { createHash } from 'node:crypto';
 import { initApp } from '../src/development.mjs';
 import { startTestServer as startDev } from './http-fixture.mjs';
 import { run } from '../src/cli.mjs';
@@ -15,9 +16,9 @@ test('UI creation uses reviewed UI endpoint, explicit consent and no business sc
   const document = { name:'Demo', summary:'Local test', version:'0.1.0', mode:'embedded', url:'https://app.example.com/', reason:'Test' };
   await writeFile(file, JSON.stringify(document));
   const calls = [];
-  const options = { store:{load:async()=>({origin:'https://portal.example.com',cookie:'emisell_portal_session=test'})},output(){},fetcher:async(url,init)=>{
+  const options = { store:{save:async()=>{},load:async()=>({origin:'https://portal.example.com',cookie:'emisell_portal_session=test'})},output(){},fetcher:async(url,init)=>{
     calls.push({url,...init});
-    return new Response(JSON.stringify(url.endsWith('/session')?{user:{surface:'developer'}}:{releases:[]}),{headers:{'content-type':'application/json'}});
+    return new Response(JSON.stringify(url.endsWith('/session')?{user:{surface:'developer'}}:url.endsWith('/activity')?{expiresAt:new Date(Date.now()+3600000).toISOString()}:{releases:[]}),{headers:{'content-type':'application/json'}});
   }};
   const args = ['ui','create','--file',file,'--request-key','ui-test-001'];
   await assert.rejects(run(args,options),/--yes/);
@@ -74,9 +75,9 @@ test('starter uses pinned source UI/bridge, never overwrites a project', async t
   await initApp(project, 'http://localhost:3000');
   await assert.rejects(initApp(project, 'http://localhost:3000'), /EEXIST/);
   await assert.rejects(initApp(join(base, 'bad'), 'http://remote.example'), /HTTPS/);
-  for (const [asset, source] of [['app/styles/emisell-ui.css', '../../../pkg/appui/emisell-ui.css'], ['app/lib/bridge.mjs', '../../../pkg/embedded/bridge.mjs']]) {
-    const canonical = new URL(source, import.meta.url);
-    assert.equal(await readFile(join(project, asset), 'utf8'), await readFile(canonical, 'utf8'));
+  // Pinned vendored assets: this test also runs in the standalone CLI checkout.
+  for (const [asset, digest] of [['app/styles/emisell-ui.css', '5b5cfd0793c99a80c77dd0a57dc413ddab8dfdbd2a101fa8c58055845e6d6bd3'], ['app/lib/bridge.mjs', 'de5a361b1de48410def0b30bc8e495c0c269ad4ae52a36e5e61b26f1c4c0ad7f']]) {
+    assert.equal(createHash('sha256').update(await readFile(join(project, asset))).digest('hex'), digest);
   }
 });
 test('preview serves only starter assets, no credentials or fake backend success', async t => {
@@ -104,9 +105,9 @@ test('preview serves only starter assets, no credentials or fake backend success
 });
 test('testing command uses existing UI assignment contract and requires consent to request', async () => {
   const calls = [];
-  const options = { store: { load: async () => ({ origin: 'https://apps.example.com', cookie: 'emisell_portal_session=test' }) }, output() {}, fetcher: async (url, init) => {
+  const options = { store: { save:async()=>{}, load: async () => ({ origin: 'https://apps.example.com', cookie: 'emisell_portal_session=test' }) }, output() {}, fetcher: async (url, init) => {
     calls.push({ url, ...init });
-    return new Response(JSON.stringify(url.endsWith('/session') ? { user: { surface: 'developer' } } : { assignments: [], nextAfterId: '' }), { headers: { 'content-type': 'application/json' } });
+    return new Response(JSON.stringify(url.endsWith('/session') ? { user: { surface: 'developer' } } : url.endsWith('/activity')?{expiresAt:new Date(Date.now()+3600000).toISOString()}: { assignments: [], nextAfterId: '' }), { headers: { 'content-type': 'application/json' } });
   } };
   const args = ['testing', 'request', '--release-id', 'ui1', '--merchant-id', 'merchant1', '--reason', 'test', '--request-key', 'testing-001'];
   await assert.rejects(run(args, options), /--yes/);

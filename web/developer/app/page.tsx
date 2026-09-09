@@ -1,5 +1,5 @@
-import Portal from "@/components/portal";
+import Documentation from "@/components/documentation";
 
 export default function Home() {
-  return <Portal surface="developer" />;
+  return <Documentation />;
 }

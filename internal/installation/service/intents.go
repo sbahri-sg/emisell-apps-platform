@@ -107,7 +107,7 @@ func (s Intents) Prepare(ctx context.Context, p identity.ServicePrincipal, actor
 		}
 	}
 	var result domain.InstallIntent
-	err = s.withManaged(ctx, owner.TenantID, request.AppID, request.Version, func(ctx context.Context) error {
+	err = s.withManaged(ctx, owner, request.AppID, request.Version, func(ctx context.Context) error {
 		var err error
 		result, err = s.Repo.ChangeIntent(ctx, owner, key, hash, "", func(_ *domain.InstallIntent, now time.Time) (domain.InstallIntent, error) {
 			release, err := s.release(ctx, request.AppID, request.Version)
@@ -180,6 +180,6 @@ func (s Intents) Decide(ctx context.Context, p identity.ServicePrincipal, actor,
 		return domain.InstallIntent{}, err
 	}
 	var result domain.InstallIntent
-	err = s.withManaged(ctx, owner.TenantID, current.Release.AppID, current.Release.Version, func(ctx context.Context) error { var e error; result, e = change(ctx); return e })
+	err = s.withManaged(ctx, owner, current.Release.AppID, current.Release.Version, func(ctx context.Context) error { var e error; result, e = change(ctx); return e })
 	return result, err
 }

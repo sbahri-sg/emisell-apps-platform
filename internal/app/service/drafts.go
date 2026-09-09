@@ -30,11 +30,20 @@ type AppDocument struct {
 	Webhooks     *webhookconfig.Config    `json:"webhooks,omitempty"`
 }
 type Draft struct {
-	ID             string      `json:"id"`
-	OrganizationID string      `json:"organizationId"`
-	Revision       int         `json:"revision"`
-	Document       AppDocument `json:"document"`
-	UpdatedAt      time.Time   `json:"updatedAt"`
+	ID             string         `json:"id"`
+	OrganizationID string         `json:"organizationId"`
+	Revision       int            `json:"revision"`
+	Document       AppDocument    `json:"document"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
+	ActiveVersion  *ActiveVersion `json:"activeVersion,omitempty"`
+}
+
+// ActiveVersion is the selected developer configuration, not an installation,
+// executable release or permission grant. Working drafts never mutate it.
+type ActiveVersion struct {
+	Document    AppDocument `json:"document"`
+	Revision    int         `json:"revision"`
+	ActivatedAt time.Time   `json:"activatedAt"`
 }
 type SaveDraft struct {
 	Revision int         `json:"revision"`
@@ -69,7 +78,12 @@ func (d AppDocument) Validate(submit bool) error {
 		return fault.Invalid
 	}
 	allowed := []string{"orders.read", "payments.read", "payments.write"}
-	if d.Capability == "shipping/v1" {
+	if d.Capability == PrivateProducts {
+		if submit || !d.privateProductsValid() {
+			return fault.Invalid
+		}
+		return nil
+	} else if d.Capability == "shipping/v1" {
 		allowed = []string{"orders.read", "shipping.read", "shipping.write"}
 	} else if d.Capability != "payment/v1" {
 		return fault.Invalid
@@ -120,7 +134,7 @@ func (s Drafts) Save(ctx context.Context, p identity.PortalPrincipal, id, key st
 	if err = b.Document.Validate(false); err != nil {
 		return Draft{}, err
 	}
-	if err = ValidatePublicDistribution(b.Document.Capability); err != nil {
+	if err = validateAuthoring(b.Document.Capability); err != nil {
 		return Draft{}, err
 	}
 	if id != "" {
@@ -128,12 +142,22 @@ func (s Drafts) Save(ctx context.Context, p identity.PortalPrincipal, id, key st
 		if err != nil {
 			return Draft{}, err
 		}
-		if err = ValidatePublicDistribution(previous.Document.Capability); err != nil {
+		if err = validateAuthoring(previous.Document.Capability); err != nil {
 			return Draft{}, err
+		}
+		if previous.Document.Capability != b.Document.Capability {
+			return Draft{}, fault.Invalid
 		}
 	}
 	return s.Repo.SaveDraft(ctx, org.ID, p.ID, id, key, RequestHash(struct {
 		ID   string
 		Body SaveDraft
 	}{id, b}), b)
+}
+
+func validateAuthoring(capability string) error {
+	if capability == PrivateProducts {
+		return nil
+	}
+	return ValidatePublicDistribution(capability)
 }

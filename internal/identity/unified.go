@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// Resolve login from validated credentials, never from a client-supplied role.
+// Password login is admin-only. Merchant-backed developer sessions use the SSO exchange.
 func (s Portals) LoginUnified(ctx context.Context, email, password, old string) (PortalPrincipal, string, error) {
 	if len(email) > 254 || len(password) > 256 {
 		return PortalPrincipal{}, "", fault.Unauthenticated
@@ -17,7 +17,7 @@ func (s Portals) LoginUnified(ctx context.Context, email, password, old string) 
 	var selected PortalPrincipal
 	var selectedHash string
 	matches := 0
-	for _, surface := range []string{"admin", "developer"} {
+	for _, surface := range []string{"admin"} {
 		p, hash, err := s.Repo.FindPortal(ctx, surface, strings.ToLower(strings.TrimSpace(email)))
 		if err != nil && !errors.Is(err, fault.NotFound) {
 			return PortalPrincipal{}, "", err

@@ -82,7 +82,7 @@ for (const name of names) {
       const security = op.security ?? specs[source].security ?? [];
       const group = (path.startsWith('/api/v1/admin/') || ['/api/v1/portal/login','/api/v1/portal/session'].includes(path))
         ? 'admin'
-        : path.startsWith('/api/v1/developer/')
+        : (path.startsWith('/api/v1/developer/') || ['/api/v1/developer-login/cli/start', '/api/v1/developer-login/cli/poll', '/api/v1/developer-login/cli/confirm'].includes(path))
           ? 'developer'
           : path.startsWith('/api/v1/store/')
             ? 'store'

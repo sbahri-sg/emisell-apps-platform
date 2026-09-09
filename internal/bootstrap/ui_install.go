@@ -126,6 +126,9 @@ func EnableReviewedUI(base *connectapi.Server, source ReviewedUIInstallSource, k
 			return nil
 		})
 	}
+	if len(source.ResourceKey) == ed25519.PrivateKeySize && source.Products != nil {
+		enablePrivateProducts(base, source)
+	}
 	return nil
 }
 

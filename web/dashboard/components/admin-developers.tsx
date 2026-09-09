@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Users, RefreshCw, Plus } from 'lucide-react';
+import { Users, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -12,7 +12,6 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import type { PortalAPI } from '@/lib/portal';
-import { PortalError } from '@/lib/portal';
 type Organization = { id: string; name: string; memberCount: number };
 export default function AdminDevelopers({
   api,
@@ -28,11 +27,6 @@ export default function AdminDevelopers({
     [error, setError] = useState(''),
     [busy, setBusy] = useState(true),
     [revision, setRevision] = useState(0);
-  const [creating, setCreating] = useState(false);
-  const [organizationName, setOrganizationName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [success, setSuccess] = useState('');
   const allowed = api.surface === 'admin' && role === 'administrator';
   useEffect(() => {
     let current = true;
@@ -64,13 +58,7 @@ export default function AdminDevelopers({
     try {
       await fn();
     } catch (e) {
-      setError(
-        creating && e instanceof PortalError && e.status === 409
-          ? 'Email sudah digunakan. Gunakan email lain; akun lama tidak diubah.'
-          : e instanceof Error
-            ? e.message
-            : 'Permintaan gagal.',
-      );
+      setError(e instanceof Error ? e.message : 'Permintaan gagal.');
     } finally {
       setBusy(false);
     }
@@ -90,19 +78,9 @@ export default function AdminDevelopers({
       <div className="overview-heading">
         <div>
           <h1>Developer</h1>
-          <p>Organisasi pembuat aplikasi di Emisell Apps.</p>
+          <p>Developer yang terdaftar melalui akun merchant Emisell.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            disabled={busy || creating}
-            onClick={() => {
-              setCreating(true);
-              setError('');
-              setSuccess('');
-            }}
-          >
-            <Plus /> Tambah developer
-          </Button>
           <Button
             disabled={busy}
             variant="outline"
@@ -116,94 +94,6 @@ export default function AdminDevelopers({
           </Button>
         </div>
       </div>
-      {success && <p role="status">{success}</p>}
-      {creating && (
-        <form
-          className="portal-panel grid gap-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void perform(async () => {
-              const result = await api.request<{ organization: Organization }>(
-                '/developers',
-                'POST',
-                { organizationName, email, password },
-              );
-              setPassword('');
-              setEmail('');
-              setOrganizationName('');
-              setCreating(false);
-              setSelected(result.organization);
-              setSuccess(
-                'Akun developer berhasil dibuat dan sudah dapat login. Sampaikan password melalui saluran pribadi; email undangan tidak dikirim otomatis.',
-              );
-              setRevision((value) => value + 1);
-            });
-          }}
-        >
-          <h2>Tambah developer</h2>
-          <p>
-            Buat organisasi baru beserta akun pemiliknya. Akun ini tidak
-            memiliki akses administrator.
-          </p>
-          <label htmlFor="developer-organization">Nama organisasi</label>
-          <Input
-            id="developer-organization"
-            autoFocus
-            required
-            maxLength={120}
-            value={organizationName}
-            disabled={busy}
-            onChange={(event) => setOrganizationName(event.target.value)}
-          />
-          <label htmlFor="developer-email">Email login</label>
-          <Input
-            id="developer-email"
-            type="email"
-            autoComplete="off"
-            required
-            maxLength={254}
-            value={email}
-            disabled={busy}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-          <label htmlFor="developer-password">Password</label>
-          <Input
-            id="developer-password"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={12}
-            maxLength={256}
-            aria-describedby="developer-password-help"
-            value={password}
-            disabled={busy}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          <p id="developer-password-help">
-            Minimal 12 karakter. Gunakan password unik dan bagikan hanya kepada
-            pemilik akun.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={busy}>
-              {busy ? 'Membuat akun…' : 'Buat akun developer'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={busy}
-              onClick={() => {
-                setCreating(false);
-                setPassword('');
-                setEmail('');
-                setOrganizationName('');
-                setError('');
-              }}
-            >
-              Batal
-            </Button>
-          </div>
-        </form>
-      )}
       {error && (
         <p role="alert" className="access-error">
           {error}

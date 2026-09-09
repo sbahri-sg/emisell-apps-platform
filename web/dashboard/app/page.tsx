@@ -1,5 +1,5 @@
-import UnifiedPortal from '@/components/unified-portal';
+import Documentation from '@/components/documentation';
 
 export default function Home() {
-  return <UnifiedPortal />;
+  return <Documentation />;
 }

@@ -61,6 +61,12 @@ export function portalView(surface: string, search: string): string {
         ]
       : [
           'apps',
+          'stores',
+          'catalogs',
+          'monitoring',
+          'logs',
+          'versions',
+          'app-settings',
           'reviews',
           'catalog',
           'integration-releases',

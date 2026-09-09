@@ -2,7 +2,7 @@ import type { PortalAPI } from './portal.ts';
 export type UIReleaseOption = {
   id: string;
   status: string;
-  manifest: { name: string; version: string; mode: string };
+  manifest: { appId?: string; name: string; version: string; mode: string };
 };
 export async function uiReleaseOptions(
   api: PortalAPI,

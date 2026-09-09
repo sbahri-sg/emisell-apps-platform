@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"crypto/rand"
-	developerrepo "emisell.app/platform/internal/developer/postgres"
 	"emisell.app/platform/internal/identity"
 	identityrepo "emisell.app/platform/internal/identity/postgres"
 	"emisell.app/platform/internal/platform/localfiles"
@@ -70,8 +69,6 @@ func initPortals(ctx context.Context, pool *pgxpool.Pool) error {
 			{User: identity.PortalPrincipal{ID: "portal-local-admin", Email: "admin@emisell.local", Surface: "admin", Role: "administrator"}, Password: rand.Text() + rand.Text()},
 			{User: identity.PortalPrincipal{ID: "portal-local-reviewer", Email: "reviewer@emisell.local", Surface: "admin", Role: "reviewer"}, Password: rand.Text() + rand.Text()},
 			{User: identity.PortalPrincipal{ID: "portal-local-operator", Email: "operator@emisell.local", Surface: "admin", Role: "operator"}, Password: rand.Text() + rand.Text()},
-			{User: identity.PortalPrincipal{ID: "portal-local-developer", Email: "developer@emisell.local", Surface: "developer", Role: "developer"}, Password: rand.Text() + rand.Text(), OrganizationID: "dev-emisell-local", OrganizationName: "Emisell Developer"},
-			{User: identity.PortalPrincipal{ID: "portal-local-developer-two", Email: "developer-two@emisell.local", Surface: "developer", Role: "developer"}, Password: rand.Text() + rand.Text(), OrganizationID: "dev-independent-local", OrganizationName: "Independent Developer"},
 		}
 		if err = localfiles.Write(path, accounts, false); err != nil {
 			return err
@@ -80,15 +77,14 @@ func initPortals(ctx context.Context, pool *pgxpool.Pool) error {
 		return err
 	}
 	for _, account := range accounts {
+		if account.User.Surface != "admin" {
+			continue
+		}
 		if err = (identityrepo.Repository{Pool: pool}).SeedPortal(ctx, account.User, account.Password); err != nil {
 			return err
 		}
-		if account.User.Surface == "developer" {
-			if err = (developerrepo.Repository{Pool: pool}).SeedOrganization(ctx, account.User.ID, account.OrganizationID, account.OrganizationName); err != nil {
-				return err
-			}
-		}
+
 	}
-	fmt.Println("Separate local portal accounts ready. Credentials: .local/portals.json (private). Existing credentials, merchant accounts, and installations preserved.")
+	fmt.Println("Local admin accounts ready. Developers sign in with Emisell. Credentials: .local/portals.json (private). Existing credentials, merchant accounts, and installations preserved.")
 	return nil
 }

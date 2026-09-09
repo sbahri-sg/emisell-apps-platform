@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 	"crypto/ed25519"
+	"emisell.app/platform/internal/app/contact"
 	apprepo "emisell.app/platform/internal/app/repository"
 	appservice "emisell.app/platform/internal/app/service"
 	"emisell.app/platform/internal/capability"
@@ -10,12 +11,14 @@ import (
 	"emisell.app/platform/internal/developer"
 	developerrepo "emisell.app/platform/internal/developer/postgres"
 	"emisell.app/platform/internal/identity"
+	"emisell.app/platform/internal/identity/merchantlogin"
 	identityrepo "emisell.app/platform/internal/identity/postgres"
 	installrepo "emisell.app/platform/internal/installation/postgres"
 	installservice "emisell.app/platform/internal/installation/service"
 	"emisell.app/platform/internal/oauth"
 	"emisell.app/platform/internal/oauth/appclient"
 	clientrepo "emisell.app/platform/internal/oauth/appclient/postgres"
+	"emisell.app/platform/internal/oauth/appidentity"
 	"emisell.app/platform/internal/oauth/embedded"
 	embeddedrepo "emisell.app/platform/internal/oauth/embedded/postgres"
 	"emisell.app/platform/internal/platform/localfiles"
@@ -28,6 +31,7 @@ import (
 	"emisell.app/platform/internal/webhook"
 	webhookrepo "emisell.app/platform/internal/webhook/postgres"
 	"emisell.app/platform/internal/webhook/subscriptions"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 	"net/http"
@@ -79,7 +83,26 @@ func handlerWithManagedShipping(pool, capabilityPool, clientPool *pgxpool.Pool, 
 	auth := identity.Service{Repo: identityrepo.Repository{Pool: pool}}
 	portals := identity.Portals{Repo: identityrepo.Repository{Pool: pool}}
 	developers := developer.Service{Repo: developerrepo.Repository{Pool: pool}}
-	drafts := appservice.Drafts{Repo: apprepo.Postgres{Pool: pool}, Developers: developers}
+	credentialBox, _ := localfiles.ReadApplicationCredentialBox() // cmd/server validates before serving.
+	appIdentities := appidentity.Repository{Pool: pool, Box: credentialBox}
+	draftRepo := apprepo.Postgres{Pool: pool}
+	if credentialBox != nil {
+		draftRepo.OnDraftCreated = func(ctx context.Context, tx pgx.Tx, org, app, actor string) error {
+			if err := appIdentities.EnsureTx(ctx, tx, org, app, actor); err != nil {
+				return err
+			}
+			client, err := appIdentities.ClientIDTx(ctx, tx, org, app)
+			if err != nil {
+				return err
+			}
+			var key ed25519.PrivateKey
+			if embeddedConfig != nil {
+				key = embeddedConfig.ResourceReleaseKey
+			}
+			return draftRepo.CreatePrivateProductTx(ctx, tx, org, app, actor, client, key)
+		}
+	}
+	drafts := appservice.Drafts{Repo: draftRepo, Developers: developers}
 	reviews := review.Service{Repo: reviewrepo.Repository{Pool: pool}, Drafts: drafts, Developers: developers}
 	catalog := appservice.Catalog{Repo: apprepo.Postgres{Pool: pool}, Source: reviews, Signer: signer, Developers: developers}
 	integrations := appservice.Integrations{Repo: apprepo.Postgres{Pool: pool}, Source: reviews, Signer: integrationSigner, Developers: developers}
@@ -133,7 +156,7 @@ func handlerWithManagedShipping(pool, capabilityPool, clientPool *pgxpool.Pool, 
 			}
 		}
 	}
-	return httpapi.Server{WebhookSubscriptions: subscriptions.Repository{Pool: pool}, OverviewPool: pool, EmbeddedLaunches: launchReviews, ManagedShipping: managed, Testing: testing, AppClients: appClients, Integrations: integrations, AppAccess: appAccess, PlatformKeys: identity.PlatformKeys{Repo: identityrepo.Repository{Pool: pool}}, ManagedKeys: identity.ManagedKeys{Repo: identityrepo.Repository{Pool: pool}}, Catalog: catalog, Portals: portals, Developers: developers, Drafts: drafts, Reviews: reviews, Identity: auth, Apps: registry, Installations: installs, Capabilities: caps, OAuth: connection, Webhooks: webhooks, Connections: monitor, Payments: payments, Origin: origin, Logger: logger, Ready: func(ctx context.Context) error { return pool.Ping(ctx) }}.Handler()
+	return httpapi.Server{DeveloperLogin: merchantlogin.Repository{Pool: pool}, CoreAccounts: identity.ServiceAccounts{Repo: identityrepo.Repository{Pool: pool}}, AppContacts: contact.Repository{Pool: pool}, AppIdentities: appIdentities, WebhookSubscriptions: subscriptions.Repository{Pool: pool}, OverviewPool: pool, EmbeddedLaunches: launchReviews, ManagedShipping: managed, Testing: testing, AppClients: appClients, Integrations: integrations, AppAccess: appAccess, PlatformKeys: identity.PlatformKeys{Repo: identityrepo.Repository{Pool: pool}}, ManagedKeys: identity.ManagedKeys{Repo: identityrepo.Repository{Pool: pool}}, Catalog: catalog, Portals: portals, Developers: developers, Drafts: drafts, Reviews: reviews, Identity: auth, Apps: registry, Installations: installs, Capabilities: caps, OAuth: connection, Webhooks: webhooks, Connections: monitor, Payments: payments, Origin: origin, Logger: logger, Ready: func(ctx context.Context) error { return pool.Ping(ctx) }}.Handler()
 }
 
 // InternalHandler shares domain/use cases but uses service accounts, not browser sessions.

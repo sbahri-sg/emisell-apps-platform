@@ -161,7 +161,7 @@ func (s Lifecycle) Consume(ctx context.Context, p identity.ServicePrincipal, act
 		return domain.AccessResult{}, err
 	}
 	var result domain.AccessResult
-	err = s.Intents.withManaged(ctx, o.TenantID, intent.Release.AppID, intent.Release.Version, func(ctx context.Context) error {
+	err = s.Intents.withManaged(ctx, o, intent.Release.AppID, intent.Release.Version, func(ctx context.Context) error {
 		var e error
 		result, e = s.Repo.ConsumeIntent(ctx, o, key, hash, intentID, func(v domain.InstallIntent, now time.Time) error {
 			if v.Effective(now).State != "consented" || v.ConsentDigest != digest {
@@ -312,7 +312,7 @@ func (s Lifecycle) Execute(ctx context.Context, p identity.ServicePrincipal, act
 		if e != nil {
 			return v, e
 		}
-		err = s.Intents.withManaged(ctx, o.TenantID, current.Release.AppID, current.Release.Version, func(ctx context.Context) error { var e error; v, e = change(ctx); return e })
+		err = s.Intents.withManaged(ctx, o, current.Release.AppID, current.Release.Version, func(ctx context.Context) error { var e error; v, e = change(ctx); return e })
 	}
 	if err == nil && action == "issue_token" && !v.Replayed {
 		v.Token.Secret = secret

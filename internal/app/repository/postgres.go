@@ -7,10 +7,15 @@ import (
 	"emisell.app/platform/pkg/appmanifest"
 	"encoding/base64"
 	"encoding/json"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Postgres struct{ Pool *pgxpool.Pool }
+type Postgres struct {
+	Pool *pgxpool.Pool
+	// Bootstrap composes dependent identity creation in the same transaction.
+	OnDraftCreated func(context.Context, pgx.Tx, string, string, string) error
+}
 
 // SeedRemote is opt-in and does not rewrite existing signed releases.
 func (p Postgres) SeedRemote(ctx context.Context) error {

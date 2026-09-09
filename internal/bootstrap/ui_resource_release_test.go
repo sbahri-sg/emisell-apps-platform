@@ -42,7 +42,7 @@ func TestUIResourcePortalRoutes(t *testing.T) {
 	if result["installable"] != false {
 		t.Fatal("signature grants access")
 	}
-	body.RequiredScopes = []string{"read_orders"}
+	body.RequiredScopes = []string{"write_products"}
 	pexpect(t, dev, "POST", path, body, key(), 400)
 }
 
@@ -138,7 +138,7 @@ func TestUIResourceAuthoring(t *testing.T) {
 		t.Fatal("tenant leak")
 	}
 	bad := input
-	bad.RequiredScopes = []string{"read_orders"}
+	bad.RequiredScopes = []string{"write_products"}
 	if _, err = s.Submit(ctx, p, key(), bad); err == nil {
 		t.Fatal("unsupported scope accepted")
 	}

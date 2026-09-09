@@ -1,3 +1,10 @@
+# 0.5.0 — 2026-09-09
+
+- Merchant browser SSO with explicit CLI confirmation, proof-bound five-minute requests and one-hour idle sessions. Requires Apps Platform migration 0035/server support; password login removed.
+- `stores list`, `auth status`, `app config link`, `app install`, and opt-in `app dev --connect`; remembered account/project navigation, current Core store switch and browser consent. No automatic install or cookie import.
+- `apps init` defaults to a private `read_products` app document; preserves legacy shipping/review commands and existing projects.
+- CLI login remains distinct from app runtime OAuth, credentials and grants. No tunnel, App URL deployment, production release or npm publication performed by these commands.
+
 # 0.4.0 — 2026-09-08
 
 - Add reviewed `read_inventory` / `read_locations` demo pages using existing product URLs with `view=inventory` and existing location URLs. Preserve active-location balances, exclude addresses/phones, and require explicit signed scopes and seller consent. No production activation.

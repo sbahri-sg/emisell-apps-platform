@@ -44,6 +44,6 @@ void test('entrypoint cannot select merchant mode, use a workspace session, or f
     page,
     /APIPlatform|LocalDashboard|dashboard-model|searchParams|URLSearchParams|VITE_EMISELL_LOCAL|fetch\(|localStorage|sessionStorage/,
   );
-  assert.match(page, /<UnifiedPortal/);
+  assert.match(page, /<Documentation/);
   assert.doesNotMatch(page, /<form|onClick|href="http:\/\/localhost:431[89]/);
 });

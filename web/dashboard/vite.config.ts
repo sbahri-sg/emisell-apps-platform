@@ -2,6 +2,7 @@ import { sites } from '@openai/sites-vite-plugin';
 import tailwindcss from '@tailwindcss/postcss';
 import vinext from 'vinext';
 import { defineConfig } from 'vite';
+import { documentationPlugin } from './scripts/documentation-plugin';
 import hostingConfig from './.openai/hosting.json' with { type: 'json' };
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
@@ -65,6 +66,7 @@ export default defineConfig(async () => {
         : {}),
     },
     plugins: [
+      documentationPlugin(),
       vinext(),
       ...(process.env.EMISELL_NODE_BUILD === 'true' ? [] : [sites(), cloudflare({
         viteEnvironment: { name: 'rsc', childEnvironments: ['ssr'] },

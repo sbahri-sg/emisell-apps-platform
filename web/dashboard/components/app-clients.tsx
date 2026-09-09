@@ -36,7 +36,8 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from '@/components/ui/alert-dialog';
-import type { PortalAPI, Session } from '@/lib/portal';
+import type { Draft, PortalAPI, Session } from '@/lib/portal';
+import { forApp } from '@/lib/developer-navigation';
 import type { IntegrationRelease } from '@/lib/integration-releases';
 import {
   uiReleaseOptions,
@@ -61,11 +62,17 @@ export default function AppClients({
   session,
   busy,
   perform,
+  app,
+  initialClientId,
+  embedded = false,
 }: {
   api: PortalAPI;
   session: Session;
   busy: boolean;
   perform: (fn: () => Promise<void>, notice?: string) => Promise<void>;
+  app?: Draft;
+  initialClientId?: string;
+  embedded?: boolean;
 }) {
   const [clients, setClients] = useState<ClientView[] | null>(null);
   const [releases, setReleases] = useState<IntegrationRelease[]>([]);
@@ -76,6 +83,7 @@ export default function AppClients({
   const [error, setError] = useState('');
   const [secret, setSecret] = useState('');
   const developer = session.user.surface === 'developer';
+  const Heading = embedded ? 'h3' : 'h1';
   useEffect(() => {
     let active = true;
     Promise.all([
@@ -83,11 +91,22 @@ export default function AppClients({
       api.request<{ releases: IntegrationRelease[] }>('/integration-releases'),
       uiReleaseOptions(api),
     ])
-      .then(([c, r, ui]) => {
+      .then(async ([c, r, ui]) => {
         if (active) {
           setClients(c.clients);
           setReleases(r.releases);
           setUIReleases(ui);
+          if (
+            initialClientId &&
+            forApp(c.clients, app?.id, (row) => row.client.binding.appId).some(
+              (row) => row.client.id === initialClientId,
+            )
+          ) {
+            const value = await api.request<ClientDetail>(
+              `/app-clients/${initialClientId}`,
+            );
+            if (active) setDetail(value);
+          }
         }
       })
       .catch((e: Error) => {
@@ -96,7 +115,7 @@ export default function AppClients({
     return () => {
       active = false;
     };
-  }, [api]);
+  }, [api, app?.id, initialClientId]);
   useEffect(() => {
     if (!secret) return;
     const timer = window.setTimeout(() => setSecret(''), 5 * 60 * 1000);
@@ -140,7 +159,21 @@ export default function AppClients({
       await reload();
       setDetail(await api.request(`/app-clients/${r.view.client.id}`));
     }, 'Tindakan tercatat. Periksa status terbaru; client tidak memberi akses tenant atau mengaktifkan OAuth.');
-  const eligible = releases.filter(
+  const visibleClients = forApp(
+    clients ?? [],
+    app?.id,
+    (row) => row.client.binding.appId,
+  );
+  const appUIReleases = forApp(
+    uiReleases,
+    app?.id,
+    (row) => row.manifest.appId,
+  );
+  const eligible = forApp(
+    releases,
+    app?.id,
+    (row) => row.manifest.metadata.appId,
+  ).filter(
     (r) =>
       r.status === 'signed' &&
       publicDistributionAllowed(r.manifest.metadata.capability) &&
@@ -183,7 +216,7 @@ export default function AppClients({
             }}
           >
             <ArrowLeft />
-            Kembali ke app clients
+            Kembali ke credential
           </Button>
           <Button
             variant="outline"
@@ -197,7 +230,7 @@ export default function AppClients({
         <div className="page-heading">
           <div>
             <p className="eyebrow">APP CLIENT · PERSIAPAN OAUTH</p>
-            <h1>{c.binding.name}</h1>
+            <Heading>{c.binding.name}</Heading>
             <p>
               v{c.binding.version} · {status(v)}
             </p>
@@ -428,10 +461,10 @@ export default function AppClients({
       <div className="page-heading">
         <div>
           <p className="eyebrow">DEVELOPER INTEGRATION</p>
-          <h1>App clients</h1>
+          <Heading>{developer ? 'Credential aplikasi' : 'App clients'}</Heading>
           <p>
-            Identitas aplikasi, bukti kendali endpoint, dan pengelolaan
-            credential.
+            {app ? app.document.name : 'Semua aplikasi organisasi'} · Identitas
+            client dan pengelolaan secret.
           </p>
         </div>
         <Button
@@ -456,11 +489,11 @@ export default function AppClients({
         <section className="portal-panel">
           <h2>Daftarkan client aplikasi</h2>
           <p>
-            Satu client per rilis signed. URL dan konfigurasi
-            mengikuti snapshot immutable.
+            Satu client per rilis signed. URL dan konfigurasi mengikuti snapshot
+            immutable.
           </p>
           {eligible.length ||
-          uiReleases.some(
+          appUIReleases.some(
             (r) =>
               r.status === 'signed' &&
               !clients.some((c) => c.client.binding.releaseId === r.id),
@@ -502,7 +535,7 @@ export default function AppClients({
                       {r.manifest.metadata.version}
                     </NativeSelectOption>
                   ))}
-                  {uiReleases
+                  {appUIReleases
                     .filter(
                       (r) =>
                         r.status === 'signed' &&
@@ -538,7 +571,7 @@ export default function AppClients({
               ? 'Data belum tersedia. Coba muat ulang.'
               : 'Memuat app clients…'}
           </p>
-        ) : clients.length === 0 ? (
+        ) : visibleClients.length === 0 ? (
           <p>
             Belum ada client. Client aplikasi akan tampil setelah developer
             mendaftarkan rilis signed.
@@ -556,7 +589,7 @@ export default function AppClients({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clients.map((v) => (
+              {visibleClients.map((v) => (
                 <TableRow key={v.client.id}>
                   <TableCell>
                     <strong>{v.client.binding.name}</strong>

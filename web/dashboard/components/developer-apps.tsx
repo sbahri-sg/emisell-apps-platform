@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, FileCode2, RefreshCw } from 'lucide-react';
+import { ArrowUpRight, Blocks, FileCode2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Draft, PortalAPI } from '@/lib/portal';
 import {
@@ -15,11 +15,15 @@ export default function DeveloperApps({
   drafts,
   busy,
   openDraft,
+  filter = 'all',
+  compact = false,
 }: {
   api: PortalAPI;
   drafts: Draft[];
   busy: boolean;
   openDraft: (id: string) => void;
+  filter?: string;
+  compact?: boolean;
 }) {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<{
@@ -27,6 +31,7 @@ export default function DeveloperApps({
     failed: boolean;
   }>({ data: null, failed: false });
   useEffect(() => {
+    if (compact) return;
     let current = true;
     loadAppLifecycle(api)
       .then((data) => {
@@ -38,14 +43,40 @@ export default function DeveloperApps({
     return () => {
       current = false;
     };
-  }, [api, attempt]);
+  }, [api, attempt, compact]);
+  if (compact)
+    return (
+      <div className="dev-apps-compact-list">
+        {drafts.map((draft) => (
+          <button
+            type="button"
+            className="dev-apps-compact-card"
+            key={draft.id}
+            disabled={busy}
+            onClick={() => openDraft(draft.id)}
+          >
+            <span className="dev-apps-compact-icon" aria-hidden="true">
+              <Blocks />
+            </span>
+            <span className="dev-apps-compact-copy">
+              <strong>{draft.document.name}</strong>
+              <span title={draft.id}>
+                v{draft.document.version} · {draft.id}
+              </span>
+            </span>
+          </button>
+        ))}
+      </div>
+    );
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <output className="text-sm text-muted-foreground">
           {state.failed
             ? 'Status rilis belum dapat dimuat. Coba perbarui status.'
-            : 'Status rilis terpisah dari revisi draft. Testing bukan publikasi App Store.'}
+            : state.data
+              ? `${drafts.length} aplikasi · Status rilis terbaru`
+              : 'Memuat status rilis…'}
         </output>
         <Button
           variant="ghost"
@@ -73,6 +104,9 @@ export default function DeveloperApps({
               result = { ...result, label: 'Belum terverifikasi' };
             }
           }
+          if (filter === 'published' && result.label !== 'Dipublikasikan')
+            return null;
+          if (filter === 'draft' && result.label !== 'Draft') return null;
           return (
             <button
               className="app-row"
@@ -99,6 +133,23 @@ export default function DeveloperApps({
           );
         })}
       </div>
+      {drafts.length > 0 &&
+        filter !== 'all' &&
+        state.data &&
+        !drafts.some((draft) => {
+          try {
+            const label = appLifecycleStatus(draft, state.data!).label;
+            return filter === 'published'
+              ? label === 'Dipublikasikan'
+              : label === 'Draft';
+          } catch {
+            return false;
+          }
+        }) && (
+          <p className="dev-empty-filter">
+            Tidak ada aplikasi dengan status ini.
+          </p>
+        )}
     </>
   );
 }

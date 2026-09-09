@@ -60,7 +60,8 @@ void test('required/optional editing is explicit and does not rewrite legacy sco
     ),
   );
   assert.equal(JSON.stringify(blankDocument()), original);
-  assert.doesNotMatch(original, /accessScopes/);
+  assert.deepEqual(blankDocument().accessScopes?.required, ['read_products']);
+  assert.deepEqual(blankDocument().scopes, []);
 });
 void test('dependencies and unknown profile cannot pass local validation', () => {
   assert.match(

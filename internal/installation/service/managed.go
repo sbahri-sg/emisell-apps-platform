@@ -13,6 +13,13 @@ type ManagedReleases interface {
 
 type managedReleaseKey struct{}
 type managedMerchantKey struct{}
+type managedOwnerKey struct{}
+
+// Available only after Core authentication and current merchant authorization.
+func ResourceOwner(ctx context.Context) domain.IntentOwner {
+	owner, _ := ctx.Value(managedOwnerKey{}).(domain.IntentOwner)
+	return owner
+}
 
 // ResourceMerchant is authoritative only inside the managed release callback.
 func ResourceMerchant(ctx context.Context) string {
@@ -29,7 +36,9 @@ type intentReplay interface {
 
 // Every managed mutation retains release/assignment locks through its commit.
 // Legacy fixtures continue using their existing registry and receipt semantics.
-func (s Intents) withManaged(ctx context.Context, merchant, app, version string, fn func(context.Context) error) error {
+func (s Intents) withManaged(ctx context.Context, owner domain.IntentOwner, app, version string, fn func(context.Context) error) error {
+	merchant := owner.TenantID
+	ctx = context.WithValue(ctx, managedOwnerKey{}, owner)
 	if app == EmbeddedPilotApp {
 		r, err := s.EmbeddedPilot.release(merchant)
 		if err != nil {

@@ -317,9 +317,9 @@ export default function APIDocs({
           <div>
             <h2>Auth sesuai surface</h2>
             <p>
-              Admin :4317 dan Developer :4319 memakai cookie berbeda serta
-              Origin/Referer yang sesuai. Core memakai bearer server-to-server,
-              bukan sesi browser.
+              /admin dan /development memakai login terpadu dengan peran yang
+              diverifikasi backend serta Origin/Referer yang sesuai. Core
+              memakai bearer server-to-server, bukan sesi browser.
             </p>
           </div>
           <div>
@@ -424,7 +424,7 @@ export default function APIDocs({
               </p>
               <Button
                 variant="outline"
-                onClick={() => window.location.assign('/?view=scopes')}
+                onClick={() => window.location.assign('/admin?view=scopes')}
               >
                 Katalog Scope →
               </Button>

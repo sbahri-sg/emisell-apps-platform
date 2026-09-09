@@ -115,7 +115,7 @@ export default function AccessScopes({
             <Button
               variant="outline"
               onClick={() =>
-                window.location.assign('/?view=api-docs&api_group=gateway')
+                window.location.assign('/admin?view=api-docs&api_group=gateway')
               }
             >
               <BookOpen /> Dokumentasi gateway
@@ -181,7 +181,9 @@ export default function AccessScopes({
                 type="button"
                 variant="outline"
                 onClick={() =>
-                  window.location.assign('/?view=api-docs&api_group=gateway')
+                  window.location.assign(
+                    '/admin?view=api-docs&api_group=gateway',
+                  )
                 }
               >
                 Dokumentasi endpoint Gateway Emisell →

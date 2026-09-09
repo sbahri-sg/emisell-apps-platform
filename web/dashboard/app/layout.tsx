@@ -3,6 +3,10 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import './portal.css';
 import './admin-redesign.css';
+import './developer-redesign.css';
+import './catalog-preview.css';
+import './install-picker.css';
+import './documentation.css';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -15,9 +19,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Emisell — Dashboard Admin',
-  description: 'Review aplikasi dan keputusan versi di Emisell App Platform.',
-  robots: { index: false, follow: false },
+  title: 'Emisell Docs — Bangun aplikasi untuk Emisell',
+  description:
+    'Panduan Emisell CLI, credential aplikasi, scope, dan pengajuan versi untuk developer.',
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({

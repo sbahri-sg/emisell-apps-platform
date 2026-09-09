@@ -1,0 +1,13 @@
+[
+  {"id":"getting-started","title":"Buat aplikasi pertama","summary":"Siapkan project, jalankan secara lokal, lalu daftarkan aplikasi ke Emisell.","category":"Mulai membangun"},
+  {"id":"cli","title":"Emisell CLI","summary":"Perintah development untuk membuat, menjalankan, dan memeriksa project aplikasi.","category":"Mulai membangun"},
+  {"id":"template","title":"Struktur template","summary":"Kenali React Router, halaman aplikasi, dan backend dalam satu project.","category":"Mulai membangun"},
+  {"id":"authentication","title":"Autentikasi & otorisasi","summary":"Pahami identitas aplikasi, verifikasi sesi, dan persetujuan akses data toko.","category":"Bangun integrasi"},
+  {"id":"credentials","title":"Credential aplikasi","summary":"Kelola App ID, client ID, dan secret di backend aplikasi.","category":"Bangun integrasi"},
+  {"id":"scopes","title":"Scope & resource","summary":"Pilih izin baca dan pahami batas data yang dapat diakses aplikasi.","category":"Bangun integrasi"},
+  {"id":"embedded-apps","title":"Aplikasi embedded","summary":"Tampilkan aplikasi di Dashboard seller dengan identitas yang diverifikasi backend.","category":"Bangun integrasi"},
+  {"id":"submissions","title":"Review & pengujian","summary":"Ajukan versi, pantau status, dan uji akses setelah persetujuan seller.","category":"Uji & rilis"},
+  {"id":"deployment","title":"Build & deployment","summary":"Siapkan hasil build dan container; pisahkan hosting dari aktivasi akses toko.","category":"Uji & rilis"},
+  {"id":"troubleshooting","title":"Troubleshooting","summary":"Telusuri masalah instalasi, koneksi, izin, dan pembacaan resource.","category":"Referensi"},
+  {"id":"changelog","title":"Changelog CLI","summary":"Catatan perubahan fitur CLI yang tercatat di repository.","category":"Referensi"}
+]

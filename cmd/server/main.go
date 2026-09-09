@@ -82,6 +82,9 @@ func run() error {
 	}
 	defer connectionsPool.Close()
 	var remoteConfig localfiles.RemoteConfig
+	if _, err = localfiles.ReadApplicationCredentialBox(); err != nil {
+		return errors.New("application credential encryption unavailable; configure EMISELL_APP_CREDENTIAL_KEY or run cli init-app-credentials locally")
+	}
 	var connections *oauth.Service
 	if err = localfiles.Read(".local/remote-platform.json", &remoteConfig); err == nil {
 		connections, err = bootstrap.Connections(pool, connectionsPool, remoteConfig)
