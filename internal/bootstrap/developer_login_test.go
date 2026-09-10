@@ -145,7 +145,14 @@ func testDeveloperMerchantLoginHTTP(t *testing.T, portalOrigin string) {
 		t.Fatal(err)
 	}
 	target, _ := url.Parse(data["authorizeUrl"])
-	request := target.Query().Get("request")
+	if target.Path != "/auth/login" {
+		t.Fatal("must use the existing merchant login", target.Path)
+	}
+	resume, _ := url.Parse(target.Query().Get("returnTo"))
+	if resume.Path != "/api/app-platform/sso" || resume.IsAbs() {
+		t.Fatal("invalid SSO callback", resume)
+	}
+	request := resume.Query().Get("request")
 	cookies := start.Cookies()
 	if len(cookies) != 1 || !cookies[0].HttpOnly || cookies[0].SameSite != http.SameSiteLaxMode {
 		t.Fatal("browser proof cookie missing")

@@ -16,6 +16,10 @@ import (
 const developerLoginPrefix = "/api/v1/developer-login"
 const developerLoginCookie = "emisell_developer_login"
 
+func merchantLoginURL(seller, request string) string {
+	return seller + "/auth/login?" + url.Values{"returnTo": {"/api/app-platform/sso?request=" + url.QueryEscape(request)}}.Encode()
+}
+
 func (s Server) sellerOrigin() string {
 	value := os.Getenv("EMISELL_SELLER_ORIGIN")
 	if value == "" && os.Getenv("EMISELL_ENV") != "production" {
@@ -61,7 +65,7 @@ func (s Server) startDeveloperLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.SetCookie(w, &http.Cookie{Name: developerLoginCookie, Value: id + ":" + proof, Path: developerLoginPrefix, HttpOnly: true, Secure: s.publicOrigins.Secure, SameSite: http.SameSiteLaxMode, MaxAge: 300})
-	write(w, 200, map[string]string{"authorizeUrl": seller + "/auth/developer?request=" + url.QueryEscape(id)})
+	write(w, 200, map[string]string{"authorizeUrl": merchantLoginURL(seller, id)})
 }
 
 func (s Server) developerLoginRoutes(router chi.Router) {

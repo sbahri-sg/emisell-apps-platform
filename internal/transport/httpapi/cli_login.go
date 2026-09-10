@@ -5,7 +5,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"html/template"
 	"net/http"
-	"net/url"
 )
 
 var cliConfirmPage = template.Must(template.New("cli-login").Parse(`<!doctype html><html lang="id"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login Emisell CLI</title><style>body{margin:0;background:#0d1518;color:#e8eeee;font:16px/1.6 system-ui;min-height:100vh;display:grid;place-items:center}main{box-sizing:border-box;width:min(92vw,480px);padding:32px;background:#152326;border:1px solid #304448;border-radius:16px}h1{font-size:24px}button{font:inherit;padding:10px 20px;border:0;border-radius:8px;background:#8cf2d2;color:#0d1518;cursor:pointer}p{overflow-wrap:anywhere}a{color:#8cf2d2}</style><main><small>emisell · developer</small><h1>{{if .Done}}CLI terhubung{{else}}Izinkan login Emisell CLI?{{end}}</h1>{{if .Done}}<p>Kembali ke terminal untuk melanjutkan. Anda dapat menutup halaman ini.</p>{{else}}<p>Akun: <strong>{{.Email}}</strong></p><p>CLI dapat mengelola aplikasi developer Anda. Ini tidak memasang aplikasi atau memberi akses data toko.</p><p>Lanjutkan hanya jika Anda sendiri menjalankan login dari terminal.</p><form method="post"><input type="hidden" name="request" value="{{.Request}}"><input type="hidden" name="code" value="{{.Code}}"><button type="submit">Izinkan login CLI</button></form><p><a href="/development">Batal</a></p>{{end}}</main></html>`))
@@ -33,7 +32,7 @@ func (s Server) cliLoginRoutes(r chi.Router) {
 			return
 		}
 		w.Header().Set("Cache-Control", "no-store")
-		write(w, 200, map[string]any{"request": request, "verifier": proof, "authorizeUrl": seller + "/auth/developer?request=" + url.QueryEscape(request), "expiresIn": 300, "interval": 3})
+		write(w, 200, map[string]any{"request": request, "verifier": proof, "authorizeUrl": merchantLoginURL(seller, request), "expiresIn": 300, "interval": 3})
 	})
 	r.Post("/cli/poll", func(w http.ResponseWriter, r *http.Request) {
 		origin := s.developerBrowserOrigin(r)
